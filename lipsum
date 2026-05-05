@@ -27,7 +27,7 @@ Other Actions:
   ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
   ${bold}config, settings, prefs, preferences${reset}
                                Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
-  ${bold}sources, list-sources${reset}       List the available named source corpora.
+  ${bold}sources, list-sources${reset}       List built-in and saved source corpora with samples.
 
 Options:
   ${bold}-n, -N, --no-full-stop${reset}       Disable the full stop appended to output by default.
@@ -82,7 +82,7 @@ Examples:
   ${bold}$progname${reset} sources
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
-typeset __version='1.8.0'
+typeset __version='1.9.0'
 
 die () {
   print -u2 -- "Error: $1"
@@ -420,9 +420,71 @@ normalize_source_name () {
   print -- "${(L)name}"
 }
 
+built_in_source_name () {
+  local name="$(normalize_source_name "$1")"
+
+  case "$name" in
+    lorem|hipster|tech|pirate|food|corporate|es|fr|de)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+source_display_title () {
+  local name="$(normalize_source_name "$1")"
+
+  case "$name" in
+    lorem)
+      REPLY='Lorem Ipsum'
+      ;;
+    hipster)
+      REPLY='Hipster Ipsum'
+      ;;
+    tech)
+      REPLY='Tech Ipsum'
+      ;;
+    pirate)
+      REPLY='Pirate Ipsum'
+      ;;
+    food)
+      REPLY='Food Ipsum'
+      ;;
+    corporate)
+      REPLY='Corporate Ipsum'
+      ;;
+    es)
+      REPLY='Spanish Ipsum'
+      ;;
+    fr)
+      REPLY='French Ipsum'
+      ;;
+    de)
+      REPLY='German Ipsum'
+      ;;
+    *)
+      REPLY="${(C)${(L)${name//-/ }}}"
+      REPLY="${REPLY//_/ }"
+      ;;
+  esac
+}
+
 source_file_path () {
   local name="$(normalize_source_name "$1")"
   REPLY="$source_dir/$name.words"
+}
+
+bundled_source_file_path () {
+  local name="$(normalize_source_name "$1")"
+
+  if [[ $name == 'lorem' ]]; then
+    REPLY="$bundled_dictionary_path"
+    return
+  fi
+
+  REPLY="$bundled_source_dir/$name.words"
 }
 
 valid_source_name () {
@@ -450,6 +512,7 @@ normalize_corpus_text () {
 source_exists () {
   local name="$(normalize_source_name "$1")"
   local source_file=''
+  local bundled_source_file=''
 
   if [[ -z $name ]]; then
     return 1
@@ -457,6 +520,8 @@ source_exists () {
 
   source_file_path "$name"
   source_file="$REPLY"
+  bundled_source_file_path "$name"
+  bundled_source_file="$REPLY"
 
   if [[ $name == 'lorem' ]]; then
     if [[ -n $dictionary_override ]]; then
@@ -464,19 +529,22 @@ source_exists () {
       return 0
     fi
 
-    [[ -r $source_file || -r $legacy_dictionary_path ]] && return 0
+    [[ -r $source_file || -r $legacy_dictionary_path || -r $bundled_source_file ]] && return 0
     return 1
   fi
 
-  [[ -r $source_file ]]
+  [[ -r $source_file || -r $bundled_source_file ]]
 }
 
 resolve_source_dictionary_path () {
   local name="$(normalize_source_name "$1")"
   local source_file=''
+  local bundled_source_file=''
 
   source_file_path "$name"
   source_file="$REPLY"
+  bundled_source_file_path "$name"
+  bundled_source_file="$REPLY"
 
   if [[ $name == 'lorem' ]]; then
     if [[ -n $dictionary_override ]]; then
@@ -494,9 +562,21 @@ resolve_source_dictionary_path () {
       dictionary_path="$legacy_dictionary_path"
       return
     fi
-  elif [[ -r $source_file ]]; then
-    dictionary_path="$source_file"
-    return
+
+    if [[ -r $bundled_source_file ]]; then
+      dictionary_path="$bundled_source_file"
+      return
+    fi
+  else
+    if [[ -r $source_file ]]; then
+      dictionary_path="$source_file"
+      return
+    fi
+
+    if [[ -r $bundled_source_file ]]; then
+      dictionary_path="$bundled_source_file"
+      return
+    fi
   fi
 
   die "Source not found: $name"
@@ -523,6 +603,16 @@ available_source_names () {
     fi
   done
 
+  for file in "$bundled_source_dir"/*.words(N); do
+    base="${file:t:r}"
+    base="$(normalize_source_name "$base")"
+
+    if [[ -z ${seen[$base]} ]]; then
+      names+=( "$base" )
+      seen[$base]=1
+    fi
+  done
+
   REPLY="${(j: :)names}"
 }
 
@@ -530,22 +620,89 @@ print_available_sources () {
   local default_name="$(normalize_source_name "$default_source")"
   local source_name=''
   local -a names=()
+  local -a built_in_names=()
+  local -a custom_names=()
+  local -A available=()
 
   available_source_names
   names=( ${(s: :)REPLY} )
 
   (( ${#names[@]} > 0 )) || die "No sources are available. Install bundled sources into $source_dir first."
 
-  print -- 'Available sources:'
   for source_name in "${names[@]}"; do
-    if [[ $source_name == $default_name ]]; then
-      print -- "* $source_name (default)"
-    else
-      print -- "- $source_name"
+    available[$source_name]=1
+  done
+
+  for source_name in lorem hipster tech pirate food corporate es fr de; do
+    if [[ -n ${available[$source_name]} ]]; then
+      built_in_names+=( "$source_name" )
     fi
   done
 
+  for source_name in "${names[@]}"; do
+    if ! built_in_source_name "$source_name"; then
+      custom_names+=( "$source_name" )
+    fi
+  done
+
+  print -- 'Available Sources'
+  print -- ''
+  print_source_section 'Built-In Sources' "$default_name" "${built_in_names[@]}"
+  print_source_section 'Imported Sources' "$default_name" "${custom_names[@]}"
+  print -- "Default source: $default_name"
+
   exit 0
+}
+
+source_sample_paragraph () {
+  local source_name="$(normalize_source_name "$1")"
+
+  resolve_source_dictionary_path "$source_name"
+  load_dictionary
+
+  count=1
+  range_min=2
+  range_max=2
+  paragraph_sentence_word_min=7
+  paragraph_sentence_word_max=11
+  build_paragraphs
+}
+
+print_source_section () {
+  local heading="$1"
+  local default_name="$2"
+  shift 2
+
+  local -a names=( "$@" )
+  local source_name=''
+  local title=''
+  local sample=''
+  local default_label=''
+
+  print -- "$heading:"
+
+  if (( ${#names[@]} == 0 )); then
+    print -- '  (none)'
+    print -- ''
+    return
+  fi
+
+  for source_name in "${names[@]}"; do
+    source_display_title "$source_name"
+    title="$REPLY"
+    default_label=''
+
+    if [[ $source_name == $default_name ]]; then
+      default_label=' [default]'
+    fi
+
+    source_sample_paragraph "$source_name"
+    sample="$REPLY"
+
+    print -- "- $title (${source_name})$default_label"
+    print -- "  $sample"
+    print -- ''
+  done
 }
 
 load_dictionary () {
@@ -953,9 +1110,12 @@ typeset default_ordered_list_format='%d.'
 typeset -i copy_on_generate=0
 typeset default_source='lorem'
 
+typeset script_dir="${0:A:h}"
 typeset source_dir="${LIPSUM_SOURCE_DIR:-$HOME/.lipsum/sources}"
 typeset legacy_dictionary_path="$HOME/.lipsum/words"
 typeset dictionary_override="${LIPSUM_DICT:-}"
+typeset bundled_source_dir="$script_dir/share/sources"
+typeset bundled_dictionary_path="$script_dir/share/lorem.words"
 typeset dictionary_path=''
 typeset selected_source=''
 typeset resolved_source=''

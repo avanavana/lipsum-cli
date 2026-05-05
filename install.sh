@@ -8,7 +8,7 @@ typeset local_lipsum="$script_dir/lipsum"
 typeset local_words="$script_dir/share/lorem.words"
 typeset local_sources_dir="$script_dir/share/sources"
 typeset raw_base_url="${LIPSUM_INSTALL_RAW_BASE:-https://raw.githubusercontent.com/avanavana/lipsum-cli/main}"
-typeset -a bundled_source_names=( hipster es fr de )
+typeset -a bundled_source_names=( hipster tech pirate food corporate es fr de )
 
 typeset install_mode=''
 typeset bin_dir="${LIPSUM_INSTALL_BIN_DIR:-$HOME/.local/bin}"

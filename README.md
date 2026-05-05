@@ -43,6 +43,10 @@ The installer sets up:
 Bundled sources currently include:
 - `lorem`
 - `hipster`
+- `tech`
+- `pirate`
+- `food`
+- `corporate`
 - `es`
 - `fr`
 - `de`
@@ -118,7 +122,7 @@ If you omit the command, the default mode is `words` unless changed in config.
   - Open the config file in `$VISUAL`, `$EDITOR`, or `vi`.
 - `sources`
 - `list-sources`
-  - List the available named source corpora and mark the configured default.
+  - List built-in and imported named source corpora, show the configured default, and print a sample paragraph for each source.
 
 Notes:
 - `lipsum config` creates the config file first if it does not exist.
@@ -136,7 +140,7 @@ Notes:
 - `-t`, `-T`, `--title-case`
   - Force title-case output.
 - `-s`, `-S`, `--source name`
-  - Choose a named source corpus such as `lorem`, `hipster`, `es`, `fr`, or `de`.
+  - Choose a named source corpus such as `lorem`, `hipster`, `tech`, `pirate`, `food`, `corporate`, `es`, `fr`, or `de`.
 - `--text text|-`
   - Use inline text as the source corpus for this invocation.
   - `--text -` reads the source corpus from stdin.
@@ -215,10 +219,14 @@ You can list installed sources with:
 ./lipsum sources
 ```
 
+That screen separates built-in sources from imported custom sources, labels the current default, and shows a sample paragraph for each source.
+
 You can select a source for a single invocation with:
 
 ```sh
 ./lipsum --source hipster 8 words
+./lipsum --source tech 2 paragraphs
+./lipsum --source corporate 5 lines
 ./lipsum -s es 2 paragraphs
 ```
 
@@ -474,6 +482,7 @@ Implemented:
 - exact counts and random count ranges
 - compact short forms
 - named sources and custom source input
+- built-in alternate source styles
 - case formatting controls
 - word-length filters and per-unit ranges
 - bullets and ordered lists
@@ -482,6 +491,4 @@ Implemented:
 
 Planned next:
 
-- alternate named sources
-- importable custom corpora
 - structured formats and templates
