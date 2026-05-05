@@ -1,0 +1,1295 @@
+#!/bin/zsh
+
+emulate -L zsh
+
+typeset progname="$(basename "$0")"
+typeset bold=$'\033[1m'
+typeset reset=$'\033[0m'
+typeset config_path="${LIPSUM_CONFIG:-$HOME/.lipsum/config}"
+typeset __usage="
+Usage: ${bold}$progname${reset} [ options ] [ ${bold}count|min-max${reset} ] [ ${bold}command${reset} ]
+       ${bold}$progname${reset} [ options ] [ ${bold}command${reset} ] [ ${bold}count|min-max${reset} ]
+       ${bold}$progname${reset} [ ${bold}other-action${reset} ]
+       ${bold}$progname${reset} [ ${bold}-v/-V/--version${reset} ]
+       ${bold}$progname${reset} [ ${bold}-h/-H/--help${reset} ]
+
+Generate a custom amount of placeholder text (lipsum) in the form of words,
+characters, lines, sentences, or paragraphs. Modes are subcommands only.
+
+Commands:
+  ${bold}c, C, char, chars, character, characters${reset}
+  ${bold}w, W, word, words${reset}
+  ${bold}l, L, line, lines${reset}
+  ${bold}s, S, sent, sents, sentence, sentences${reset}
+  ${bold}p, P, para, paras, paragraph, paragraphs${reset}
+
+Other Actions:
+  ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
+  ${bold}config, settings, prefs, preferences${reset}
+                               Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
+  ${bold}sources, list-sources${reset}       List the available named source corpora.
+
+Options:
+  ${bold}-n, -N, --no-full-stop${reset}       Disable the full stop appended to output by default.
+  ${bold}-l, -L, --lowercase${reset}          Return output entirely in lowercase.
+  ${bold}-u, -U, --uppercase${reset}          Return output entirely in uppercase.
+  ${bold}-t, -T, --title-case${reset}         Return output in title case.
+  ${bold}-s, -S, --source${reset} ${bold}name${reset}         Choose a named source corpus such as ${bold}lorem${reset} or ${bold}hipster${reset}.
+  ${bold}-b, -B, --bullets${reset} [ char ]   Prefix each generated line with ${bold}char${reset} (default: '–').
+  ${bold}-o, -O, --ordered-list${reset} [ fmt ]
+                               Prefix each generated line with an ordered marker.
+                               Default format: ${bold}%d.${reset}
+  ${bold}-r, -R, --range${reset} ${bold}n|min-max${reset}
+                               ${bold}words${reset}: word length filter in characters
+                                      (defaults to config range when omitted)
+                               ${bold}lines${reset}: words per line
+                               ${bold}sentences${reset}: words per sentence
+                               ${bold}paragraphs${reset}: sentences per paragraph
+                               ${bold}characters${reset}: ignored
+  ${bold}-c, -C, --copy${reset}               Copy generated output to the clipboard and still print it.
+  ${bold}--no-copy${reset}                    Disable clipboard copying even if enabled in config.
+  ${bold}-v, -V, --version${reset}            Display the current version of this program.
+  ${bold}-h, -H, --help${reset}               Display this help text.
+
+Compact Short Forms:
+  ${bold}10c${reset}   ${bold}s2${reset}   ${bold}2-3l${reset}   ${bold}P1-3${reset}
+
+Ordered List Marker Symbols:
+  ${bold}%d${reset} = digit (1-indexed)
+  ${bold}%z${reset} = digit (0-indexed)
+  ${bold}%i${reset} = lowercase roman
+  ${bold}%I${reset} = uppercase roman
+  ${bold}%a${reset} = lowercase alphabetical
+  ${bold}%A${reset} = uppercase alphabetical
+  Numeric markers may be zero-padded, e.g. ${bold}%00z)${reset}
+
+Examples:
+  ${bold}$progname${reset} 12
+  ${bold}$progname${reset} 2 words
+  ${bold}$progname${reset} words 2
+  ${bold}$progname${reset} 3-5 words
+  ${bold}$progname${reset} 5 words -r 3-4
+  ${bold}$progname${reset} 4-6 lines -r 6-10 -b
+  ${bold}$progname${reset} 4 lines -o
+  ${bold}$progname${reset} 4 lines -o '(%A)'
+  ${bold}$progname${reset} --source hipster 8 words
+  ${bold}$progname${reset} sources
+  ${bold}$progname${reset} 3 sentences -c
+  ${bold}$progname${reset} config"
+typeset __version='1.7.0'
+
+die () {
+  print -u2 -- "Error: $1"
+  print -u2 -- ''
+  print -u2 -r -- "$__usage"
+  exit 1
+}
+
+print_usage () {
+  print -r -- "$__usage"
+  exit 0
+}
+
+print_version () {
+  print -- "$__version"
+  exit 0
+}
+
+parse_positive_spec () {
+  local value="$1"
+  local min_ref="$2"
+  local max_ref="$3"
+  local label="$4"
+  local min_value=''
+  local max_value=''
+
+  if [[ $value == <-> ]]; then
+    min_value=$value
+    max_value=$value
+  elif [[ $value == <->-<-> ]]; then
+    min_value="${value%%-*}"
+    max_value="${value##*-}"
+  else
+    return 1
+  fi
+
+  if (( min_value < 1 || max_value < 1 )); then
+    die "$label values must be greater than zero"
+  fi
+
+  if (( min_value > max_value )); then
+    die "$label range minimum cannot be greater than maximum"
+  fi
+
+  typeset -g "$min_ref=$min_value"
+  typeset -g "$max_ref=$max_value"
+  return 0
+}
+
+ensure_positive_integer () {
+  local value="$1"
+  local label="$2"
+
+  [[ $value == <-> ]] || die "$label must be a positive integer"
+  (( value > 0 )) || die "$label must be greater than zero"
+}
+
+rand_range () {
+  local -i min=$1
+  local -i max=$2
+
+  if (( max <= min )); then
+    REPLY=$min
+    return
+  fi
+
+  REPLY=$(( RANDOM % (max - min + 1) + min ))
+}
+
+capitalize_first () {
+  local text="$1"
+
+  if [[ -z $text ]]; then
+    print -- ''
+    return
+  fi
+
+  print -- "${(U)text[1]}${text[2,-1]}"
+}
+
+format_text () {
+  local text="$1"
+
+  case "$case_mode" in
+    lower)
+      text="${(L)text}"
+      ;;
+    upper)
+      text="${(U)text}"
+      ;;
+    title)
+      text="${(C)${(L)text}}"
+      ;;
+    normal)
+      text="$(capitalize_first "${(L)text}")"
+      ;;
+    *)
+      die "Unknown case mode: $case_mode"
+      ;;
+  esac
+
+  if (( punc )) && [[ $text[-1] != [.!?] ]]; then
+    text="$text."
+  fi
+
+  print -- "$text"
+}
+
+is_short_command_char () {
+  case "$1" in
+    c|C|w|W|l|L|s|S|p|P)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_content_command_name () {
+  case "$1" in
+    c|C|char|chars|character|characters|w|W|word|words|l|L|line|lines|s|S|sent|sents|sentence|sentences|p|P|para|paras|paragraph|paragraphs)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_action_name () {
+  case "$1" in
+    init|config|settings|prefs|preferences|sources|list-sources)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+set_content_command () {
+  case "$1" in
+    c|C|char|chars|character|characters)
+      content_command='characters'
+      ;;
+    w|W|word|words)
+      content_command='words'
+      ;;
+    l|L|line|lines)
+      content_command='lines'
+      ;;
+    s|S|sent|sents|sentence|sentences)
+      content_command='sentences'
+      ;;
+    p|P|para|paras|paragraph|paragraphs)
+      content_command='paragraphs'
+      ;;
+    *)
+      die "Unrecognized command: $1"
+      ;;
+  esac
+}
+
+set_action_command () {
+  case "$1" in
+    init)
+      action_command='init'
+      ;;
+    config|settings|prefs|preferences)
+      action_command='config'
+      ;;
+    sources|list-sources)
+      action_command='sources'
+      ;;
+    *)
+      die "Unrecognized action: $1"
+      ;;
+  esac
+}
+
+set_count_spec () {
+  local token="$1"
+
+  if (( count_set )); then
+    die "Multiple counts specified"
+  fi
+
+  parse_positive_spec "$token" count_min count_max 'count' || die "Invalid count: $token"
+  count_set=1
+}
+
+set_compact_command_and_count () {
+  local cmd_token="$1"
+  local count_token="$2"
+
+  if (( command_set )); then
+    die "Multiple commands specified"
+  fi
+
+  if (( count_set )); then
+    die "Multiple counts specified"
+  fi
+
+  set_content_command "$cmd_token"
+  command_set=1
+  parse_positive_spec "$count_token" count_min count_max 'count' || die "Invalid count: $count_token"
+  count_set=1
+}
+
+parse_compact_token () {
+  local token="$1"
+  local first=''
+  local last=''
+  local rest=''
+  local body=''
+
+  (( ${#token} >= 2 )) || return 1
+
+  first="${token[1]}"
+  rest="${token[2,-1]}"
+  last="${token[-1]}"
+  body="${token[1,-2]}"
+
+  if is_short_command_char "$first" && parse_positive_spec "$rest" compact_min compact_max 'count'; then
+    set_compact_command_and_count "$first" "$rest"
+    return 0
+  fi
+
+  if is_short_command_char "$last" && parse_positive_spec "$body" compact_min compact_max 'count'; then
+    set_compact_command_and_count "$last" "$body"
+    return 0
+  fi
+
+  return 1
+}
+
+read_optional_bulletchar () {
+  local next_arg="$1"
+
+  if [[ -n $next_arg && ( $next_arg == '-' || $next_arg != -* ) ]]; then
+    bulletchar="$next_arg"
+    bulletchar_set=1
+    return 0
+  fi
+
+  return 1
+}
+
+read_optional_ordered_formula () {
+  local next_arg="$1"
+
+  if [[ -n $next_arg && $next_arg != -* ]]; then
+    ordered_formula="$next_arg"
+    ordered_formula_set=1
+    return 0
+  fi
+
+  ordered_formula='%d.'
+  ordered_formula_set=1
+  return 1
+}
+
+default_config_contents () {
+  cat <<'EOF'
+# lipsum config
+# This file is sourced by the lipsum zsh script. Keep values shell-friendly.
+
+default_mode='words'
+
+default_word_count=10
+default_character_count=32
+default_line_count=5
+default_sentence_count=4
+default_paragraph_count=3
+
+default_line_range='4-8'
+default_sentence_range='6-14'
+default_paragraph_range='3-5'
+default_word_length_range='1-12'
+default_paragraph_sentence_word_range='6-14'
+
+default_bullet_char='–'
+default_ordered_list_format='%d.'
+copy_on_generate=0
+
+default_source='lorem'
+EOF
+}
+
+ensure_config_directory () {
+  local config_dir="${config_path:h}"
+  mkdir -p "$config_dir" || die "Could not create config directory: $config_dir"
+}
+
+init_config () {
+  ensure_config_directory
+
+  if [[ -e $config_path ]]; then
+    print -- "Config already exists at $config_path"
+    exit 0
+  fi
+
+  default_config_contents >| "$config_path" || die "Could not write config file: $config_path"
+  print -- "Created config file at $config_path"
+  exit 0
+}
+
+open_config () {
+  local editor="${VISUAL:-${EDITOR:-vi}}"
+  local quoted_path="${(q)config_path}"
+
+  ensure_config_directory
+
+  if [[ ! -e $config_path ]]; then
+    default_config_contents >| "$config_path" || die "Could not write config file: $config_path"
+  fi
+
+  zsh -fc "setopt nonomatch; $editor $quoted_path" || die "Editor command failed"
+
+  load_config
+  validate_config
+  print -- "Config is valid: $config_path"
+  exit 0
+}
+
+load_config () {
+  if [[ -r $config_path ]]; then
+    source "$config_path"
+  fi
+}
+
+normalize_source_name () {
+  local name="$1"
+  print -- "${(L)name}"
+}
+
+source_file_path () {
+  local name="$(normalize_source_name "$1")"
+  REPLY="$source_dir/$name.words"
+}
+
+source_exists () {
+  local name="$(normalize_source_name "$1")"
+  local source_file=''
+
+  if [[ -z $name ]]; then
+    return 1
+  fi
+
+  source_file_path "$name"
+  source_file="$REPLY"
+
+  if [[ $name == 'lorem' ]]; then
+    if [[ -n $dictionary_override ]]; then
+      [[ -r $dictionary_override ]] || die "Dictionary file not found: $dictionary_override"
+      return 0
+    fi
+
+    [[ -r $source_file || -r $legacy_dictionary_path ]] && return 0
+    return 1
+  fi
+
+  [[ -r $source_file ]]
+}
+
+resolve_source_dictionary_path () {
+  local name="$(normalize_source_name "$1")"
+  local source_file=''
+
+  source_file_path "$name"
+  source_file="$REPLY"
+
+  if [[ $name == 'lorem' ]]; then
+    if [[ -n $dictionary_override ]]; then
+      [[ -r $dictionary_override ]] || die "Dictionary file not found: $dictionary_override"
+      dictionary_path="$dictionary_override"
+      return
+    fi
+
+    if [[ -r $source_file ]]; then
+      dictionary_path="$source_file"
+      return
+    fi
+
+    if [[ -r $legacy_dictionary_path ]]; then
+      dictionary_path="$legacy_dictionary_path"
+      return
+    fi
+  elif [[ -r $source_file ]]; then
+    dictionary_path="$source_file"
+    return
+  fi
+
+  die "Source not found: $name"
+}
+
+available_source_names () {
+  local -a names=()
+  local -A seen=()
+  local file=''
+  local base=''
+
+  if source_exists 'lorem'; then
+    names+=( 'lorem' )
+    seen[lorem]=1
+  fi
+
+  for file in "$source_dir"/*.words(N); do
+    base="${file:t:r}"
+    base="$(normalize_source_name "$base")"
+
+    if [[ -z ${seen[$base]} ]]; then
+      names+=( "$base" )
+      seen[$base]=1
+    fi
+  done
+
+  REPLY="${(j: :)names}"
+}
+
+print_available_sources () {
+  local default_name="$(normalize_source_name "$default_source")"
+  local source_name=''
+  local -a names=()
+
+  available_source_names
+  names=( ${(s: :)REPLY} )
+
+  (( ${#names[@]} > 0 )) || die "No sources are available. Install bundled sources into $source_dir first."
+
+  print -- 'Available sources:'
+  for source_name in "${names[@]}"; do
+    if [[ $source_name == $default_name ]]; then
+      print -- "* $source_name (default)"
+    else
+      print -- "- $source_name"
+    fi
+  done
+
+  exit 0
+}
+
+load_dictionary () {
+  [[ -n $dictionary_path ]] || die 'No dictionary path resolved'
+  [[ -r $dictionary_path ]] || die "Dictionary file not found: $dictionary_path"
+
+  dictstring="$(<"$dictionary_path")"
+  dict=( ${(s: :)dictstring} )
+  dict_words=( ${(L)dict[@]} )
+
+  (( ${#dict[@]} > 0 )) || die "Dictionary file is empty: $dictionary_path"
+}
+
+validate_config () {
+  is_content_command_name "$default_mode" || die "Invalid default_mode in config: $default_mode"
+  default_source="$(normalize_source_name "$default_source")"
+  [[ -n $default_source ]] || die 'default_source cannot be empty'
+
+  ensure_positive_integer "$default_word_count" 'default_word_count'
+  ensure_positive_integer "$default_character_count" 'default_character_count'
+  ensure_positive_integer "$default_line_count" 'default_line_count'
+  ensure_positive_integer "$default_sentence_count" 'default_sentence_count'
+  ensure_positive_integer "$default_paragraph_count" 'default_paragraph_count'
+
+  parse_positive_spec "$default_line_range" config_line_range_min config_line_range_max 'default_line_range' || die "Invalid default_line_range in config: $default_line_range"
+  parse_positive_spec "$default_sentence_range" config_sentence_range_min config_sentence_range_max 'default_sentence_range' || die "Invalid default_sentence_range in config: $default_sentence_range"
+  parse_positive_spec "$default_paragraph_range" config_paragraph_range_min config_paragraph_range_max 'default_paragraph_range' || die "Invalid default_paragraph_range in config: $default_paragraph_range"
+  parse_positive_spec "$default_word_length_range" config_word_length_min config_word_length_max 'default_word_length_range' || die "Invalid default_word_length_range in config: $default_word_length_range"
+  parse_positive_spec "$default_paragraph_sentence_word_range" config_paragraph_sentence_word_min config_paragraph_sentence_word_max 'default_paragraph_sentence_word_range' || die "Invalid default_paragraph_sentence_word_range in config: $default_paragraph_sentence_word_range"
+
+  [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
+  source_exists "$default_source" || die "Unknown default_source in config: $default_source"
+}
+
+default_count_for_command () {
+  case "$1" in
+    characters)
+      REPLY=$default_character_count
+      ;;
+    words)
+      REPLY=$default_word_count
+      ;;
+    lines)
+      REPLY=$default_line_count
+      ;;
+    sentences)
+      REPLY=$default_sentence_count
+      ;;
+    paragraphs)
+      REPLY=$default_paragraph_count
+      ;;
+    *)
+      die "Unknown command: $1"
+      ;;
+  esac
+}
+
+copy_text () {
+  local text="$1"
+
+  if [[ -n $LIPSUM_CLIPBOARD_COMMAND ]]; then
+    printf '%s' "$text" | zsh -fc "setopt nonomatch; $LIPSUM_CLIPBOARD_COMMAND" || die "Clipboard command failed"
+    return
+  fi
+
+  if command -v pbcopy >/dev/null 2>&1; then
+    printf '%s' "$text" | pbcopy || die "pbcopy failed"
+    return
+  fi
+
+  if command -v wl-copy >/dev/null 2>&1; then
+    printf '%s' "$text" | wl-copy || die "wl-copy failed"
+    return
+  fi
+
+  if command -v xclip >/dev/null 2>&1; then
+    printf '%s' "$text" | xclip -selection clipboard || die "xclip failed"
+    return
+  fi
+
+  if command -v xsel >/dev/null 2>&1; then
+    printf '%s' "$text" | xsel --clipboard --input || die "xsel failed"
+    return
+  fi
+
+  die "No clipboard command available"
+}
+
+emit_output () {
+  local text="$1"
+
+  if (( copy_enabled )); then
+    copy_text "$text"
+  fi
+
+  print -r -- "$text"
+}
+
+int_to_roman () {
+  local -i number=$1
+  local -a values=( 1000 900 500 400 100 90 50 40 10 9 5 4 1 )
+  local -a numerals=( M CM D CD C XC L XL X IX V IV I )
+  local -i i=1
+  local result=''
+
+  while (( i <= ${#values[@]} )); do
+    while (( number >= values[i] )); do
+      result+="${numerals[i]}"
+      number=$(( number - values[i] ))
+    done
+
+    (( i++ ))
+  done
+
+  REPLY="$result"
+}
+
+int_to_alpha () {
+  local -i number=$1
+  local result=''
+  local -i remainder=0
+
+  while (( number > 0 )); do
+    remainder=$(( (number - 1) % 26 ))
+    result="$(printf "\\$(printf '%03o' $((97 + remainder)))")$result"
+    number=$(( (number - 1) / 26 ))
+  done
+
+  REPLY="$result"
+}
+
+parse_ordered_formula () {
+  local formula="$1"
+  local prefix=''
+  local suffix=''
+  local zeros=''
+  local kind=''
+
+  ordered_prefix=''
+  ordered_suffix=''
+  ordered_kind=''
+  ordered_width=0
+
+  if [[ $formula =~ '^(.*)%([0]*)([dz])(.*)$' ]]; then
+    prefix="$match[1]"
+    zeros="$match[2]"
+    kind="$match[3]"
+    suffix="$match[4]"
+    ordered_width=$(( ${#zeros} + 1 ))
+  elif [[ $formula =~ '^(.*)%([iIaA])(.*)$' ]]; then
+    prefix="$match[1]"
+    kind="$match[2]"
+    suffix="$match[3]"
+    ordered_width=0
+  else
+    die "Invalid ordered list format: $formula"
+  fi
+
+  if [[ $prefix$suffix == *%* ]]; then
+    die "Ordered list format may contain only one marker"
+  fi
+
+  ordered_prefix="$prefix"
+  ordered_suffix="$suffix"
+  ordered_kind="$kind"
+}
+
+ordered_marker () {
+  local -i index=$1
+  local value=''
+  local -i zero_index=$(( index - 1 ))
+
+  case "$ordered_kind" in
+    d)
+      value="$(printf "%0*d" "$ordered_width" "$index")"
+      ;;
+    z)
+      value="$(printf "%0*d" "$ordered_width" "$zero_index")"
+      ;;
+    i)
+      int_to_roman "$index"
+      value="${(L)REPLY}"
+      ;;
+    I)
+      int_to_roman "$index"
+      value="$REPLY"
+      ;;
+    a)
+      int_to_alpha "$index"
+      value="$REPLY"
+      ;;
+    A)
+      int_to_alpha "$index"
+      value="${(U)REPLY}"
+      ;;
+    *)
+      die "Unknown ordered list marker kind: $ordered_kind"
+      ;;
+  esac
+
+  REPLY="${ordered_prefix}${value}${ordered_suffix}"
+}
+
+apply_line_prefix () {
+  local text="$1"
+  local -i index=$2
+
+  if (( ordered_list )); then
+    ordered_marker "$index"
+    print -- "$REPLY $text"
+    return
+  fi
+
+  if (( bullets )); then
+    print -- "$bulletchar $text"
+    return
+  fi
+
+  print -- "$text"
+}
+
+random_words () {
+  local -i requested_count=$1
+  local -a words=()
+  local -i total=0
+
+  if (( word_length_filter_set )); then
+    total=${#filtered_words[@]}
+    (( total > 0 )) || die "No words match the requested range"
+
+    while (( ${#words[@]} < requested_count )); do
+      rand_range 1 "$total"
+      words+=( "${filtered_words[REPLY]}" )
+    done
+  else
+    total=${#dict_words[@]}
+
+    while (( ${#words[@]} < requested_count )); do
+      local -i remaining=$(( requested_count - ${#words[@]} ))
+      local -i chunk=$remaining
+
+      if (( chunk > total )); then
+        chunk=$total
+      fi
+
+      local -i max_start=$(( total - chunk + 1 ))
+      rand_range 1 "$max_start"
+      local -i start=$REPLY
+      local -a segment=( $dict_words[$start,$(( start + chunk - 1 ))] )
+      words+=( "${segment[@]}" )
+    done
+  fi
+
+  REPLY="${(j: :)words}"
+}
+
+random_sentence () {
+  local -i word_count=$1
+  random_words "$word_count"
+  REPLY="$(format_text "$REPLY")"
+}
+
+build_characters () {
+  local -i requested_count=$count
+  local source="$dictstring"
+  local -i max_start=0
+  local -i start=1
+  local text=''
+
+  while (( ${#source} < requested_count + 1 )); do
+    source+=" $dictstring"
+  done
+
+  max_start=$(( ${#source} - requested_count ))
+
+  while :; do
+    rand_range 1 "$max_start"
+    start=$REPLY
+    text="${source[$start,$(( start + requested_count - 1 ))]}"
+
+    if [[ $text[1] != ' ' && $text[-1] != ' ' ]]; then
+      break
+    fi
+  done
+
+  REPLY="$(format_text "$text")"
+}
+
+build_words () {
+  random_words "$count"
+  REPLY="$(format_text "$REPLY")"
+}
+
+build_lines () {
+  local -a lines=()
+  local -i index=1
+  local output=''
+  local line=''
+
+  while (( index <= count )); do
+    rand_range "$range_min" "$range_max"
+    random_words "$REPLY"
+    lines+=( "$(apply_line_prefix "$(format_text "$REPLY")" "$index")" )
+    (( index++ ))
+  done
+
+  for line in "${lines[@]}"; do
+    if [[ -n $output ]]; then
+      output+=$'\n'
+    fi
+
+    output+="$line"
+  done
+
+  REPLY="$output"
+}
+
+build_sentences () {
+  local -a sentences=()
+  local -i index=1
+
+  while (( index <= count )); do
+    rand_range "$range_min" "$range_max"
+    random_sentence "$REPLY"
+    sentences+=( "$REPLY" )
+    (( index++ ))
+  done
+
+  REPLY="${(j: :)sentences}"
+}
+
+build_paragraphs () {
+  local -a paragraphs=()
+  local -i paragraph_index=1
+  local output=''
+  local paragraph=''
+
+  while (( paragraph_index <= count )); do
+    local -a sentences=()
+    local -i sentence_count=0
+    local -i sentence_index=1
+
+    rand_range "$range_min" "$range_max"
+    sentence_count=$REPLY
+
+    while (( sentence_index <= sentence_count )); do
+      rand_range "$paragraph_sentence_word_min" "$paragraph_sentence_word_max"
+      random_sentence "$REPLY"
+      sentences+=( "$REPLY" )
+      (( sentence_index++ ))
+    done
+
+    paragraphs+=( "${(j: :)sentences}" )
+    (( paragraph_index++ ))
+  done
+
+  for paragraph in "${paragraphs[@]}"; do
+    if [[ -n $output ]]; then
+      output+=$'\n\n'
+    fi
+
+    output+="$paragraph"
+  done
+
+  REPLY="$output"
+}
+
+typeset default_mode='words'
+typeset -i default_word_count=10
+typeset -i default_character_count=32
+typeset -i default_line_count=5
+typeset -i default_sentence_count=4
+typeset -i default_paragraph_count=3
+typeset default_line_range='4-8'
+typeset default_sentence_range='6-14'
+typeset default_paragraph_range='3-5'
+typeset default_word_length_range='1-12'
+typeset default_paragraph_sentence_word_range='6-14'
+typeset default_bullet_char='–'
+typeset default_ordered_list_format='%d.'
+typeset -i copy_on_generate=0
+typeset default_source='lorem'
+
+typeset source_dir="${LIPSUM_SOURCE_DIR:-$HOME/.lipsum/sources}"
+typeset legacy_dictionary_path="$HOME/.lipsum/words"
+typeset dictionary_override="${LIPSUM_DICT:-}"
+typeset dictionary_path=''
+typeset selected_source=''
+typeset resolved_source=''
+typeset dictstring=''
+typeset -a dict=()
+typeset -a dict_words=()
+
+typeset content_command=''
+typeset action_command=''
+typeset -i command_set=0
+typeset -i action_set=0
+typeset -i source_set=0
+typeset -i count_set=0
+typeset -i count_min=0
+typeset -i count_max=0
+typeset -i count=0
+typeset case_mode='normal'
+typeset -i punc=1
+typeset -i bullets=0
+typeset -i ordered_list=0
+typeset bulletchar=''
+typeset ordered_formula=''
+typeset -i bulletchar_set=0
+typeset -i ordered_formula_set=0
+typeset -i range_set=0
+typeset -i range_min=0
+typeset -i range_max=0
+typeset -i word_length_filter_set=0
+typeset -a filtered_words=()
+typeset -i paragraph_sentence_word_min=0
+typeset -i paragraph_sentence_word_max=0
+typeset -i copy_override=-1
+typeset -i copy_enabled=0
+typeset ordered_prefix=''
+typeset ordered_suffix=''
+typeset ordered_kind=''
+typeset -i ordered_width=0
+
+typeset -i max_characters=${LIPSUM_MAX_CHARACTERS:-200000}
+typeset -i max_words=${LIPSUM_MAX_WORDS:-50000}
+typeset -i max_lines=${LIPSUM_MAX_LINES:-10000}
+typeset -i max_sentences=${LIPSUM_MAX_SENTENCES:-10000}
+typeset -i max_paragraphs=${LIPSUM_MAX_PARAGRAPHS:-2000}
+
+while (( $# > 0 )); do
+  case "$1" in
+    --bullets)
+      bullets=1
+      if read_optional_bulletchar "$2"; then
+        shift
+      fi
+      ;;
+    --bullets=*)
+      bullets=1
+      bulletchar="${1#*=}"
+      bulletchar_set=1
+      ;;
+    --ordered-list)
+      ordered_list=1
+      if read_optional_ordered_formula "$2"; then
+        shift
+      fi
+      ;;
+    --ordered-list=*)
+      ordered_list=1
+      ordered_formula="${1#*=}"
+      ordered_formula_set=1
+      ;;
+    -r|-R)
+      [[ -n $2 ]] || die "Missing range for $1"
+      parse_positive_spec "$2" range_min range_max 'length' || die "Invalid length range: $2"
+      range_set=1
+      shift
+      ;;
+    -r=*|-R=*)
+      parse_positive_spec "${1#*=}" range_min range_max 'length' || die "Invalid length range: ${1#*=}"
+      range_set=1
+      ;;
+    --range)
+      [[ -n $2 ]] || die "Missing range for --range"
+      parse_positive_spec "$2" range_min range_max 'length' || die "Invalid length range: $2"
+      range_set=1
+      shift
+      ;;
+    --range=*)
+      parse_positive_spec "${1#*=}" range_min range_max 'length' || die "Invalid length range: ${1#*=}"
+      range_set=1
+      ;;
+    -c|-C|--copy)
+      copy_override=1
+      ;;
+    --no-copy)
+      copy_override=0
+      ;;
+    --no-full-stop)
+      punc=0
+      ;;
+    --source)
+      [[ -n $2 ]] || die "Missing source name for --source"
+      selected_source="$(normalize_source_name "$2")"
+      source_set=1
+      shift
+      ;;
+    --source=*)
+      selected_source="$(normalize_source_name "${1#*=}")"
+      source_set=1
+      ;;
+    --lowercase)
+      case_mode='lower'
+      ;;
+    --uppercase)
+      case_mode='upper'
+      ;;
+    --title-case)
+      case_mode='title'
+      ;;
+    --version)
+      print_version
+      ;;
+    --help)
+      print_usage
+      ;;
+    --*)
+      die "Illegal option $1"
+      ;;
+    -?*)
+      local cluster="${1#-}"
+      local -i index=1
+
+      if [[ -z $cluster || $cluster =~ [^A-Za-z] ]]; then
+        die "Illegal option $1"
+      fi
+
+      while (( index <= ${#cluster} )); do
+        local short_opt="${cluster[index]}"
+
+        case "$short_opt" in
+          n|N)
+            punc=0
+            ;;
+          l|L)
+            case_mode='lower'
+            ;;
+          u|U)
+            case_mode='upper'
+            ;;
+          t|T)
+            case_mode='title'
+            ;;
+          b|B)
+            bullets=1
+            if (( index == ${#cluster} )) && read_optional_bulletchar "$2"; then
+              shift
+            fi
+            ;;
+          o|O)
+            ordered_list=1
+            if (( index == ${#cluster} )) && read_optional_ordered_formula "$2"; then
+              shift
+            else
+              ordered_formula='%d.'
+              ordered_formula_set=1
+            fi
+            ;;
+          r|R)
+            if (( index != ${#cluster} )); then
+              die "Option -$short_opt requires a separate argument"
+            fi
+
+            [[ -n $2 ]] || die "Missing range for -$short_opt"
+            parse_positive_spec "$2" range_min range_max 'length' || die "Invalid length range: $2"
+            range_set=1
+            shift
+            ;;
+          s|S)
+            if (( index != ${#cluster} )); then
+              die "Option -$short_opt requires a separate argument"
+            fi
+
+            [[ -n $2 ]] || die "Missing source name for -$short_opt"
+            selected_source="$(normalize_source_name "$2")"
+            source_set=1
+            shift
+            ;;
+          c|C)
+            copy_override=1
+            ;;
+          v|V)
+            print_version
+            ;;
+          h|H)
+            print_usage
+            ;;
+          *)
+            die "Illegal option -$short_opt"
+            ;;
+        esac
+
+        (( index++ ))
+      done
+      ;;
+    *)
+      if is_action_name "$1"; then
+        if (( action_set )); then
+          die "Multiple actions specified"
+        fi
+
+        set_action_command "$1"
+        action_set=1
+      elif is_content_command_name "$1"; then
+        if (( command_set )); then
+          die "Multiple commands specified"
+        fi
+
+        set_content_command "$1"
+        command_set=1
+      elif parse_positive_spec "$1" compact_count_min compact_count_max 'count'; then
+        set_count_spec "$1"
+      elif parse_compact_token "$1"; then
+        :
+      else
+        die "Unknown argument: $1"
+      fi
+      ;;
+  esac
+
+  shift
+done
+
+if (( action_set )); then
+  if (( command_set || count_set || source_set || bullets || ordered_list || range_set || copy_override >= 0 || ! punc )) || [[ $case_mode != 'normal' ]]; then
+    die "The action '$action_command' cannot be combined with generation options or commands"
+  fi
+
+  case "$action_command" in
+    init)
+      init_config
+      ;;
+    config)
+      open_config
+      ;;
+  esac
+fi
+
+load_config
+validate_config
+
+if (( action_set )) && [[ $action_command == 'sources' ]]; then
+  print_available_sources
+fi
+
+if (( source_set )); then
+  resolved_source="$selected_source"
+else
+  resolved_source="$default_source"
+fi
+
+resolve_source_dictionary_path "$resolved_source"
+load_dictionary
+
+if (( command_set )); then
+  :
+else
+  set_content_command "$default_mode"
+fi
+
+if (( bulletchar_set )); then
+  :
+else
+  bulletchar="$default_bullet_char"
+fi
+
+if (( ordered_list )) && (( ! ordered_formula_set )); then
+  ordered_formula="$default_ordered_list_format"
+  ordered_formula_set=1
+fi
+
+if (( copy_override >= 0 )); then
+  copy_enabled=$copy_override
+else
+  copy_enabled=$copy_on_generate
+fi
+
+if (( count_set )); then
+  rand_range "$count_min" "$count_max"
+  count=$REPLY
+else
+  default_count_for_command "$content_command"
+  count=$REPLY
+fi
+
+if (( bullets && ordered_list )); then
+  die "Use either bullets or ordered-list, not both"
+fi
+
+case "$content_command" in
+  words)
+    if (( range_set )); then
+      local_word_length_min=$range_min
+      local_word_length_max=$range_max
+    else
+      local_word_length_min=$config_word_length_min
+      local_word_length_max=$config_word_length_max
+    fi
+
+    word_length_filter_set=1
+    filtered_words=()
+
+    for word in "${dict_words[@]}"; do
+      local -i word_length=${#word}
+      if (( word_length >= local_word_length_min && word_length <= local_word_length_max )); then
+        filtered_words+=( "$word" )
+      fi
+    done
+    ;;
+  lines)
+    if (( ! range_set )); then
+      range_min=$config_line_range_min
+      range_max=$config_line_range_max
+    fi
+
+    if (( ordered_list )); then
+      parse_ordered_formula "$ordered_formula"
+    fi
+    ;;
+  sentences)
+    if (( ! range_set )); then
+      range_min=$config_sentence_range_min
+      range_max=$config_sentence_range_max
+    fi
+    ;;
+  paragraphs)
+    if (( ! range_set )); then
+      range_min=$config_paragraph_range_min
+      range_max=$config_paragraph_range_max
+    fi
+
+    paragraph_sentence_word_min=$config_paragraph_sentence_word_min
+    paragraph_sentence_word_max=$config_paragraph_sentence_word_max
+    ;;
+  characters)
+    :
+    ;;
+esac
+
+if (( ordered_list )) && [[ $content_command != 'lines' ]]; then
+  die "--ordered-list is only valid with lines"
+fi
+
+case "$content_command" in
+  characters)
+    (( count <= max_characters )) || die "Character count capped at $max_characters. Set LIPSUM_MAX_CHARACTERS to raise it."
+    ;;
+  words)
+    (( count <= max_words )) || die "Word count capped at $max_words. Set LIPSUM_MAX_WORDS to raise it."
+    ;;
+  lines)
+    (( count <= max_lines )) || die "Line count capped at $max_lines. Set LIPSUM_MAX_LINES to raise it."
+    ;;
+  sentences)
+    (( count <= max_sentences )) || die "Sentence count capped at $max_sentences. Set LIPSUM_MAX_SENTENCES to raise it."
+    ;;
+  paragraphs)
+    (( count <= max_paragraphs )) || die "Paragraph count capped at $max_paragraphs. Set LIPSUM_MAX_PARAGRAPHS to raise it."
+    ;;
+esac
+
+case "$content_command" in
+  characters)
+    build_characters
+    ;;
+  words)
+    build_words
+    ;;
+  lines)
+    build_lines
+    ;;
+  sentences)
+    build_sentences
+    ;;
+  paragraphs)
+    build_paragraphs
+    ;;
+  *)
+    die "Unknown command: $content_command"
+    ;;
+esac
+
+emit_output "$REPLY"
