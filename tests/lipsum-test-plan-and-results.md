@@ -1,6 +1,6 @@
 # lipsum Test Plan And Results
 
-Generated: 2026-05-05 11:55:10 EDT
+Generated: 2026-05-05 12:39:40 EDT
 
 Scripts under test:
 - [/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum](/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum)
@@ -18,6 +18,7 @@ Coverage areas:
 - Top-level count ranges such as `3-5 words`.
 - Internal range handling for words, lines, sentences, paragraphs, and characters.
 - Named source selection and source discovery.
+- Ad hoc source input from text, files, stdin, and saved custom sources.
 - Case formatting: lowercase, uppercase, and title case.
 - Bullets and ordered lists.
 - Config commands and config-driven defaults.
@@ -96,6 +97,12 @@ Coverage areas:
 - TC66 Installer: Defaults mode installs the executable, config, corpus, bundled sources, and support directories into a temp HOME.
 - TC67 Installer: Interactive mode accepts step-by-step input and can change the default mode before installation.
 - TC68 Installer: Editor-config mode creates a config file, validates it, and leaves a working installed executable.
+- TC69 Custom Sources: Inline text can be used as a one-off source corpus.
+- TC70 Custom Sources: A file can provide a one-off source corpus.
+- TC71 Custom Sources: Stdin can provide a one-off source corpus via --text -.
+- TC72 Custom Sources: Custom input can be saved as a reusable named source.
+- TC73 Errors: Custom source input and named source selection cannot be combined.
+- TC74 Errors: Saving a source without custom input fails cleanly.
 
 ## Execution Results
 
@@ -150,6 +157,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -188,6 +198,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -203,7 +216,7 @@ Long version flag returns the version string.
 Exit status: 0
 
 ```text
-1.7.0
+1.8.0
 ```
 
 ### TC04 Defaults
@@ -216,7 +229,7 @@ Bare invocation uses the default words mode.
 Exit status: 0
 
 ```text
-Fermentum sed rhoncus odio neque cursus suscipit mi orci at.
+Ac pharetra iaculis tellus velit enim tempor efficitur pulvinar euismod.
 ```
 
 ### TC05 Defaults
@@ -229,7 +242,7 @@ A bare numeric argument is treated as a default word count.
 Exit status: 0
 
 ```text
-Et dui morbi ac posuere libero.
+Vehicula lorem id faucibus eleifend imperdiet.
 ```
 
 ### TC06 Words
@@ -242,7 +255,7 @@ Count before mode works for exact word counts.
 Exit status: 0
 
 ```text
-Rhoncus convallis.
+Suspendisse curae.
 ```
 
 ### TC07 Words
@@ -255,7 +268,7 @@ Mode before count still works for exact word counts.
 Exit status: 0
 
 ```text
-Ultrices curabitur.
+Magna egestas.
 ```
 
 ### TC08 Words
@@ -268,7 +281,7 @@ A top-level count range works for default words mode.
 Exit status: 0
 
 ```text
-3
+5
 ```
 
 ### TC09 Words
@@ -281,7 +294,7 @@ A top-level count range works with an explicit word subcommand.
 Exit status: 0
 
 ```text
-4
+5
 ```
 
 ### TC10 Words
@@ -307,7 +320,7 @@ Count before the characters subcommand works.
 Exit status: 0
 
 ```text
-Que non justo lobortis mattis in vel metus sed porta nunc eget commodo lobortis mauris libero effici.
+Vivamus vestibulum tempus tempus aliquam feugiat viverra eros eget pretium justo fusce tristique ero.
 ```
 
 ### TC12 Characters
@@ -320,7 +333,7 @@ Character count ranges resolve to a random exact count.
 Exit status: 0
 
 ```text
-27
+24
 ```
 
 ### TC13 Characters
@@ -346,11 +359,11 @@ Typical website bullet use case uses shorter default line lengths.
 Exit status: 0
 
 ```text
-– Justo mi vestibulum blandit nisl non nulla auctor.
-– Vel maximus quis ligula.
-– Cursus ante finibus proin eu blandit libero.
-– Fermentum lacinia tristique phasellus dui.
-– Pulvinar duis porttitor lacus nisl sed.
+– Convallis augue et nibh dignissim ullamcorper suspendisse.
+– Mollis mauris vel nisi ut magna placerat auctor.
+– Gravida proin viverra non neque.
+– Tincidunt integer tincidunt purus ut nibh.
+– Lectus purus ut venenatis lacus ut quam.
 ```
 
 ### TC15 Lines
@@ -365,8 +378,10 @@ Exit status: 0
 ```text
 8
 10
+10
 6
-9
+8
+10
 ```
 
 ### TC16 Lines
@@ -384,8 +399,7 @@ Exit status: 0
 3
 3
 3
-3
-6
+5
 ```
 
 ### TC17 Sentences
@@ -398,7 +412,7 @@ Default sentences mode generates the requested number of sentences.
 Exit status: 0
 
 ```text
-Quis faucibus sed vulputate sed nisi. A urna non varius commodo odio sed varius.
+Ex a lectus aliquam venenatis donec posuere pretium risus ut dui arcu rutrum a. Tristique senectus et netus et malesuada fames ac turpis egestas integer ac purus.
 ```
 
 ### TC18 Sentences
@@ -427,9 +441,9 @@ Default paragraphs mode emits multiple paragraphs with blank-line separation.
 Exit status: 0
 
 ```text
-Ut ex pretium tristique vestibulum ullamcorper suscipit ligula vitae feugiat. Nunc a velit lectus interdum et. Libero neque lobortis nec nisl finibus semper posuere justo sed in pharetra orci eu.
+Vivamus ac fringilla sem suspendisse id maximus risus fusce ut pharetra risus. Justo lobortis et duis venenatis diam lectus ut varius libero placerat non suspendisse. Amet imperdiet in mi donec quam. Consequat venenatis quam lorem ipsum dolor sit amet consectetur.
 
-Vel faucibus dui mi at ante nulla maximus sed diam nec. Libero vel risus pellentesque ultrices ipsum eget justo. Maecenas ante arcu ornare eu felis ac elementum. Euismod id volutpat diam efficitur aenean imperdiet tincidunt nulla non efficitur phasellus dignissim cursus. Vivamus ex tortor varius ut elit ut sodales volutpat sapien mauris non semper.
+Sit amet dui consequat hendrerit pellentesque et justo. In faucibus orci luctus et ultrices posuere cubilia curae sed eget malesuada. Habitasse platea dictumst etiam vitae nibh tempus nibh blandit. Dictum rutrum pellentesque efficitur dui eu. Iaculis libero eget consequat accumsan sed porta tristique augue nec convallis sem gravida id.
 ```
 
 ### TC20 Paragraphs
@@ -482,7 +496,7 @@ Compact range+command suffix form works.
 Exit status: 0
 
 ```text
-2
+3
 ```
 
 ### TC24 Compact Forms
@@ -508,7 +522,7 @@ Lowercase output works with the new lowercase option.
 Exit status: 0
 
 ```text
-gravida congue nulla sodales
+sed praesent magna fringilla
 ```
 
 ### TC26 Case
@@ -521,7 +535,7 @@ Uppercase output works.
 Exit status: 0
 
 ```text
-UT MORBI ODIO MAGNA
+NON SED LOBORTIS MI
 ```
 
 ### TC27 Case
@@ -534,7 +548,7 @@ Title case output works.
 Exit status: 0
 
 ```text
-Dictum Placerat Condimentum Malesuada
+Non Cubilia Euismod Habitant
 ```
 
 ### TC28 Ordered Lists
@@ -547,9 +561,9 @@ Default ordered lists use numeric markers.
 Exit status: 0
 
 ```text
-1. In hac habitasse platea dictumst etiam vitae nibh.
-2. Augue et nibh dignissim.
-3. Fermentum molestie cras sed commodo quam donec sit.
+1. Erat maecenas neque purus aliquet eu sodales.
+2. Condimentum rutrum donec faucibus elit.
+3. Nam eu dictum est integer mattis.
 ```
 
 ### TC29 Ordered Lists
@@ -562,10 +576,10 @@ Ordered list formulas support alphabetic markers.
 Exit status: 0
 
 ```text
-(A) Tristique suscipit lorem a lacinia.
-(B) Faucibus orci luctus et ultrices posuere.
-(C) Enim maecenas a tempor felis in in.
-(D) Elit eget tempus accumsan.
+(A) Ut rutrum varius odio a venenatis.
+(B) Libero a bibendum quam.
+(C) Ante sagittis vel sodales nisi.
+(D) Sit amet mi sit.
 ```
 
 ### TC30 Ordered Lists
@@ -578,9 +592,9 @@ Ordered list formulas support zero-padded zero-indexed digits.
 Exit status: 0
 
 ```text
-000) Enim sed ipsum tristique imperdiet.
-001) Ut metus curabitur vel ante in neque.
-002) Non mi suspendisse tincidunt aliquet augue a.
+000) Quis consectetur diam cursus ut aliquet magna quis.
+001) Dignissim ullamcorper suspendisse maximus elit.
+002) Sed eget aliquet libero interdum et malesuada.
 ```
 
 ### TC31 Config Actions
@@ -694,8 +708,8 @@ mkdir -p '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/tests/test-a
 Exit status: 0
 
 ```text
-stdout=cras mi semper orci
-clipboard=cras mi semper orci
+stdout=iaculis velit dapibus sed
+clipboard=iaculis velit dapibus sed
 ```
 
 ### TC38 Copy
@@ -708,8 +722,8 @@ mkdir -p '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/tests/test-a
 Exit status: 0
 
 ```text
-stdout=lectus auctor mauris lorem
-clipboard=lectus auctor mauris lorem
+stdout=varius dapibus tincidunt gravida
+clipboard=varius dapibus tincidunt gravida
 ```
 
 ### TC39 Copy
@@ -722,7 +736,7 @@ mkdir -p '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/tests/test-a
 Exit status: 0
 
 ```text
-stdout=sit maecenas et ac
+stdout=sit donec sed amet
 clipboard_exists=1
 ```
 
@@ -767,6 +781,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -805,6 +822,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -851,6 +871,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -889,6 +912,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -935,6 +961,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -973,6 +1002,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1019,6 +1051,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1057,6 +1092,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1103,6 +1141,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1141,6 +1182,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1187,6 +1231,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1225,6 +1272,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1271,6 +1321,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1309,6 +1362,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1355,6 +1411,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1393,6 +1452,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1439,6 +1501,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1477,6 +1542,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1523,6 +1591,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1561,6 +1632,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1607,6 +1681,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1645,6 +1722,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1691,6 +1771,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1729,6 +1812,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1775,6 +1861,9 @@ Options:
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
   [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -1813,6 +1902,9 @@ Examples:
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
   [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1828,9 +1920,9 @@ for n in 3 4 5; do '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/li
 Exit status: 0
 
 ```text
-– Urna proin malesuada.
-– Varius dui aliquam a.
-– Consectetur nulla purus vitae orci.
+– Phasellus nec faucibus.
+– Augue scelerisque pulvinar nam.
+– Habitasse platea dictumst aenean pulvinar.
 ```
 
 ### TC54 Shell Integration
@@ -1843,8 +1935,8 @@ printf '4\n6\n' | while read -r n; do '/Users/avanavana/Documents/Projects/Code/
 Exit status: 0
 
 ```text
-diam nec fringilla condimentum.
-sit amet mi eget enim porta.
+posuere turpis dapibus fusce.
+euismod suspendisse dignissim dignissim tempor donec.
 ```
 
 ### TC55 Shell Integration
@@ -1857,8 +1949,8 @@ printf '3\n5\n' | xargs -I{} zsh -c "'/Users/avanavana/Documents/Projects/Code/s
 Exit status: 0
 
 ```text
-– Bibendum ac erat.
-– Eu consectetur leo sed accumsan.
+– Feugiat sem in.
+– Nullam justo quam volutpat ut.
 ```
 
 ### TC56 Shell Integration
@@ -1871,7 +1963,7 @@ printf '[%s]\n' "$('/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/li
 Exit status: 0
 
 ```text
-[eu sagittis sodales malesuada]
+[malesuada eu placerat commodo]
 ```
 
 ### TC57 Shell Integration
@@ -1884,7 +1976,7 @@ printf 'stdin is ignored here\n' | '/Users/avanavana/Documents/Projects/Code/she
 Exit status: 0
 
 ```text
-Elit mi dapibus tincidunt elit.
+Venenatis orci turpis fringilla libero.
 ```
 
 ### TC58 Shell Integration
@@ -1897,14 +1989,15 @@ Paragraph output can be piped into fold for visual wrapping.
 Exit status: 0
 
 ```text
-Ipsum primis in faucibus aliquam erat 
-volutpat duis. Nec rutrum pellentesque 
-et nulla id eros posuere interdum 
-phasellus id sodales dui sed. Fermentum 
-odio viverra donec fermentum imperdiet. 
-Enim eros at nulla aliquam quis aliquam 
-dui nec hendrerit nunc. Quis in in 
-porttitor est duis vel cursus diam sed.
+Interdum sapien neque consectetur mi ac 
+sagittis felis est. Odio nunc bibendum 
+auctor metus vitae tincidunt donec at 
+tincidunt tellus suspendisse. Finibus 
+lacinia justo vel commodo nulla feugiat 
+urna. Dignissim malesuada mattis 
+maecenas vestibulum id. Est integer 
+mattis convallis egestas mauris luctus 
+ultrices dui nec vestibulum.
 ```
 
 ### TC59 Shell Integration
@@ -1917,10 +2010,10 @@ Bullet output can be piped into line numbering for visual review.
 Exit status: 0
 
 ```text
-     1	– Fermentum justo sed aliquam non felis at.
-     2	– Fermentum molestie cras sed commodo quam donec.
-     3	– Volutpat proin tempus velit.
-     4	– Sit amet risus sed viverra.
+     1	– Nibh consequat quis nullam.
+     2	– Elit ornare efficitur vitae nec magna nulla facilisi.
+     3	– Parturient montes nascetur ridiculus mus.
+     4	– Augue placerat vitae duis mattis.
 ```
 
 ### TC60 Shell Integration
@@ -1933,14 +2026,14 @@ Word output can be piped into newline transforms for tokenized display.
 Exit status: 0
 
 ```text
-per
+ipsum
+placerat
+non
 in
-ligula
-a
-auctor
-curabitur
-blandit
-tempus
+aliquam
+placerat
+sem
+metus
 ```
 
 ### TC61 Sources
@@ -2021,14 +2114,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IDJlOlaHr8/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IDJlOlaHr8/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IDJlOlaHr8/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IDJlOlaHr8/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IDJlOlaHr8/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.mxVJCHJWYJ/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.mxVJCHJWYJ/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.mxVJCHJWYJ/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.mxVJCHJWYJ/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.mxVJCHJWYJ/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IDJlOlaHr8/.local/bin to your PATH to run lipsum directly.
-interdum duis aptent et
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.mxVJCHJWYJ/.local/bin to your PATH to run lipsum directly.
+iaculis iaculis odio purus
 ```
 
 ### TC67 Installer
@@ -2046,114 +2139,114 @@ Default mode
 This controls what a bare `lipsum` command generates.
 
 Preview:
-Luctus nunc congue vivamus mauris curabitur in molestie sapien et.
+Duis arcu gravida fermentum tellus aptent quam tortor imperdiet elit.
 
 Default mode [words] (words/characters/lines/sentences/paragraphs): 
 Default source
 Choose the source corpus used by default. Available: lorem hipster es fr de.
 
 Preview:
-ac eros egestas scelerisque justo quis
+quisque aliquet euismod viverra gravida pellentesque
 
 Default source [lorem]: 
 Default word count
 Used when your default mode is words and you run `lipsum` with no count.
 
 Preview:
-Egestas quam curabitur volutpat et mollis ligula augue et arcu.
+Eu efficitur vel eleifend urna a erat morbi lectus mauris.
 
 Default word count [10]: 
 Default character count
 Used when your default mode is characters and you run `lipsum` with no count.
 
 Preview:
-Lit facilisis at magna sed ullam
+Rem ac porta nunc orci ac lectus
 
 Default character count [32]: 
 Default line count
 Used when your default mode is lines and you run `lipsum` with no count.
 
 Preview:
-– Sed convallis a ex aliquam non.
-– Justo id leo gravida pretium.
-– Suscipit sagittis felis mauris quis magna elementum.
-– Scelerisque malesuada proin ante mi.
-– Non blandit eros curabitur convallis dapibus quam et.
+– Aliquam erat volutpat cras quis justo in urna.
+– Semper augue dictum vitae phasellus.
+– Eu nulla ut nunc malesuada.
+– Aliquam erat volutpat ut dignissim.
+– In magna arcu fusce bibendum nibh.
 
 Default line count [5]: 
 Default sentence count
 Used when your default mode is sentences and you run `lipsum` with no count.
 
 Preview:
-In posuere nulla sit amet finibus euismod suspendisse dignissim dignissim tempor donec. Arcu id neque rhoncus pulvinar a eget odio cras gravida tellus. Lectus purus eget accumsan odio malesuada at ut consectetur malesuada eleifend vivamus. Mollis ullamcorper curabitur iaculis molestie nisi a ullamcorper.
+Erat vel tincidunt arcu tempus eget integer eu. Suspendisse semper sapien id est iaculis malesuada. Finibus lacinia justo vel commodo nulla feugiat urna ligula a ultricies leo. Velit pharetra eu feugiat magna accumsan vestibulum semper dolor ut.
 
 Default sentence count [4]: 
 Default paragraph count
 Used when your default mode is paragraphs and you run `lipsum` with no count.
 
 Preview:
-Id elementum tortor consectetur nunc imperdiet elementum tempus nulla ante nulla. Curabitur vel ante in neque lacinia pharetra quisque urna. Eu turpis ac nibh scelerisque ultrices vitae in ipsum aliquam faucibus pretium augue in. Leo cras non ligula elementum commodo lacus a molestie risus in quis.
+Sed lobortis at aliquet eu purus vestibulum non ipsum. Fames ac ante ipsum primis in faucibus nullam eu mauris ex. Orci ex congue justo quis luctus tortor mi et risus nullam eu. Ut nisi tempor consectetur arcu at ultrices dui class. Ante ipsum primis in faucibus donec et.
 
-Nunc morbi quis ex at lacus rutrum sagittis quis id sem phasellus id ligula. Faucibus vestibulum ante ipsum primis in faucibus orci luctus et. Rutrum lacus cras ac nisl dictum. Quis ultrices enim orci varius natoque penatibus et.
+Gravida nulla ut hendrerit nunc lacinia ullamcorper dapibus sed ac turpis non nisl egestas. Donec quam ante sollicitudin et leo quis. Ex tortor varius ut elit ut sodales volutpat sapien mauris non semper.
 
-Ut elit ut sodales volutpat sapien mauris non semper. Dignissim mi molestie nam enim arcu venenatis sed finibus vel malesuada vitae dolor mauris. Imperdiet odio ut consectetur nulla purus.
+Diam nisi at massa nulla facilisi. Enim id hendrerit vivamus suscipit nisl ac eleifend tempor nulla. Massa efficitur purus ut bibendum augue felis at tellus aliquam ligula est. Convallis sem gravida id nullam volutpat risus nec lacus vestibulum.
 
 Default paragraph count [3]: 
 Default word length range
 Controls the character length of generated words when no explicit range is provided.
 
 Preview:
-pharetra nisl tempus in tortor vivamus
+pulvinar interdum erat arcu quis eu
 
 Default word length range [1-12]: 
 Default line range
 Controls the number of words in each generated line.
 
 Preview:
-– augue sed convallis augue et nibh dignissim
-– varius purus congue in
-– vel maximus quis ligula quisque mi magna
+– ex tempor ullamcorper fusce eleifend metus ut lacus
+– et ullamcorper tincidunt tortor suspendisse
+– vel maximus quis ligula
 
 Default line range [4-8]: 
 Default sentence range
 Controls the number of words in each generated sentence.
 
 Preview:
-porttitor suspendisse luctus nibh vitae lectus pellentesque in pharetra. in nunc vehicula tincidunt sed sit amet mi nulla eget vulputate.
+massa eget viverra quam est ac turpis aliquam. ac dapibus rutrum neque praesent nec magna felis cras eu.
 
 Default sentence range [6-14]: 
 Default paragraph range
 Controls the number of sentences in each generated paragraph.
 
 Preview:
-Fringilla nulla id augue euismod tristique nibh ut rutrum ex aenean sed dictum. Mollis fringilla aenean consectetur leo et. Magna orci malesuada nibh eget elementum purus orci. Et massa mauris orci varius natoque penatibus et magnis dis parturient montes nascetur ridiculus. Pulvinar enim phasellus molestie et orci sit amet tincidunt praesent purus eros fermentum.
+Nulla libero non mi suspendisse tincidunt aliquet augue a egestas. Convallis curabitur convallis lectus risus nec tristique. Facilisis mollis urna praesent at mi sit amet elit ornare. Non at magna in aliquam congue turpis vitae ullamcorper orci molestie nec mauris nec. Condimentum vitae ante nullam libero neque lobortis nec nisl finibus semper.
 
-Dictum sed etiam in nunc sapien interdum. Enim ultricies condimentum lorem sed aliquet arcu morbi. Etiam vitae dolor tincidunt elit tristique feugiat sit amet vel turpis nam. Lacinia ullamcorper dapibus sed ac turpis non nisl egestas scelerisque vestibulum justo nisi.
+Nunc proin id diam gravida dui blandit finibus praesent egestas feugiat maximus morbi. Pellentesque sodales sapien dui varius elit in laoreet turpis lectus vel leo. Imperdiet ex ac convallis metus venenatis eget. Pretium at aenean convallis elit quis vehicula venenatis aliquam sodales massa libero.
 
 Default paragraph range [3-5]: 
 Default paragraph sentence word range
 Controls the number of words in each sentence inside paragraph output.
 
 Preview:
-Vehicula tincidunt etiam massa turpis porttitor quis ullamcorper. Leo consectetur semper donec quis sodales magna sit amet eleifend nulla morbi efficitur vitae. Maecenas dictum rhoncus mauris quis consequat. Vitae nulla ornare tortor in est convallis et aliquam. Etiam eleifend bibendum suscipit fusce mi turpis volutpat nec ultricies volutpat pellentesque.
+Risus euismod consequat non at magna in aliquam congue. Vel sem quisque sagittis at orci ut pellentesque integer dapibus ante. Dui nulla metus mauris efficitur non.
 
 Default paragraph sentence word range [6-14]: 
 Default bullet character
 Used by `lipsum lines -b` when no explicit bullet character is provided.
 
 Preview:
-– eu malesuada enim nulla facilisi sed at
-– primis in faucibus orci luctus
-– felis id aliquam urna aenean sapien
+– ut commodo donec pretium quam nec
+– augue venenatis ut cursus posuere
+– non consequat odio venenatis
 
 Default bullet character [–]: 
 Default ordered list format
 Used by `lipsum lines -o` when no explicit ordered marker format is provided.
 
 Preview:
-1. Ultricies venenatis nisi ligula aliquam.
-2. Feugiat ligula id tellus suscipit nec.
-3. Montes nascetur ridiculus mus nam eget est.
+1. Convallis lectus risus nec.
+2. Laoreet posuere scelerisque curabitur.
+3. Lobortis tincidunt vestibulum vitae ullamcorper.
 
 Default ordered list format [%d.]: 
 Copy on generate
@@ -2163,13 +2256,13 @@ Current default: no
 
 Copy on generate [no] (yes/no): 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Qh0COG9pim/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Qh0COG9pim/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Qh0COG9pim/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Qh0COG9pim/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Qh0COG9pim/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.MR7wDPycYZ/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.MR7wDPycYZ/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.MR7wDPycYZ/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.MR7wDPycYZ/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.MR7wDPycYZ/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Qh0COG9pim/.local/bin to your PATH to run lipsum directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.MR7wDPycYZ/.local/bin to your PATH to run lipsum directly.
 5
 ```
 
@@ -2185,13 +2278,243 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.ZXiU12MuRP/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.ZXiU12MuRP/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.ZXiU12MuRP/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.ZXiU12MuRP/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.ZXiU12MuRP/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.akxV66BnY9/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.akxV66BnY9/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.akxV66BnY9/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.akxV66BnY9/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.akxV66BnY9/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.ZXiU12MuRP/.local/bin to your PATH to run lipsum directly.
-viverra nec purus
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.akxV66BnY9/.local/bin to your PATH to run lipsum directly.
+pellentesque egestas mi
+```
+
+### TC69 Custom Sources
+Inline text can be used as a one-off source corpus.
+
+```sh
+'/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --text 'alpha beta gamma delta epsilon' 5 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' <(printf 'alpha beta gamma delta epsilon\n') -
+```
+
+Exit status: 0
+
+```text
+```
+
+### TC70 Custom Sources
+A file can provide a one-off source corpus.
+
+```sh
+tmp='$(mktemp)'; printf 'maple river lantern harbor velvet canyon' > "$tmp"; out="$('/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --file "$tmp" 5 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' "$tmp" - 2>&1)"; rc=$?; rm -f "$tmp"; printf '%s\n' "$out"; exit $rc
+```
+
+Exit status: 0
+
+```text
+```
+
+### TC71 Custom Sources
+Stdin can provide a one-off source corpus via --text -.
+
+```sh
+printf 'violet cedar ember meadow signal\n' | '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --text - 5 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' <(printf 'violet cedar ember meadow signal\n') -
+```
+
+Exit status: 0
+
+```text
+```
+
+### TC72 Custom Sources
+Custom input can be saved as a reusable named source.
+
+```sh
+tmp_home="$(mktemp -d)"; first="$(HOME="$tmp_home" '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --text 'atlas ember harbor signal twilight' --save-source customdemo 5 words -n -l)"; second="$(HOME="$tmp_home" '/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --source customdemo 5 words -n -l)"; printf 'first=%s\nsecond=%s\n' "$first" "$second"; test -f "$tmp_home/.lipsum/sources/customdemo.words"; rc=$?; rm -rf "$tmp_home"; exit $rc
+```
+
+Exit status: 0
+
+```text
+first=twilight ember harbor signal ember
+second=harbor twilight atlas twilight signal
+```
+
+### TC73 Errors
+Custom source input and named source selection cannot be combined.
+
+```sh
+'/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --source hipster --text 'alpha beta gamma' 3 words
+```
+
+Exit status: 1
+
+```text
+Error: Use either --source or custom source input, not both
+
+
+Usage: [1mlipsum[0m [ options ] [ [1mcount|min-max[0m ] [ [1mcommand[0m ]
+       [1mlipsum[0m [ options ] [ [1mcommand[0m ] [ [1mcount|min-max[0m ]
+       [1mlipsum[0m [ [1mother-action[0m ]
+       [1mlipsum[0m [ [1m-v/-V/--version[0m ]
+       [1mlipsum[0m [ [1m-h/-H/--help[0m ]
+
+Generate a custom amount of placeholder text (lipsum) in the form of words,
+characters, lines, sentences, or paragraphs. Modes are subcommands only.
+
+Commands:
+  [1mc, C, char, chars, character, characters[0m
+  [1mw, W, word, words[0m
+  [1ml, L, line, lines[0m
+  [1ms, S, sent, sents, sentence, sentences[0m
+  [1mp, P, para, paras, paragraph, paragraphs[0m
+
+Other Actions:
+  [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
+  [1mconfig, settings, prefs, preferences[0m
+                               Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
+  [1msources, list-sources[0m       List the available named source corpora.
+
+Options:
+  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
+  [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
+  [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
+  [1m-t, -T, --title-case[0m         Return output in title case.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
+  [1m-o, -O, --ordered-list[0m [ fmt ]
+                               Prefix each generated line with an ordered marker.
+                               Default format: [1m%d.[0m
+  [1m-r, -R, --range[0m [1mn|min-max[0m
+                               [1mwords[0m: word length filter in characters
+                                      (defaults to config range when omitted)
+                               [1mlines[0m: words per line
+                               [1msentences[0m: words per sentence
+                               [1mparagraphs[0m: sentences per paragraph
+                               [1mcharacters[0m: ignored
+  [1m-c, -C, --copy[0m               Copy generated output to the clipboard and still print it.
+  [1m--no-copy[0m                    Disable clipboard copying even if enabled in config.
+  [1m-v, -V, --version[0m            Display the current version of this program.
+  [1m-h, -H, --help[0m               Display this help text.
+
+Compact Short Forms:
+  [1m10c[0m   [1ms2[0m   [1m2-3l[0m   [1mP1-3[0m
+
+Ordered List Marker Symbols:
+  [1m%d[0m = digit (1-indexed)
+  [1m%z[0m = digit (0-indexed)
+  [1m%i[0m = lowercase roman
+  [1m%I[0m = uppercase roman
+  [1m%a[0m = lowercase alphabetical
+  [1m%A[0m = uppercase alphabetical
+  Numeric markers may be zero-padded, e.g. [1m%00z)[0m
+
+Examples:
+  [1mlipsum[0m 12
+  [1mlipsum[0m 2 words
+  [1mlipsum[0m words 2
+  [1mlipsum[0m 3-5 words
+  [1mlipsum[0m 5 words -r 3-4
+  [1mlipsum[0m 4-6 lines -r 6-10 -b
+  [1mlipsum[0m 4 lines -o
+  [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
+  [1mlipsum[0m sources
+  [1mlipsum[0m 3 sentences -c
+  [1mlipsum[0m config
+```
+
+### TC74 Errors
+Saving a source without custom input fails cleanly.
+
+```sh
+'/Users/avanavana/Documents/Projects/Code/shell/lipsum-cli/lipsum' --save-source customdemo 3 words
+```
+
+Exit status: 1
+
+```text
+Error: --save-source requires --text or --file input
+
+
+Usage: [1mlipsum[0m [ options ] [ [1mcount|min-max[0m ] [ [1mcommand[0m ]
+       [1mlipsum[0m [ options ] [ [1mcommand[0m ] [ [1mcount|min-max[0m ]
+       [1mlipsum[0m [ [1mother-action[0m ]
+       [1mlipsum[0m [ [1m-v/-V/--version[0m ]
+       [1mlipsum[0m [ [1m-h/-H/--help[0m ]
+
+Generate a custom amount of placeholder text (lipsum) in the form of words,
+characters, lines, sentences, or paragraphs. Modes are subcommands only.
+
+Commands:
+  [1mc, C, char, chars, character, characters[0m
+  [1mw, W, word, words[0m
+  [1ml, L, line, lines[0m
+  [1ms, S, sent, sents, sentence, sentences[0m
+  [1mp, P, para, paras, paragraph, paragraphs[0m
+
+Other Actions:
+  [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
+  [1mconfig, settings, prefs, preferences[0m
+                               Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
+  [1msources, list-sources[0m       List the available named source corpora.
+
+Options:
+  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
+  [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
+  [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
+  [1m-t, -T, --title-case[0m         Return output in title case.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
+  [1m-o, -O, --ordered-list[0m [ fmt ]
+                               Prefix each generated line with an ordered marker.
+                               Default format: [1m%d.[0m
+  [1m-r, -R, --range[0m [1mn|min-max[0m
+                               [1mwords[0m: word length filter in characters
+                                      (defaults to config range when omitted)
+                               [1mlines[0m: words per line
+                               [1msentences[0m: words per sentence
+                               [1mparagraphs[0m: sentences per paragraph
+                               [1mcharacters[0m: ignored
+  [1m-c, -C, --copy[0m               Copy generated output to the clipboard and still print it.
+  [1m--no-copy[0m                    Disable clipboard copying even if enabled in config.
+  [1m-v, -V, --version[0m            Display the current version of this program.
+  [1m-h, -H, --help[0m               Display this help text.
+
+Compact Short Forms:
+  [1m10c[0m   [1ms2[0m   [1m2-3l[0m   [1mP1-3[0m
+
+Ordered List Marker Symbols:
+  [1m%d[0m = digit (1-indexed)
+  [1m%z[0m = digit (0-indexed)
+  [1m%i[0m = lowercase roman
+  [1m%I[0m = uppercase roman
+  [1m%a[0m = lowercase alphabetical
+  [1m%A[0m = uppercase alphabetical
+  Numeric markers may be zero-padded, e.g. [1m%00z)[0m
+
+Examples:
+  [1mlipsum[0m 12
+  [1mlipsum[0m 2 words
+  [1mlipsum[0m words 2
+  [1mlipsum[0m 3-5 words
+  [1mlipsum[0m 5 words -r 3-4
+  [1mlipsum[0m 4-6 lines -r 6-10 -b
+  [1mlipsum[0m 4 lines -o
+  [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
+  [1mlipsum[0m sources
+  [1mlipsum[0m 3 sentences -c
+  [1mlipsum[0m config
 ```
 

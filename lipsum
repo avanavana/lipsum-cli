@@ -35,6 +35,9 @@ Options:
   ${bold}-u, -U, --uppercase${reset}          Return output entirely in uppercase.
   ${bold}-t, -T, --title-case${reset}         Return output in title case.
   ${bold}-s, -S, --source${reset} ${bold}name${reset}         Choose a named source corpus such as ${bold}lorem${reset} or ${bold}hipster${reset}.
+  ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the source corpus.
+  ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the source corpus for this invocation.
+  ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable named source.
   ${bold}-b, -B, --bullets${reset} [ char ]   Prefix each generated line with ${bold}char${reset} (default: '–').
   ${bold}-o, -O, --ordered-list${reset} [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -73,10 +76,13 @@ Examples:
   ${bold}$progname${reset} 4 lines -o
   ${bold}$progname${reset} 4 lines -o '(%A)'
   ${bold}$progname${reset} --source hipster 8 words
+  ${bold}$progname${reset} --text 'alpha beta gamma delta' 3 words
+  ${bold}$progname${reset} --file ./notes.txt 2 paragraphs
+  ${bold}curl -fsSL https://example.com | $progname${reset} --text - --save-source example-site 5 lines
   ${bold}$progname${reset} sources
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
-typeset __version='1.7.0'
+typeset __version='1.8.0'
 
 die () {
   print -u2 -- "Error: $1"
@@ -419,6 +425,28 @@ source_file_path () {
   REPLY="$source_dir/$name.words"
 }
 
+valid_source_name () {
+  local name="$(normalize_source_name "$1")"
+  [[ -n $name && $name =~ '^[a-z0-9][a-z0-9_-]*$' ]]
+}
+
+normalize_corpus_text () {
+  local text="$1"
+
+  text="${text//$'\r'/ }"
+  text="${text//$'\n'/ }"
+  text="${text//$'\t'/ }"
+
+  while [[ $text == *'  '* ]]; do
+    text="${text//  / }"
+  done
+
+  text="${text#"${text%%[![:space:]]*}"}"
+  text="${text%"${text##*[![:space:]]}"}"
+
+  print -- "$text"
+}
+
 source_exists () {
   local name="$(normalize_source_name "$1")"
   local source_file=''
@@ -524,11 +552,33 @@ load_dictionary () {
   [[ -n $dictionary_path ]] || die 'No dictionary path resolved'
   [[ -r $dictionary_path ]] || die "Dictionary file not found: $dictionary_path"
 
-  dictstring="$(<"$dictionary_path")"
+  dictstring="$(normalize_corpus_text "$(<"$dictionary_path")")"
   dict=( ${(s: :)dictstring} )
   dict_words=( ${(L)dict[@]} )
 
   (( ${#dict[@]} > 0 )) || die "Dictionary file is empty: $dictionary_path"
+}
+
+load_dictionary_from_text () {
+  local source_text="$1"
+
+  dictstring="$(normalize_corpus_text "$source_text")"
+  dict=( ${(s: :)dictstring} )
+  dict_words=( ${(L)dict[@]} )
+
+  (( ${#dict[@]} > 0 )) || die 'Custom source text did not contain any usable words'
+}
+
+save_source_text () {
+  local name="$(normalize_source_name "$1")"
+  local source_text="$2"
+  local source_path=''
+
+  valid_source_name "$name" || die "Invalid source name: $1"
+  mkdir -p "$source_dir" || die "Could not create source directory: $source_dir"
+  source_file_path "$name"
+  source_path="$REPLY"
+  print -r -- "$source_text" >| "$source_path" || die "Could not write source file: $source_path"
 }
 
 validate_config () {
@@ -549,7 +599,9 @@ validate_config () {
   parse_positive_spec "$default_paragraph_sentence_word_range" config_paragraph_sentence_word_min config_paragraph_sentence_word_max 'default_paragraph_sentence_word_range' || die "Invalid default_paragraph_sentence_word_range in config: $default_paragraph_sentence_word_range"
 
   [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
-  source_exists "$default_source" || die "Unknown default_source in config: $default_source"
+  if (( ! source_set && ! custom_source_set )); then
+    source_exists "$default_source" || die "Unknown default_source in config: $default_source"
+  fi
 }
 
 default_count_for_command () {
@@ -907,6 +959,9 @@ typeset dictionary_override="${LIPSUM_DICT:-}"
 typeset dictionary_path=''
 typeset selected_source=''
 typeset resolved_source=''
+typeset custom_source_text=''
+typeset custom_source_file=''
+typeset save_source_name=''
 typeset dictstring=''
 typeset -a dict=()
 typeset -a dict_words=()
@@ -916,6 +971,7 @@ typeset action_command=''
 typeset -i command_set=0
 typeset -i action_set=0
 typeset -i source_set=0
+typeset -i custom_source_set=0
 typeset -i count_set=0
 typeset -i count_min=0
 typeset -i count_max=0
@@ -1010,6 +1066,34 @@ while (( $# > 0 )); do
     --source=*)
       selected_source="$(normalize_source_name "${1#*=}")"
       source_set=1
+      ;;
+    --text)
+      [[ -n $2 ]] || die "Missing text value for --text"
+      custom_source_text="$2"
+      custom_source_set=1
+      shift
+      ;;
+    --text=*)
+      custom_source_text="${1#*=}"
+      custom_source_set=1
+      ;;
+    --file)
+      [[ -n $2 ]] || die "Missing file path for --file"
+      custom_source_file="$2"
+      custom_source_set=1
+      shift
+      ;;
+    --file=*)
+      custom_source_file="${1#*=}"
+      custom_source_set=1
+      ;;
+    --save-source)
+      [[ -n $2 ]] || die "Missing source name for --save-source"
+      save_source_name="$(normalize_source_name "$2")"
+      shift
+      ;;
+    --save-source=*)
+      save_source_name="$(normalize_source_name "${1#*=}")"
       ;;
     --lowercase)
       case_mode='lower'
@@ -1134,7 +1218,7 @@ while (( $# > 0 )); do
 done
 
 if (( action_set )); then
-  if (( command_set || count_set || source_set || bullets || ordered_list || range_set || copy_override >= 0 || ! punc )) || [[ $case_mode != 'normal' ]]; then
+  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || ! punc )) || [[ $case_mode != 'normal' ]]; then
     die "The action '$action_command' cannot be combined with generation options or commands"
   fi
 
@@ -1155,14 +1239,51 @@ if (( action_set )) && [[ $action_command == 'sources' ]]; then
   print_available_sources
 fi
 
+if (( source_set && custom_source_set )); then
+  die 'Use either --source or custom source input, not both'
+fi
+
+if [[ -n $save_source_name ]] && (( ! custom_source_set )); then
+  die '--save-source requires --text or --file input'
+fi
+
+if [[ -n $custom_source_text && -n $custom_source_file ]]; then
+  die 'Use either --text or --file, not both'
+fi
+
+if [[ -n $save_source_name ]]; then
+  valid_source_name "$save_source_name" || die "Invalid source name: $save_source_name"
+fi
+
 if (( source_set )); then
   resolved_source="$selected_source"
 else
   resolved_source="$default_source"
 fi
 
-resolve_source_dictionary_path "$resolved_source"
-load_dictionary
+if (( custom_source_set )); then
+  if [[ -n $custom_source_file ]]; then
+    [[ -r $custom_source_file ]] || die "Source file not found: $custom_source_file"
+    custom_source_text="$(<"$custom_source_file")"
+  elif [[ $custom_source_text == '-' ]]; then
+    custom_source_text="$(cat)"
+  fi
+
+  custom_source_text="$(normalize_corpus_text "$custom_source_text")"
+  [[ -n $custom_source_text ]] || die 'Custom source text is empty'
+
+  if [[ -n $save_source_name ]]; then
+    save_source_text "$save_source_name" "$custom_source_text"
+    resolved_source="$save_source_name"
+  else
+    resolved_source='custom'
+  fi
+
+  load_dictionary_from_text "$custom_source_text"
+else
+  resolve_source_dictionary_path "$resolved_source"
+  load_dictionary
+fi
 
 if (( command_set )); then
   :

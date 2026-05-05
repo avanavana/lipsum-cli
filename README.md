@@ -14,6 +14,7 @@ Current utility features:
 - exact counts and random count ranges
 - compact one-token short forms like `10c`, `s2`, `2-3l`, `P1-3`
 - named source corpora with `--source`
+- ad hoc source input from text, files, or stdin
 - internal range controls
 - lowercase, uppercase, and title-case output
 - bullets and ordered lists for line output
@@ -136,6 +137,13 @@ Notes:
   - Force title-case output.
 - `-s`, `-S`, `--source name`
   - Choose a named source corpus such as `lorem`, `hipster`, `es`, `fr`, or `de`.
+- `--text text|-`
+  - Use inline text as the source corpus for this invocation.
+  - `--text -` reads the source corpus from stdin.
+- `--file path`
+  - Use a file's contents as the source corpus for this invocation.
+- `--save-source name`
+  - Save custom text or file input as a reusable named source under `~/.lipsum/sources/`.
 - `-b`, `-B`, `--bullets [char]`
   - Prefix each generated line with a bullet marker.
 - `-o`, `-O`, `--ordered-list [fmt]`
@@ -224,6 +232,21 @@ Source lookup works like this:
 - for `lorem`, the CLI first uses `LIPSUM_DICT` when set, then `~/.lipsum/sources/lorem.words`, then the legacy `~/.lipsum/words`
 - for other source names, the CLI loads `~/.lipsum/sources/<name>.words`
 
+You can also generate from one-off input without installing a source first:
+
+```sh
+./lipsum --text 'alpha beta gamma delta epsilon' 3 words
+./lipsum --file ./notes.txt 2 paragraphs
+printf 'violet cedar ember meadow signal' | ./lipsum --text - 4 words
+```
+
+To save custom input for reuse:
+
+```sh
+printf 'atlas ember harbor signal twilight' | ./lipsum --text - --save-source customdemo 4 words
+./lipsum --source customdemo 6 words
+```
+
 ### Words
 
 For `words`, `--range` filters generated words by character length.
@@ -303,6 +326,7 @@ Basic usage:
 ./lipsum
 ./lipsum 8
 ./lipsum --source fr 8 words
+./lipsum --text 'alpha beta gamma delta epsilon' 3 words
 ./lipsum 100 characters
 ./lipsum 3 paragraphs
 ```
@@ -449,6 +473,7 @@ Implemented:
 - subcommand-only generation modes
 - exact counts and random count ranges
 - compact short forms
+- named sources and custom source input
 - case formatting controls
 - word-length filters and per-unit ranges
 - bullets and ordered lists
