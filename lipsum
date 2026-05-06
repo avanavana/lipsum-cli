@@ -189,10 +189,52 @@ format_text () {
   esac
 
   if (( punc )) && [[ $text[-1] != [.!?] ]]; then
-    text="$text."
+    text="$(append_terminal_punctuation "$text")"
   fi
 
   print -- "$text"
+}
+
+token_is_emoji_token () {
+  local token="$1"
+
+  [[ -n ${emoji_lookup[$token]} ]]
+}
+
+append_terminal_punctuation () {
+  local text="$1"
+  local -a tokens=()
+  local -i index=0
+
+  if [[ -z $text ]]; then
+    print -- '.'
+    return
+  fi
+
+  tokens=( ${(s: :)text} )
+  index=${#tokens[@]}
+
+  while (( index > 0 )); do
+    if token_is_emoji_token "${tokens[index]}"; then
+      (( index-- ))
+      continue
+    fi
+
+    break
+  done
+
+  if (( index <= 0 )); then
+    print -- "$text."
+    return
+  fi
+
+  if (( index == ${#tokens[@]} )); then
+    print -- "$text."
+    return
+  fi
+
+  tokens[index]="${tokens[index]}."
+  print -- "${(j: :)tokens}"
 }
 
 is_short_command_char () {
@@ -537,6 +579,12 @@ load_emoji_pool () {
 
   emoji_charset="$(normalize_emoji_charset "$emoji_charset")"
   emoji_pool=( ${(s: :)emoji_charset} )
+  emoji_lookup=()
+
+  local emoji=''
+  for emoji in "${emoji_pool[@]}"; do
+    emoji_lookup[$emoji]=1
+  done
 
   if (( required )) && (( ${#emoji_pool[@]} == 0 )); then
     die 'emoji_charset cannot be empty'
@@ -1371,6 +1419,7 @@ typeset ordered_suffix=''
 typeset ordered_kind=''
 typeset -i ordered_width=0
 typeset -a emoji_pool=()
+typeset -A emoji_lookup=()
 
 typeset -i max_characters=${LIPSUM_MAX_CHARACTERS:-200000}
 typeset -i max_words=${LIPSUM_MAX_WORDS:-50000}

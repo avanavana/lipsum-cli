@@ -1,6 +1,6 @@
 # lipsum Test Plan And Results
 
-Generated: 2026-05-05 20:38:03 EDT
+Generated: 2026-05-05 21:17:13 EDT
 
 Scripts under test:
 - [/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum](/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum)
@@ -107,6 +107,7 @@ Coverage areas:
 - TC75 Emoji: Explicit emoji mode mixes weighted emoji into word output without changing the requested word count.
 - TC76 Emoji: Config-driven emoji defaults can be disabled for one invocation with --no-emoji.
 - TC77 Emoji: Character mode can append sparse emoji while keeping output visually message-like.
+- TC78 Emoji: Full stops stay attached to the text when character output ends with trailing emoji.
 
 ## Execution Results
 
@@ -237,7 +238,7 @@ Bare invocation uses the default words mode.
 Exit status: 0
 
 ```text
-Ultricies morbi sem ante vitae luctus vitae amet suscipit habitasse.
+Vitae convallis commodo fringilla etiam id massa euismod condimentum ut.
 ```
 
 ### TC05 Defaults
@@ -250,7 +251,7 @@ A bare numeric argument is treated as a default word count.
 Exit status: 0
 
 ```text
-Nisl quam a et magna et.
+Arcu blandit suscipit diam mauris eu.
 ```
 
 ### TC06 Words
@@ -263,7 +264,7 @@ Count before mode works for exact word counts.
 Exit status: 0
 
 ```text
-Luctus condimentum.
+Ultrices ullamcorper.
 ```
 
 ### TC07 Words
@@ -276,7 +277,7 @@ Mode before count still works for exact word counts.
 Exit status: 0
 
 ```text
-Ipsum imperdiet.
+Quis mattis.
 ```
 
 ### TC08 Words
@@ -289,7 +290,7 @@ A top-level count range works for default words mode.
 Exit status: 0
 
 ```text
-5
+4
 ```
 
 ### TC09 Words
@@ -302,7 +303,7 @@ A top-level count range works with an explicit word subcommand.
 Exit status: 0
 
 ```text
-5
+3
 ```
 
 ### TC10 Words
@@ -328,7 +329,7 @@ Count before the characters subcommand works.
 Exit status: 0
 
 ```text
-T tristique nunc a velit lectus interdum et malesuada fames ac ante ipsum primis in faucibus vestibu.
+Allis dapibus quam et vestibulum erat maecenas neque purus aliquet eu sodales in volutpat at neque m.
 ```
 
 ### TC12 Characters
@@ -341,7 +342,7 @@ Character count ranges resolve to a random exact count.
 Exit status: 0
 
 ```text
-30
+27
 ```
 
 ### TC13 Characters
@@ -367,11 +368,11 @@ Typical website bullet use case uses shorter default line lengths.
 Exit status: 0
 
 ```text
-– Nulla a malesuada felis congue at.
-– Cursus lobortis maecenas eleifend bibendum lacus eget.
-– Vitae commodo interdum sapien neque consectetur.
-– Efficitur elit eget tempus accumsan magna.
-– Nullam eleifend accumsan felis.
+– Enim sed vestibulum euismod turpis.
+– Quis varius dolor fusce dictum mauris id libero.
+– Odio id pharetra ligula.
+– A quisque semper metus ac interdum mollis.
+– Suspendisse quis augue egestas molestie felis quis.
 ```
 
 ### TC15 Lines
@@ -384,11 +385,12 @@ Random top-level line counts and internal line lengths both work together.
 Exit status: 0
 
 ```text
+7
 9
-7
-7
+6
+6
 10
-10
+7
 ```
 
 ### TC16 Lines
@@ -405,9 +407,7 @@ Exit status: 0
 3
 3
 3
-3
-3
-6
+4
 ```
 
 ### TC17 Sentences
@@ -420,7 +420,7 @@ Default sentences mode generates the requested number of sentences.
 Exit status: 0
 
 ```text
-Viverra sed pulvinar a massa tristique tristique morbi luctus lectus. Lacus ut aliquam lacus dictum et in sit amet.
+Efficitur turpis vivamus et massa mauris orci varius natoque penatibus et magnis dis. Nec est vehicula cursus ut id lacus etiam auctor tellus in dolor laoreet.
 ```
 
 ### TC18 Sentences
@@ -435,6 +435,8 @@ Exit status: 0
 ```text
 5
 5
+5
+5
 ```
 
 ### TC19 Paragraphs
@@ -447,9 +449,9 @@ Default paragraphs mode emits multiple paragraphs with blank-line separation.
 Exit status: 0
 
 ```text
-Non faucibus est consequat eu mauris eget velit urna morbi viverra. Eu ex tempor ullamcorper fusce eleifend metus ut lacus cursus dapibus nam eleifend. Leo nec egestas purus sapien et nisi interdum et malesuada fames ac. Egestas velit pharetra eu feugiat magna accumsan vestibulum semper dolor ut venenatis. Mauris iaculis suscipit curabitur iaculis vel metus at ullamcorper quisque accumsan nisl vitae porttitor.
+Pellentesque justo in fermentum bibendum felis vivamus volutpat arcu quis nisi malesuada vitae. Pellentesque integer dapibus ante interdum ante. Quis luctus tortor mi et risus nullam eu turpis. Fusce elementum arcu est phasellus molestie tortor lacus euismod euismod augue. Maximus sed diam nec porta maecenas lacinia urna at ante sagittis.
 
-Sed dui rutrum consectetur diam a. Vehicula ex vel scelerisque elementum ligula massa tincidunt neque ut sagittis quam. Blandit sed phasellus quis bibendum velit non. Ullamcorper suscipit ligula vitae feugiat etiam fringilla sapien vitae auctor convallis.
+Pulvinar eget nunc ac porta praesent vitae auctor sapien ac ultrices ex mauris pharetra. Quam fusce arcu nisi pellentesque sed libero vel pharetra dignissim dolor. Faucibus porttitor varius ac tortor aenean nec finibus orci. Laoreet ut in diam lobortis pulvinar velit a rutrum sem vivamus.
 ```
 
 ### TC20 Paragraphs
@@ -515,7 +517,7 @@ Compact command+range prefix form works.
 Exit status: 0
 
 ```text
-3
+1
 ```
 
 ### TC25 Case
@@ -528,7 +530,7 @@ Lowercase output works with the new lowercase option.
 Exit status: 0
 
 ```text
-mauris morbi ligula rutrum
+blandit maximus neque eget
 ```
 
 ### TC26 Case
@@ -541,7 +543,7 @@ Uppercase output works.
 Exit status: 0
 
 ```text
-PHARETRA NULLAM NEC DUI
+NUNC AUGUE EX MAURIS
 ```
 
 ### TC27 Case
@@ -554,7 +556,7 @@ Title case output works.
 Exit status: 0
 
 ```text
-Gravida Ac Integer Sed
+Elementum Est Consectetur Ac
 ```
 
 ### TC28 Ordered Lists
@@ -567,9 +569,9 @@ Default ordered lists use numeric markers.
 Exit status: 0
 
 ```text
-1. Malesuada vitae egestas magna tempor.
-2. Nunc ac porta praesent vitae auctor.
-3. Est viverra lacinia eget ut leo nam.
+1. Purus ut bibendum augue felis at tellus.
+2. Pulvinar aliquet donec iaculis elementum.
+3. Pellentesque condimentum libero nullam at leo consectetur.
 ```
 
 ### TC29 Ordered Lists
@@ -582,10 +584,10 @@ Ordered list formulas support alphabetic markers.
 Exit status: 0
 
 ```text
-(A) Risus a rutrum sem in a ipsum.
-(B) Volutpat fermentum metus at vehicula nunc.
-(C) Cursus sed congue quam non mauris.
-(D) Metus eu maximus eleifend.
+(A) Pharetra nulla in vestibulum velit eu.
+(B) Vitae felis eget enim tempor dictum non.
+(C) Proin vestibulum commodo magna et egestas nisl sagittis.
+(D) At neque morbi vitae tristique est vivamus.
 ```
 
 ### TC30 Ordered Lists
@@ -598,9 +600,9 @@ Ordered list formulas support zero-padded zero-indexed digits.
 Exit status: 0
 
 ```text
-000) Sollicitudin diam quis sapien pretium vel.
-001) Commodo donec pretium quam nec consequat.
-002) Ac ante ipsum primis.
+000) Arcu ac facilisis mollis.
+001) Mauris bibendum ullamcorper facilisis mauris vehicula quam et.
+002) Vitae egestas magna tempor suspendisse.
 ```
 
 ### TC31 Config Actions
@@ -714,8 +716,8 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=libero est ante dapibus
-clipboard=libero est ante dapibus
+stdout=odio nunc nec mi
+clipboard=odio nunc nec mi
 ```
 
 ### TC38 Copy
@@ -728,8 +730,8 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=congue in nunc tincidunt
-clipboard=congue in nunc tincidunt
+stdout=dapibus suspendisse lorem bibendum
+clipboard=dapibus suspendisse lorem bibendum
 ```
 
 ### TC39 Copy
@@ -742,7 +744,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=suscipit aliquam porta lorem
+stdout=nisi tortor donec curabitur
 clipboard_exists=1
 ```
 
@@ -1978,9 +1980,9 @@ for n in 3 4 5; do '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-– Imperdiet in mi.
-– Sem quisque sagittis at.
-– Ac ante ipsum primis in.
+– Habitant morbi tristique.
+– Pretium in sem ut.
+– Ut tincidunt maximus pellentesque eu.
 ```
 
 ### TC54 Shell Integration
@@ -1993,8 +1995,8 @@ printf '4\n6\n' | while read -r n; do '/Users/avanavana/Dropbox/My Mac (MacBook-
 Exit status: 0
 
 ```text
-commodo arcu in luctus.
-volutpat maecenas eu nulla at risus.
+at elit iaculis tristique.
+ex pellentesque at posuere turpis dapibus.
 ```
 
 ### TC55 Shell Integration
@@ -2007,8 +2009,8 @@ printf '3\n5\n' | xargs -I{} zsh -c "'/Users/avanavana/Dropbox/My Mac (MacBook-P
 Exit status: 0
 
 ```text
-– In est convallis.
-– Eget vitae urna integer vel.
+– Mattis in vel.
+– Eleifend tempor nulla efficitur pretium.
 ```
 
 ### TC56 Shell Integration
@@ -2021,7 +2023,7 @@ printf '[%s]\n' "$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-[amet pretium amet aliquet]
+[at phasellus libero in]
 ```
 
 ### TC57 Shell Integration
@@ -2034,7 +2036,7 @@ printf 'stdin is ignored here\n' | '/Users/avanavana/Dropbox/My Mac (MacBook-Pro
 Exit status: 0
 
 ```text
-Tincidunt commodo arcu commodo justo.
+Ut bibendum tincidunt erat massa.
 ```
 
 ### TC58 Shell Integration
@@ -2047,15 +2049,13 @@ Paragraph output can be piped into fold for visual wrapping.
 Exit status: 0
 
 ```text
-Ut finibus enim sed vestibulum euismod 
-turpis et efficitur curabitur sed 
-ipsum. Sed nunc morbi quis ex at. Eu 
-nulla ut nunc malesuada fringilla. 
-Lectus ut varius libero placerat non 
-suspendisse mollis id purus vel auctor 
-vivamus. Ac turpis egestas sed velit 
-urna gravida sit amet risus eget 
-malesuada.
+Praesent egestas feugiat maximus morbi 
+sodales fringilla eros in auctor 
+praesent congue tincidunt. Sem in 
+bibendum blandit nullam porta lorem 
+magna eu ultricies. Est vehicula cursus 
+ut id lacus etiam auctor tellus in 
+dolor laoreet a mattis.
 ```
 
 ### TC59 Shell Integration
@@ -2068,10 +2068,10 @@ Bullet output can be piped into line numbering for visual review.
 Exit status: 0
 
 ```text
-     1	– A viverra urna morbi ligula ante.
-     2	– Nec volutpat mi molestie donec eleifend ornare.
-     3	– Etiam consequat bibendum dolor quisque.
-     4	– Amet ornare sit amet porttitor et.
+     1	– Turpis mollis fringilla aenean consectetur leo et ultricies.
+     2	– Sit amet consectetur adipiscing elit suspendisse et suscipit.
+     3	– Inceptos himenaeos vestibulum consectetur mauris a sem ullamcorper.
+     4	– Et iaculis dui donec finibus sem.
 ```
 
 ### TC60 Shell Integration
@@ -2084,14 +2084,14 @@ Word output can be piped into newline transforms for tokenized display.
 Exit status: 0
 
 ```text
-ac
-dictum
-pellentesque
-dictumst
-sit
-dictum
-pulvinar
-proin
+metus
+quis
+dolor
+posuere
+in
+eget
+eget
+orci
 ```
 
 ### TC61 Sources
@@ -2108,35 +2108,35 @@ Available Sources
 
 Built-In Sources:
 - Lorem Ipsum (lorem) [default]
-  Vitae gravida tellus pellentesque quis fusce in lacus risus. Odio quis dui vulputate pulvinar vel id ex donec.
+  Id hendrerit vivamus suscipit nisl ac eleifend tempor nulla. Vitae ante nullam libero neque lobortis nec.
 
 - Hipster Ipsum (hipster)
-  Readymade succulents brunch kinfolk cardigan pickled microbatch cloud. Health goth crucifix dreamcatcher truffaut occupy banjo.
+  Goth crucifix dreamcatcher truffaut occupy banjo mumblecore wayfarers pabst scenester. Locavore keffiyeh chia aesthetic distillery shoreditch adaptogen.
 
 - Tech Ipsum (tech)
-  Issue milestone spec onboarding docs preview staging production canary. Platform release pipeline service gateway interface latency uptime roadmap sprint backlog.
+  Handshake sandbox orchestration automation observability refactor incident status page dependency. Roadmap sprint backlog schema runtime package endpoint.
 
 - Pirate Ipsum (pirate)
-  Map harbor bell stern bow helm skipper. Black flag storm cloud port call harbor fire tavern song captain's.
+  Cutlass mariner deckhand chart cabin wake horizon crow's-nest broadside powder. Cutlass mariner deckhand chart cabin wake horizon crow's-nest broadside powder galley.
 
 - Food Ipsum (food)
-  Citrus peel honey maple sea salt cracked pepper. Menu supper brunch picnic platter skillet saucepan ladle spice rack pantry.
+  Pistachio pomegranate grain bowl sourdough brioche croissant tartlet shortbread. Citrus peel honey maple sea salt cracked pepper.
 
 - Corporate Ipsum (corporate)
-  Office hours feedback loop pilot cohort readiness checklist launch note. Enablement benchmark baseline scenario planning service model portfolio resourcing capacity.
+  Operating cadence decision log action tracker status update narrative. Checkpoint next step service blueprint transformation proposal discovery brief operating assumption.
 
 - Spanish Ipsum (es)
-  Fuente sendero colina puerto costa valle espejo ropa. Campo jardin casa ventana puerta abrazo mirada sueno tiempo ritmo.
+  Madera viento semilla fruto tarde manana noche. Espejo campana trigo perfume rioja pradera molino refugio horizonte calma.
 
 - French Ipsum (fr)
-  Pluie hiver printemps ete automne voyage carte village colline. Lumiere chemin nuage pierre riviere maison parfum.
+  Cuisine terrasse avenue carnet douceur matin soir nuageux velours feuille. Encre musique danse caresse calme atelier marche.
 
 - German Ipsum (de)
-  Gitarre runde wiese muhle horizont kuche terrasse allee notiz heiterkeit. Orange zimt zitrone mehl hof balkon lampe geschichte zuflucht stoff gitarre.
+  Tal spiegel mantel buch brief tinte musik tanz ruhe. Wanderung theater galerie baeckerei freundlichkeit heimweg schimmer mauer.
 
 Imported Sources:
 - Custom Demo (custom-demo)
-  Atlas ember harbor signal twilight atlas ember. Atlas ember harbor signal twilight harbor signal twilight.
+  Atlas ember harbor signal twilight atlas ember harbor signal twilight atlas. Atlas ember harbor signal twilight atlas ember harbor signal twilight harbor.
 
 Default source: lorem
 ```
@@ -2201,14 +2201,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.TkBHVRkWuj/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.TkBHVRkWuj/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.TkBHVRkWuj/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.TkBHVRkWuj/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.TkBHVRkWuj/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.TkBHVRkWuj/.local/bin to your PATH to run lipsum directly.
-ut condimentum nunc donec
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.local/bin to your PATH to run lipsum directly.
+neque fusce nisi faucibus
 ```
 
 ### TC67 Installer
@@ -2226,114 +2226,114 @@ Default mode
 This controls what a bare `lipsum` command generates.
 
 Preview:
-Aliquam ultricies feugiat sed risus imperdiet sed malesuada rutrum tincidunt.
+Fermentum nec at metus porta non pellentesque magna nunc quis.
 
 Default mode [words] (words/characters/lines/sentences/paragraphs): 
 Default source
 Choose the source corpus used by default. Available: lorem hipster tech pirate food corporate es fr de.
 
 Preview:
-vitae ligula platea nibh malesuada ultrices
+vulputate feugiat curae praesent dui lectus
 
 Default source [lorem]: 
 Default word count
 Used when your default mode is words and you run `lipsum` with no count.
 
 Preview:
-Id fusce etiam bibendum in blandit suspendisse felis nascetur quis.
+Placerat mollis interdum purus quisque varius suscipit viverra id sagittis.
 
 Default word count [10]: 
 Default character count
 Used when your default mode is characters and you run `lipsum` with no count.
 
 Preview:
-Naeos sed dapibus vel arcu conse
+E efficitur dui eu libero mollis
 
 Default character count [32]: 
 Default line count
 Used when your default mode is lines and you run `lipsum` with no count.
 
 Preview:
-– Turpis semper et suspendisse.
-– Efficitur donec sed dui a.
-– Suscipit sed lobortis at aliquet eu purus vestibulum.
-– Taciti sociosqu ad litora torquent per conubia nostra.
-– Hendrerit pellentesque et justo eleifend tincidunt dui et.
+– Felis nec sagittis duis molestie.
+– Magna nulla facilisi etiam.
+– Mauris tempor tincidunt curabitur volutpat augue nec lorem.
+– Cursus ex in consequat interdum turpis.
+– Imperdiet dictum mi eros commodo.
 
 Default line count [5]: 
 Default sentence count
 Used when your default mode is sentences and you run `lipsum` with no count.
 
 Preview:
-Pharetra vivamus vestibulum tempus tempus aliquam feugiat. Pretium tincidunt integer tincidunt purus ut nibh placerat vehicula et ac sem duis. Velit ac semper dictum enim donec laoreet. Morbi faucibus ultricies scelerisque etiam vitae.
+Vitae porta dignissim diam nisi cursus massa eget. Elementum facilisis turpis in quis rhoncus mauris orci varius. Orci turpis ac justo duis ac odio nec est vehicula cursus ut id. Egestas nec donec placerat porta condimentum curabitur mattis finibus.
 
 Default sentence count [4]: 
 Default paragraph count
 Used when your default mode is paragraphs and you run `lipsum` with no count.
 
 Preview:
-A rutrum sem vivamus eget risus at elit iaculis tristique. Eu fringilla libero etiam feugiat luctus mi et mollis sapien dapibus nec nunc. Vitae mollis pellentesque bibendum sagittis sollicitudin nullam hendrerit purus ut malesuada porttitor duis.
+Tristique ut proin ac mauris interdum imperdiet enim. Ac elementum facilisis turpis in quis rhoncus mauris orci. Platea dictumst aenean pulvinar quam eu semper maximus eros. Vivamus volutpat arcu quis nisi malesuada vitae egestas magna. In felis praesent pellentesque ex ut consequat feugiat etiam efficitur.
 
-Et pellentesque bibendum mauris phasellus consequat leo tristique ante placerat cursus pellentesque et. Eros commodo est non feugiat turpis massa ut metus curabitur vel. Sollicitudin nullam hendrerit purus ut malesuada porttitor. Curabitur congue magna ac aliquam blandit sed nec elit consectetur porttitor diam.
+Fames ac turpis egestas sed velit urna gravida sit amet. Lectus purus eget accumsan odio malesuada at ut. Tortor consectetur nunc imperdiet elementum tempus nulla ante nulla tristique.
 
-Malesuada proin ante mi euismod eget dui vitae auctor rutrum nisl pellentesque leo metus. Curae aliquam vestibulum id tortor at placerat in gravida imperdiet odio. Aliquet blandit augue sed convallis augue et nibh dignissim ullamcorper suspendisse. Euismod tristique nibh ut rutrum ex aenean sed dictum lorem.
+Fusce tristique eros in aliquet semper praesent quis ex vestibulum ornare ex a pulvinar. Id tincidunt posuere sed luctus nulla. Morbi nec imperdiet enim etiam lacinia magna non ex pellentesque at. Ac dolor sagittis ac fermentum felis placerat nam convallis et. Donec et eros sit amet mauris iaculis suscipit curabitur iaculis vel.
 
 Default paragraph count [3]: 
 Default word length range
 Controls the character length of generated words when no explicit range is provided.
 
 Preview:
-pellentesque mollis sodales enim sit velit
+aliquam eleifend ut neque erat ultricies
 
 Default word length range [1-12]: 
 Default line range
 Controls the number of words in each generated line.
 
 Preview:
-– pellentesque sed libero vel pharetra
-– vulputate etiam consequat bibendum dolor quisque vitae ante
-– vitae ante tristique suscipit lorem
+– nec consequat tempor nullam dignissim
+– mauris quis consequat vestibulum
+– aliquam turpis pretium nam at fringilla velit
 
 Default line range [4-8]: 
 Default sentence range
 Controls the number of words in each generated sentence.
 
 Preview:
-dapibus sem ut finibus pharetra vivamus vestibulum tempus tempus. in faucibus orci luctus et ultrices posuere cubilia.
+id ipsum maecenas iaculis tortor quis. vel cursus diam sed blandit mauris nulla.
 
 Default sentence range [6-14]: 
 Default paragraph range
 Controls the number of sentences in each generated paragraph.
 
 Preview:
-At gravida nulla libero non mi suspendisse. Habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Elementum ligula massa tincidunt neque ut sagittis quam diam id ipsum maecenas iaculis. Morbi faucibus ultricies scelerisque etiam vitae dolor tincidunt elit tristique feugiat sit amet. Metus curabitur vel ante in neque lacinia pharetra quisque.
+Varius ex aenean vel sodales arcu quis porttitor dolor integer sagittis congue. Amet arcu ac facilisis mollis urna praesent at mi sit amet elit ornare efficitur. Tortor varius ut elit ut sodales volutpat sapien mauris non. Viverra sed pulvinar a massa tristique tristique morbi luctus lectus purus.
 
-Vehicula et ac sem duis rutrum. Ultrices consectetur sollicitudin nunc sed enim a. Magna quis aliquam orci turpis ac.
+Gravida sit amet risus eget malesuada tempor odio duis ut nisi tempor consectetur. Netus et malesuada fames ac turpis egestas donec et. Penatibus et magnis dis parturient montes nascetur ridiculus. Commodo odio sed varius ante id fermentum molestie cras.
 
 Default paragraph range [3-5]: 
 Default paragraph sentence word range
 Controls the number of words in each sentence inside paragraph output.
 
 Preview:
-Consequat odio venenatis ut aliquam faucibus ligula sed pellentesque. Varius dolor fusce dictum mauris id libero varius sagittis pellentesque habitant morbi tristique senectus. Cubilia curae aliquam vestibulum id tortor at.
+Primis in faucibus sed nunc ipsum. Lectus eget efficitur donec sed dui a metus pharetra. Quis nibh a suscipit donec velit ante facilisis a leo vitae. Lectus sed quam vehicula dignissim class aptent taciti sociosqu ad. Lacus etiam auctor tellus in dolor laoreet a mattis lorem fringilla nulla id.
 
 Default paragraph sentence word range [6-14]: 
 Default bullet character
 Used by `lipsum lines -b` when no explicit bullet character is provided.
 
 Preview:
-– luctus et ultrices posuere cubilia curae aliquam vestibulum
-– leo vitae tincidunt accumsan felis sed erat
-– tellus libero viverra et odio
+– nibh scelerisque ultrices vitae in ipsum aliquam
+– augue metus faucibus vel
+– lectus pellentesque in pharetra nisi egestas pellentesque habitant
 
 Default bullet character [–]: 
 Default ordered list format
 Used by `lipsum lines -o` when no explicit ordered marker format is provided.
 
 Preview:
-1. Non elementum accumsan urna maecenas quis odio quis.
-2. Dignissim lorem posuere quis curabitur ultricies eros.
-3. Ut molestie risus tempor at nunc sit amet.
+1. Libero vel risus pellentesque ultrices ipsum.
+2. Ut varius libero placerat non.
+3. Lorem maecenas semper consectetur consequat integer nec pretium.
 
 Default ordered list format [%d.]: 
 Copy on generate
@@ -2343,13 +2343,13 @@ Current default: no
 
 Copy on generate [no] (yes/no): 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fm5wfCnSY4/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fm5wfCnSY4/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fm5wfCnSY4/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fm5wfCnSY4/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fm5wfCnSY4/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fm5wfCnSY4/.local/bin to your PATH to run lipsum directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.local/bin to your PATH to run lipsum directly.
 5
 ```
 
@@ -2365,14 +2365,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.nntbLv3pXN/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.nntbLv3pXN/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.nntbLv3pXN/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.nntbLv3pXN/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.nntbLv3pXN/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.nntbLv3pXN/.local/bin to your PATH to run lipsum directly.
-porta ante nullam
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.local/bin to your PATH to run lipsum directly.
+est lacus libero
 ```
 
 ### TC69 Custom Sources
@@ -2421,8 +2421,8 @@ tmp_home="$(mktemp -d)"; first="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My 
 Exit status: 0
 
 ```text
-first=ember harbor ember twilight ember
-second=twilight atlas twilight signal atlas
+first=twilight signal atlas ember atlas
+second=harbor signal signal twilight harbor
 ```
 
 ### TC73 Errors
@@ -2623,7 +2623,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-tellus pulvinar mauris velit litora risus tristique diam erat egestas morbi volutpat lacus velit consequat elit lorem molestie elementum enim phasellus eget aenean nec a tempor sem tristique ipsum consequat faucibus congue suscipit sapien sed 😀 😀 suscipit risus tristique
+eget luctus facilisis maecenas turpis semper duis posuere a faucibus vitae fringilla libero consectetur magna venenatis rutrum aenean a id porttitor proin nec metus donec nunc rutrum et enim quam commodo eget ut orci turpis 😀 ante 😀 proin urna
 40
 ```
 
@@ -2637,7 +2637,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-blandit in ipsum justo ac urna ullamcorper quam tellus tincidunt viverra a mi lacinia ligula placerat nec mauris at et ac porta leo gravida laoreet etiam velit tincidunt volutpat nulla ornare pellentesque congue a nunc id sapien leo posuere ullamcorper
+mauris scelerisque erat leo montes magna quisque nec lacus quis felis sed vehicula ac vel at ac tempus tristique sed metus in varius hendrerit imperdiet facilisi sit non sit volutpat felis ultricies molestie consequat lectus id nullam lacus sed torquent
 40
 ```
 
@@ -2651,6 +2651,19 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-Endrerit massa pharetra eu donec est elit pulvinar sed sagittis id vulputate ac elit phasellus bibendum id lacus in semper class aptent tac 😀
+Lvinar nunc phasellus quis tortor dolor sed venenatis eros ac arcu gravida id elementum tortor consectetur nunc imperdiet elementum tempus 😀
+```
+
+### TC78 Emoji
+Full stops stay attached to the text when character output ends with trailing emoji.
+
+```sh
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-punctuation-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-punctuation-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 140 characters -e -l)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -Eq '\. 😀$'
+```
+
+Exit status: 0
+
+```text
+ec auctor vehicula eros justo vulputate odio a tempor orci leo nec dolor curabitur nunc nunc convallis sit amet ornare sit amet porttitor e. 😀
 ```
 
