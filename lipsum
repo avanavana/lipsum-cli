@@ -1599,12 +1599,12 @@ while (( $# > 0 )); do
       ordered_formula="${1#*=}"
       ordered_formula_set=1
       ;;
-    --punctuation|--puncuation)
+    --punctuation)
       if read_optional_punctuation_mode "$2"; then
         shift
       fi
       ;;
-    --punctuation=*|--puncuation=*)
+    --punctuation=*)
       valid_punctuation_mode "${1#*=}" || die "Invalid punctuation mode: ${1#*=}"
       punctuation_mode="${1#*=}"
       punctuation_option_set=1
