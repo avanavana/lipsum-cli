@@ -30,7 +30,6 @@ Other Actions:
   ${bold}sources, list-sources${reset}       List built-in and saved source corpora with samples.
 
 Options:
-  ${bold}-n, -N, --no-full-stop${reset}       Disable the full stop appended to output by default.
   ${bold}-l, -L, --lowercase${reset}          Return output entirely in lowercase.
   ${bold}-u, -U, --uppercase${reset}          Return output entirely in uppercase.
   ${bold}-t, -T, --title-case${reset}         Return output in title case.
@@ -42,6 +41,9 @@ Options:
   ${bold}-o, -O, --ordered-list${reset} [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: ${bold}%d.${reset}
+  ${bold}-p, -P, --punctuation${reset} [ mode ]
+                               Set punctuation handling: ${bold}period${reset}, ${bold}end${reset}, ${bold}all${reset}, ${bold}none${reset}
+                               Bare ${bold}-p${reset} defaults to ${bold}all${reset}
   ${bold}-e, -E, --emoji${reset}              Mix emoji into generated output.
   ${bold}-r, -R, --range${reset} ${bold}n|min-max${reset}
                                ${bold}words${reset}: word length filter in characters
@@ -81,12 +83,13 @@ Examples:
   ${bold}$progname${reset} --text 'alpha beta gamma delta' 3 words
   ${bold}$progname${reset} --file ./notes.txt 2 paragraphs
   ${bold}curl -fsSL https://example.com | $progname${reset} --text - --save-source example-site 5 lines
-  ${bold}$progname${reset} 140 characters -e -n
+  ${bold}$progname${reset} 140 characters -e -p none
   ${bold}$progname${reset} 18 words -e -s tech
+  ${bold}$progname${reset} 12 words -p all
   ${bold}$progname${reset} sources
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
-typeset __version='1.10.0'
+typeset __version='1.11.0'
 
 die () {
   print -u2 -- "Error: $1"
@@ -188,11 +191,59 @@ format_text () {
       ;;
   esac
 
-  if (( punc )) && [[ $text[-1] != [.!?] ]]; then
-    text="$(append_terminal_punctuation "$text")"
-  fi
+  case "$punctuation_mode" in
+    none)
+      :
+      ;;
+    period)
+      if ! text_has_terminal_punctuation "$text"; then
+        text="$(append_terminal_punctuation "$text" '.')"
+      fi
+      ;;
+    end)
+      if ! text_has_terminal_punctuation "$text"; then
+        random_terminal_punctuation
+        text="$(append_terminal_punctuation "$text" "$REPLY")"
+      fi
+      ;;
+    all)
+      text="$(apply_internal_punctuation "$text")"
+      if ! text_has_terminal_punctuation "$text"; then
+        random_terminal_punctuation
+        text="$(append_terminal_punctuation "$text" "$REPLY")"
+      fi
+      ;;
+    *)
+      die "Unknown punctuation_mode: $punctuation_mode"
+      ;;
+  esac
 
   print -- "$text"
+}
+
+valid_punctuation_mode () {
+  case "$1" in
+    period|end|all|none)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+read_optional_punctuation_mode () {
+  local next_arg="$1"
+
+  if [[ -n $next_arg ]] && valid_punctuation_mode "$next_arg"; then
+    punctuation_mode="$next_arg"
+    punctuation_option_set=1
+    return 0
+  fi
+
+  punctuation_mode='all'
+  punctuation_option_set=1
+  return 1
 }
 
 token_is_emoji_token () {
@@ -201,13 +252,40 @@ token_is_emoji_token () {
   [[ -n ${emoji_lookup[$token]} ]]
 }
 
-append_terminal_punctuation () {
+text_has_terminal_punctuation () {
   local text="$1"
   local -a tokens=()
   local -i index=0
 
+  [[ -n $text ]] || return 1
+
+  tokens=( ${(s: :)text} )
+  index=${#tokens[@]}
+
+  while (( index > 0 )); do
+    if token_is_emoji_token "${tokens[index]}"; then
+      (( index-- ))
+      continue
+    fi
+
+    break
+  done
+
+  if (( index <= 0 )); then
+    return 1
+  fi
+
+  [[ ${tokens[index]}[-1] == [.!?] ]]
+}
+
+append_terminal_punctuation () {
+  local text="$1"
+  local mark="$2"
+  local -a tokens=()
+  local -i index=0
+
   if [[ -z $text ]]; then
-    print -- '.'
+    print -- "$mark"
     return
   fi
 
@@ -224,16 +302,82 @@ append_terminal_punctuation () {
   done
 
   if (( index <= 0 )); then
-    print -- "$text."
+    print -- "$text$mark"
     return
   fi
 
   if (( index == ${#tokens[@]} )); then
-    print -- "$text."
+    print -- "$text$mark"
     return
   fi
 
-  tokens[index]="${tokens[index]}."
+  tokens[index]="${tokens[index]}$mark"
+  print -- "${(j: :)tokens}"
+}
+
+random_terminal_punctuation () {
+  local -a marks=( '.' '.' '.' '.' '.' '.' '!' '?' )
+
+  rand_range 1 "${#marks[@]}"
+  REPLY="${marks[REPLY]}"
+}
+
+apply_internal_punctuation () {
+  local text="$1"
+  local -a tokens=()
+  local -A used_positions=()
+  local -i token_count=0
+  local -i punctuation_count=0
+  local -i position=0
+  local -i style=0
+
+  tokens=( ${(s: :)text} )
+  token_count=${#tokens[@]}
+
+  if (( token_count < 4 )); then
+    print -- "$text"
+    return
+  fi
+
+  punctuation_count=1
+  if (( token_count >= 12 )); then
+    punctuation_count=$(( 1 + RANDOM % 2 ))
+  fi
+
+  while (( punctuation_count > 0 )); do
+    rand_range 2 "$(( token_count - 1 ))"
+    position=$REPLY
+
+    if [[ -n ${used_positions[$position]} ]]; then
+      continue
+    fi
+
+    if token_is_emoji_token "${tokens[position]}"; then
+      continue
+    fi
+
+    used_positions[$position]=1
+    rand_range 1 10
+    style=$REPLY
+
+    case "$style" in
+      1|2|3|4|5)
+        tokens[position]="${tokens[position]},"
+        ;;
+      6|7)
+        tokens[position]="(${tokens[position]})"
+        ;;
+      8)
+        tokens[position]="—${tokens[position]}"
+        ;;
+      9|10)
+        tokens[position]="${tokens[position]}-"
+        ;;
+    esac
+
+    (( punctuation_count-- ))
+  done
+
   print -- "${(j: :)tokens}"
 }
 
@@ -413,6 +557,7 @@ default_paragraph_sentence_word_range='6-14'
 
 default_bullet_char='–'
 default_ordered_list_format='%d.'
+punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
 emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
@@ -840,6 +985,7 @@ validate_config () {
   parse_positive_spec "$default_word_length_range" config_word_length_min config_word_length_max 'default_word_length_range' || die "Invalid default_word_length_range in config: $default_word_length_range"
   parse_positive_spec "$default_paragraph_sentence_word_range" config_paragraph_sentence_word_min config_paragraph_sentence_word_max 'default_paragraph_sentence_word_range' || die "Invalid default_paragraph_sentence_word_range in config: $default_paragraph_sentence_word_range"
 
+  valid_punctuation_mode "$punctuation_mode" || die "Invalid punctuation_mode in config: $punctuation_mode"
   [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
   [[ $emoji_enabled == 0 || $emoji_enabled == 1 ]] || die "emoji_enabled must be 0 or 1"
   load_emoji_pool "$emoji_enabled"
@@ -1364,6 +1510,7 @@ typeset default_word_length_range='1-12'
 typeset default_paragraph_sentence_word_range='6-14'
 typeset default_bullet_char='–'
 typeset default_ordered_list_format='%d.'
+typeset punctuation_mode='period'
 typeset -i copy_on_generate=0
 typeset -i emoji_enabled=0
 typeset emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
@@ -1396,7 +1543,7 @@ typeset -i count_min=0
 typeset -i count_max=0
 typeset -i count=0
 typeset case_mode='normal'
-typeset -i punc=1
+typeset -i punctuation_option_set=0
 typeset -i bullets=0
 typeset -i ordered_list=0
 typeset bulletchar=''
@@ -1451,6 +1598,16 @@ while (( $# > 0 )); do
       ordered_formula="${1#*=}"
       ordered_formula_set=1
       ;;
+    --punctuation|--puncuation)
+      if read_optional_punctuation_mode "$2"; then
+        shift
+      fi
+      ;;
+    --punctuation=*|--puncuation=*)
+      valid_punctuation_mode "${1#*=}" || die "Invalid punctuation mode: ${1#*=}"
+      punctuation_mode="${1#*=}"
+      punctuation_option_set=1
+      ;;
     -r|-R)
       [[ -n $2 ]] || die "Missing range for $1"
       parse_positive_spec "$2" range_min range_max 'length' || die "Invalid length range: $2"
@@ -1476,9 +1633,6 @@ while (( $# > 0 )); do
       ;;
     --no-copy)
       copy_override=0
-      ;;
-    --no-full-stop)
-      punc=0
       ;;
     --source)
       [[ -n $2 ]] || die "Missing source name for --source"
@@ -1554,9 +1708,6 @@ while (( $# > 0 )); do
         local short_opt="${cluster[index]}"
 
         case "$short_opt" in
-          n|N)
-            punc=0
-            ;;
           l|L)
             case_mode='lower'
             ;;
@@ -1579,6 +1730,14 @@ while (( $# > 0 )); do
             else
               ordered_formula='%d.'
               ordered_formula_set=1
+            fi
+            ;;
+          p|P)
+            if (( index == ${#cluster} )) && read_optional_punctuation_mode "$2"; then
+              shift
+            else
+              punctuation_mode='all'
+              punctuation_option_set=1
             fi
             ;;
           r|R)
@@ -1650,7 +1809,7 @@ while (( $# > 0 )); do
 done
 
 if (( action_set )); then
-  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || ! punc )) || [[ $case_mode != 'normal' ]]; then
+  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' ]]; then
     die "The action '$action_command' cannot be combined with generation options or commands"
   fi
 

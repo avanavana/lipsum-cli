@@ -38,6 +38,7 @@ typeset default_word_length_range='1-12'
 typeset default_paragraph_sentence_word_range='6-14'
 typeset default_bullet_char='–'
 typeset default_ordered_list_format='%d.'
+typeset punctuation_mode='period'
 typeset copy_on_generate=0
 typeset emoji_enabled=0
 typeset emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
@@ -169,6 +170,7 @@ default_paragraph_sentence_word_range='$default_paragraph_sentence_word_range'
 
 default_bullet_char='$default_bullet_char'
 default_ordered_list_format='$default_ordered_list_format'
+punctuation_mode='$punctuation_mode'
 copy_on_generate=$copy_on_generate
 emoji_enabled=$emoji_enabled
 emoji_charset='$emoji_charset'
@@ -181,7 +183,7 @@ EOF
 validate_config_file () {
   local candidate="$1"
 
-  LIPSUM_CONFIG="$candidate" LIPSUM_DICT="$bundled_words" "$source_script" 1 words -n >/dev/null 2>&1
+  LIPSUM_CONFIG="$candidate" LIPSUM_DICT="$bundled_words" "$source_script" 1 words -p none >/dev/null 2>&1
 }
 
 preview_with_config () {
@@ -260,7 +262,7 @@ prompt_choice_default_source () {
 
   while :; do
     prompt_header 'Default source' "Choose the source corpus used by default. Available: $source_names."
-    show_preview 6 words -n -l
+    show_preview 6 words -p none -l
     read_line "Default source [${default_source}]: "
 
     if [[ -z $REPLY ]]; then
@@ -391,16 +393,16 @@ run_guided_setup () {
   prompt_choice_default_mode
   prompt_choice_default_source
   prompt_positive_integer default_word_count 'Default word count' 'Used when your default mode is words and you run `lipsum` with no count.' words
-  prompt_positive_integer default_character_count 'Default character count' 'Used when your default mode is characters and you run `lipsum` with no count.' characters -n
+  prompt_positive_integer default_character_count 'Default character count' 'Used when your default mode is characters and you run `lipsum` with no count.' characters -p none
   prompt_positive_integer default_line_count 'Default line count' 'Used when your default mode is lines and you run `lipsum` with no count.' lines -b
   prompt_positive_integer default_sentence_count 'Default sentence count' 'Used when your default mode is sentences and you run `lipsum` with no count.' sentences
   prompt_positive_integer default_paragraph_count 'Default paragraph count' 'Used when your default mode is paragraphs and you run `lipsum` with no count.' paragraphs
-  prompt_range default_word_length_range 'Default word length range' 'Controls the character length of generated words when no explicit range is provided.' 6 words -n -l
-  prompt_range default_line_range 'Default line range' 'Controls the number of words in each generated line.' 3 lines -b -n -l
+  prompt_range default_word_length_range 'Default word length range' 'Controls the character length of generated words when no explicit range is provided.' 6 words -p none -l
+  prompt_range default_line_range 'Default line range' 'Controls the number of words in each generated line.' 3 lines -b -p none -l
   prompt_range default_sentence_range 'Default sentence range' 'Controls the number of words in each generated sentence.' 2 sentences -l
   prompt_range default_paragraph_range 'Default paragraph range' 'Controls the number of sentences in each generated paragraph.' 2 paragraphs
   prompt_range default_paragraph_sentence_word_range 'Default paragraph sentence word range' 'Controls the number of words in each sentence inside paragraph output.' 1 paragraphs
-  prompt_text_value default_bullet_char 'Default bullet character' 'Used by `lipsum lines -b` when no explicit bullet character is provided.' 3 lines -b -n -l
+  prompt_text_value default_bullet_char 'Default bullet character' 'Used by `lipsum lines -b` when no explicit bullet character is provided.' 3 lines -b -p none -l
   prompt_text_value default_ordered_list_format 'Default ordered list format' 'Used by `lipsum lines -o` when no explicit ordered marker format is provided.' 3 lines -o
   prompt_copy_default
 }

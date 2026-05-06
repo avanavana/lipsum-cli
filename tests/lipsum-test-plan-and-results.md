@@ -1,6 +1,6 @@
 # lipsum Test Plan And Results
 
-Generated: 2026-05-05 21:17:13 EDT
+Generated: 2026-05-05 23:05:20 EDT
 
 Scripts under test:
 - [/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum](/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum)
@@ -57,6 +57,9 @@ Coverage areas:
 - TC25 Case: Lowercase output works with the new lowercase option.
 - TC26 Case: Uppercase output works.
 - TC27 Case: Title case output works.
+- TC79 Punctuation: End punctuation mode allows standard message endings.
+- TC80 Punctuation: All punctuation mode adds internal punctuation as well as a sentence ending.
+- TC81 Punctuation: None punctuation mode removes terminal punctuation entirely.
 - TC28 Ordered Lists: Default ordered lists use numeric markers.
 - TC29 Ordered Lists: Ordered list formulas support alphabetic markers.
 - TC30 Ordered Lists: Ordered list formulas support zero-padded zero-indexed digits.
@@ -157,7 +160,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -169,6 +171,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -208,8 +213,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -225,7 +231,7 @@ Long version flag returns the version string.
 Exit status: 0
 
 ```text
-1.10.0
+1.11.0
 ```
 
 ### TC04 Defaults
@@ -238,7 +244,7 @@ Bare invocation uses the default words mode.
 Exit status: 0
 
 ```text
-Vitae convallis commodo fringilla etiam id massa euismod condimentum ut.
+Posuere semper tincidunt lectus dictum elit tempus ut sodales ac.
 ```
 
 ### TC05 Defaults
@@ -251,7 +257,7 @@ A bare numeric argument is treated as a default word count.
 Exit status: 0
 
 ```text
-Arcu blandit suscipit diam mauris eu.
+Phasellus vehicula elementum libero maximus ultrices.
 ```
 
 ### TC06 Words
@@ -264,7 +270,7 @@ Count before mode works for exact word counts.
 Exit status: 0
 
 ```text
-Ultrices ullamcorper.
+Lobortis donec.
 ```
 
 ### TC07 Words
@@ -277,40 +283,40 @@ Mode before count still works for exact word counts.
 Exit status: 0
 
 ```text
-Quis mattis.
+Tincidunt montes.
 ```
 
 ### TC08 Words
 A top-level count range works for default words mode.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 3-5 -n -l | awk '{ print NF; if (NF < 3 || NF > 5) exit 1 }'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 3-5 -p none -l | awk '{ print NF; if (NF < 3 || NF > 5) exit 1 }'
 ```
 
 Exit status: 0
 
 ```text
-4
+5
 ```
 
 ### TC09 Words
 A top-level count range works with an explicit word subcommand.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 3-5 w -n -l | awk '{ print NF; if (NF < 3 || NF > 5) exit 1 }'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 3-5 w -p none -l | awk '{ print NF; if (NF < 3 || NF > 5) exit 1 }'
 ```
 
 Exit status: 0
 
 ```text
-3
+5
 ```
 
 ### TC10 Words
 Word ranges filter word length in characters.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 5 words -r 3-4 -n -l | awk '{ for (i = 1; i <= NF; i++) { if (length($i) < 3 || length($i) > 4) bad=1 } } END { print NF; if (bad) exit 1 }'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 5 words -r 3-4 -p none -l | awk '{ for (i = 1; i <= NF; i++) { if (length($i) < 3 || length($i) > 4) bad=1 } } END { print NF; if (bad) exit 1 }'
 ```
 
 Exit status: 0
@@ -329,27 +335,27 @@ Count before the characters subcommand works.
 Exit status: 0
 
 ```text
-Allis dapibus quam et vestibulum erat maecenas neque purus aliquet eu sodales in volutpat at neque m.
+Ultrices libero risus non hendrerit massa pharetra eu donec est elit pulvinar sed sagittis id vulput.
 ```
 
 ### TC12 Characters
 Character count ranges resolve to a random exact count.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 24-30 characters -n -l | tr -d '\n' | wc -m | awk '{ print $1; if ($1 < 24 || $1 > 30) exit 1 }'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 24-30 characters -p none -l | tr -d '\n' | wc -m | awk '{ print $1; if ($1 < 24 || $1 > 30) exit 1 }'
 ```
 
 Exit status: 0
 
 ```text
-27
+24
 ```
 
 ### TC13 Characters
 Internal range is ignored for characters.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 20 characters -r 3-4 -n | tr -d '\n' | wc -m | awk '{ print $1; if ($1 != 20) exit 1 }'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 20 characters -r 3-4 -p none | tr -d '\n' | wc -m | awk '{ print $1; if ($1 != 20) exit 1 }'
 ```
 
 Exit status: 0
@@ -368,11 +374,11 @@ Typical website bullet use case uses shorter default line lengths.
 Exit status: 0
 
 ```text
-– Enim sed vestibulum euismod turpis.
-– Quis varius dolor fusce dictum mauris id libero.
-– Odio id pharetra ligula.
-– A quisque semper metus ac interdum mollis.
-– Suspendisse quis augue egestas molestie felis quis.
+– Mattis maecenas vestibulum id nibh a placerat vestibulum.
+– Bibendum metus sed maximus donec vulputate dictum orci.
+– Vel ex maximus maximus dui a ultrices.
+– Vitae feugiat etiam fringilla sapien.
+– Ac aliquam blandit sed nec elit consectetur.
 ```
 
 ### TC15 Lines
@@ -386,10 +392,8 @@ Exit status: 0
 
 ```text
 7
-9
-6
-6
 10
+6
 7
 ```
 
@@ -420,7 +424,7 @@ Default sentences mode generates the requested number of sentences.
 Exit status: 0
 
 ```text
-Efficitur turpis vivamus et massa mauris orci varius natoque penatibus et magnis dis. Nec est vehicula cursus ut id lacus etiam auctor tellus in dolor laoreet.
+Pellentesque semper elementum justo vitae hendrerit duis. A egestas massa mattis pellentesque duis ex dolor egestas ut.
 ```
 
 ### TC18 Sentences
@@ -449,9 +453,9 @@ Default paragraphs mode emits multiple paragraphs with blank-line separation.
 Exit status: 0
 
 ```text
-Pellentesque justo in fermentum bibendum felis vivamus volutpat arcu quis nisi malesuada vitae. Pellentesque integer dapibus ante interdum ante. Quis luctus tortor mi et risus nullam eu turpis. Fusce elementum arcu est phasellus molestie tortor lacus euismod euismod augue. Maximus sed diam nec porta maecenas lacinia urna at ante sagittis.
+Nec enim nulla malesuada sem urna fermentum consequat felis pulvinar at. Tellus sit amet imperdiet lectus tincidunt maximus phasellus. Et neque non justo lobortis mattis in vel metus sed porta nunc.
 
-Pulvinar eget nunc ac porta praesent vitae auctor sapien ac ultrices ex mauris pharetra. Quam fusce arcu nisi pellentesque sed libero vel pharetra dignissim dolor. Faucibus porttitor varius ac tortor aenean nec finibus orci. Laoreet ut in diam lobortis pulvinar velit a rutrum sem vivamus.
+Condimentum commodo dui odio sodales risus eget fermentum ligula ex vitae arcu. Id eu nibh nam eu dictum est integer mattis convallis egestas mauris luctus. Dolor ut venenatis ultrices donec accumsan ligula quis orci dictum rutrum pellentesque. Vivamus hendrerit metus urna sed rutrum nisi egestas. Conubia nostra per inceptos himenaeos donec eu varius orci nulla gravida metus nec.
 ```
 
 ### TC20 Paragraphs
@@ -472,7 +476,7 @@ Exit status: 0
 Compact count+command suffix form works.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 10c -n | tr -d '\n' | wc -m | awk '{ print $1; if ($1 != 10) exit 1 }'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 10c -p none | tr -d '\n' | wc -m | awk '{ print $1; if ($1 != 10) exit 1 }'
 ```
 
 Exit status: 0
@@ -504,7 +508,7 @@ Compact range+command suffix form works.
 Exit status: 0
 
 ```text
-3
+2
 ```
 
 ### TC24 Compact Forms
@@ -524,39 +528,76 @@ Exit status: 0
 Lowercase output works with the new lowercase option.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 words -n -l
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 words -p none -l
 ```
 
 Exit status: 0
 
 ```text
-blandit maximus neque eget
+pellentesque non at morbi
 ```
 
 ### TC26 Case
 Uppercase output works.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 words -n -u
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 words -p none -u
 ```
 
 Exit status: 0
 
 ```text
-NUNC AUGUE EX MAURIS
+EGESTAS MI ARCU MALESUADA
 ```
 
 ### TC27 Case
 Title case output works.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 words -n -t
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 words -p none -t
 ```
 
 Exit status: 0
 
 ```text
-Elementum Est Consectetur Ac
+Erat Quis Ac Aliquet
+```
+
+### TC79 Punctuation
+End punctuation mode allows standard message endings.
+
+```sh
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 12 words -p end | grep -Eq '[.!?]$'
+```
+
+Exit status: 0
+
+```text
+```
+
+### TC80 Punctuation
+All punctuation mode adds internal punctuation as well as a sentence ending.
+
+```sh
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 12 words -p all -l | grep -Eq '[,()—-].*[.!?]$'
+```
+
+Exit status: 0
+
+```text
+```
+
+### TC81 Punctuation
+None punctuation mode removes terminal punctuation entirely.
+
+```sh
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 8 words -p none -l | grep -Ev '[.!?]$'
+```
+
+Exit status: 0
+
+```text
+turpis eget mauris quis dui lacus integer odio
 ```
 
 ### TC28 Ordered Lists
@@ -569,9 +610,9 @@ Default ordered lists use numeric markers.
 Exit status: 0
 
 ```text
-1. Purus ut bibendum augue felis at tellus.
-2. Pulvinar aliquet donec iaculis elementum.
-3. Pellentesque condimentum libero nullam at leo consectetur.
+1. Consectetur feugiat erat sed tristique vel.
+2. Sapien eu ex tempor ullamcorper fusce eleifend.
+3. Rhoncus auctor cras id nunc fermentum elementum orci.
 ```
 
 ### TC29 Ordered Lists
@@ -584,10 +625,10 @@ Ordered list formulas support alphabetic markers.
 Exit status: 0
 
 ```text
-(A) Pharetra nulla in vestibulum velit eu.
-(B) Vitae felis eget enim tempor dictum non.
-(C) Proin vestibulum commodo magna et egestas nisl sagittis.
-(D) At neque morbi vitae tristique est vivamus.
+(A) Tortor lacus euismod euismod.
+(B) Dictum mauris id libero varius sagittis pellentesque.
+(C) Venenatis felis ultricies sit amet.
+(D) Sed convallis tortor bibendum.
 ```
 
 ### TC30 Ordered Lists
@@ -600,9 +641,9 @@ Ordered list formulas support zero-padded zero-indexed digits.
 Exit status: 0
 
 ```text
-000) Arcu ac facilisis mollis.
-001) Mauris bibendum ullamcorper facilisis mauris vehicula quam et.
-002) Vitae egestas magna tempor suspendisse.
+000) Mauris pretium in sem ut.
+001) Curabitur vel ante in.
+002) Et lectus eget efficitur donec sed dui.
 ```
 
 ### TC31 Config Actions
@@ -635,7 +676,7 @@ default_paragraph_sentence_word_range='6-14'
 
 default_bullet_char='–'
 default_ordered_list_format='%d.'
-copy_on_generate=0
+punctuation_mode='period'
 ```
 
 ### TC32 Config Actions
@@ -669,7 +710,7 @@ created
 Config can change the default mode, default count, default range, and default bullet character.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_mode='lines'\ndefault_line_count=3\ndefault_line_range='2-2'\ndefault_bullet_char='*'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/defaults-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/defaults-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' -b -n -l | awk '/^\*/ { print NF - 1; if (NF - 1 != 2) bad=1; count++ } END { if (count != 3 || bad) exit 1 }'
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_mode='lines'\ndefault_line_count=3\ndefault_line_range='2-2'\ndefault_bullet_char='*'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/defaults-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/defaults-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' -b -p none -l | awk '/^\*/ { print NF - 1; if (NF - 1 != 2) bad=1; count++ } END { if (count != 3 || bad) exit 1 }'
 ```
 
 Exit status: 0
@@ -684,7 +725,7 @@ Exit status: 0
 Config can change the default command for bare invocation.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_mode='characters'\ndefault_character_count=20\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/mode-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/mode-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' -n -l | tr -d '\n' | wc -m | awk '{ print $1; if ($1 != 20) exit 1 }'
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_mode='characters'\ndefault_character_count=20\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/mode-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/mode-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' -p none -l | tr -d '\n' | wc -m | awk '{ print $1; if ($1 != 20) exit 1 }'
 ```
 
 Exit status: 0
@@ -697,7 +738,7 @@ Exit status: 0
 Default word-length range applies to words output when no explicit range is provided.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_word_length_range='3-4'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/word-range-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/word-range-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 5 words -n -l | awk '{ for (i = 1; i <= NF; i++) { if (length($i) < 3 || length($i) > 4) bad=1 } } END { print NF; if (bad) exit 1 }'
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_word_length_range='3-4'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/word-range-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/word-range-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 5 words -p none -l | awk '{ for (i = 1; i <= NF; i++) { if (length($i) < 3 || length($i) > 4) bad=1 } } END { print NF; if (bad) exit 1 }'
 ```
 
 Exit status: 0
@@ -710,41 +751,41 @@ Exit status: 0
 Explicit copy writes the same content to the clipboard target and stdout.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; rm -f '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-explicit.txt'; out="$(LIPSUM_CLIPBOARD_COMMAND="sh -c 'cat > \"\$1\"' _ '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-explicit.txt'" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w -c -n -l)"; clip="$(cat '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-explicit.txt')"; printf 'stdout=%s\nclipboard=%s\n' "$out" "$clip"; [[ "$out" == "$clip" ]]
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; rm -f '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-explicit.txt'; out="$(LIPSUM_CLIPBOARD_COMMAND="sh -c 'cat > \"\$1\"' _ '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-explicit.txt'" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w -c -p none -l)"; clip="$(cat '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-explicit.txt')"; printf 'stdout=%s\nclipboard=%s\n' "$out" "$clip"; [[ "$out" == "$clip" ]]
 ```
 
 Exit status: 0
 
 ```text
-stdout=odio nunc nec mi
-clipboard=odio nunc nec mi
+stdout=ligula ornare convallis lobortis
+clipboard=ligula ornare convallis lobortis
 ```
 
 ### TC38 Copy
 Config can enable copy by default.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "copy_on_generate=1\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/copy-config.zsh'; rm -f '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-config.txt'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/copy-config.zsh' LIPSUM_CLIPBOARD_COMMAND="sh -c 'cat > \"\$1\"' _ '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-config.txt'" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w -n -l)"; clip="$(cat '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-config.txt')"; printf 'stdout=%s\nclipboard=%s\n' "$out" "$clip"; [[ "$out" == "$clip" ]]
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "copy_on_generate=1\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/copy-config.zsh'; rm -f '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-config.txt'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/copy-config.zsh' LIPSUM_CLIPBOARD_COMMAND="sh -c 'cat > \"\$1\"' _ '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-config.txt'" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w -p none -l)"; clip="$(cat '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-config.txt')"; printf 'stdout=%s\nclipboard=%s\n' "$out" "$clip"; [[ "$out" == "$clip" ]]
 ```
 
 Exit status: 0
 
 ```text
-stdout=dapibus suspendisse lorem bibendum
-clipboard=dapibus suspendisse lorem bibendum
+stdout=pharetra et et ullamcorper
+clipboard=pharetra et et ullamcorper
 ```
 
 ### TC39 Copy
 Explicit no-copy overrides config-driven clipboard copying.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "copy_on_generate=1\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/no-copy-config.zsh'; rm -f '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/no-copy-config.zsh' LIPSUM_CLIPBOARD_COMMAND="sh -c 'cat > \"\$1\"' _ '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt'" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w --no-copy -n -l)"; printf 'stdout=%s\nclipboard_exists=%s\n' "$out" "$(test -e '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt'; echo $?)"; [[ ! -e '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt' ]]
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "copy_on_generate=1\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/no-copy-config.zsh'; rm -f '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/no-copy-config.zsh' LIPSUM_CLIPBOARD_COMMAND="sh -c 'cat > \"\$1\"' _ '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt'" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w --no-copy -p none -l)"; printf 'stdout=%s\nclipboard_exists=%s\n' "$out" "$(test -e '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt'; echo $?)"; [[ ! -e '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/clipboard-no-copy.txt' ]]
 ```
 
 Exit status: 0
 
 ```text
-stdout=nisi tortor donec curabitur
+stdout=tristique tincidunt sed porttitor
 clipboard_exists=1
 ```
 
@@ -784,7 +825,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -796,6 +836,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -835,8 +878,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -878,7 +922,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -890,6 +933,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -929,8 +975,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -972,7 +1019,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -984,6 +1030,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1023,8 +1072,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1066,7 +1116,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1078,6 +1127,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1117,8 +1169,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1160,7 +1213,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1172,6 +1224,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1211,8 +1266,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1254,7 +1310,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1266,6 +1321,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1305,8 +1363,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1348,7 +1407,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1360,6 +1418,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1399,8 +1460,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1442,7 +1504,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1454,6 +1515,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1493,8 +1557,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1536,7 +1601,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1548,6 +1612,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1587,8 +1654,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1630,7 +1698,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1642,6 +1709,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1681,8 +1751,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1724,7 +1795,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1736,6 +1806,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1775,8 +1848,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1818,7 +1892,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1830,6 +1903,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1869,8 +1945,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1912,7 +1989,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -1924,6 +2000,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -1963,8 +2042,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -1980,9 +2060,9 @@ for n in 3 4 5; do '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-– Habitant morbi tristique.
-– Pretium in sem ut.
-– Ut tincidunt maximus pellentesque eu.
+– Blandit sed nec.
+– Orci luctus et ultrices.
+– Non felis at pellentesque ut.
 ```
 
 ### TC54 Shell Integration
@@ -1995,8 +2075,8 @@ printf '4\n6\n' | while read -r n; do '/Users/avanavana/Dropbox/My Mac (MacBook-
 Exit status: 0
 
 ```text
-at elit iaculis tristique.
-ex pellentesque at posuere turpis dapibus.
+suspendisse semper sapien id.
+morbi fermentum turpis dui ut varius.
 ```
 
 ### TC55 Shell Integration
@@ -2009,21 +2089,21 @@ printf '3\n5\n' | xargs -I{} zsh -c "'/Users/avanavana/Dropbox/My Mac (MacBook-P
 Exit status: 0
 
 ```text
-– Mattis in vel.
-– Eleifend tempor nulla efficitur pretium.
+– Facilisis duis fringilla.
+– Iaculis suscipit curabitur iaculis vel.
 ```
 
 ### TC56 Shell Integration
 Command substitution can inline generated text inside another command.
 
 ```sh
-printf '[%s]\n' "$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w -n -l)"
+printf '[%s]\n' "$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 4 w -p none -l)"
 ```
 
 Exit status: 0
 
 ```text
-[at phasellus libero in]
+[mi ornare aliquam scelerisque]
 ```
 
 ### TC57 Shell Integration
@@ -2036,7 +2116,7 @@ printf 'stdin is ignored here\n' | '/Users/avanavana/Dropbox/My Mac (MacBook-Pro
 Exit status: 0
 
 ```text
-Ut bibendum tincidunt erat massa.
+Congue pellentesque ipsum dapibus rutrum.
 ```
 
 ### TC58 Shell Integration
@@ -2049,13 +2129,14 @@ Paragraph output can be piped into fold for visual wrapping.
 Exit status: 0
 
 ```text
-Praesent egestas feugiat maximus morbi 
-sodales fringilla eros in auctor 
-praesent congue tincidunt. Sem in 
-bibendum blandit nullam porta lorem 
-magna eu ultricies. Est vehicula cursus 
-ut id lacus etiam auctor tellus in 
-dolor laoreet a mattis.
+Lacus sed mi dapibus tristique in hac 
+habitasse platea. Orci in nisi nullam 
+facilisis non enim nec dapibus integer 
+id eros tortor donec. Lectus 
+suspendisse sed magna dui in leo velit 
+porttitor ac euismod at. Fermentum 
+elementum orci ut cursus sem. Velit 
+pharetra eu feugiat magna accumsan.
 ```
 
 ### TC59 Shell Integration
@@ -2068,30 +2149,30 @@ Bullet output can be piped into line numbering for visual review.
 Exit status: 0
 
 ```text
-     1	– Turpis mollis fringilla aenean consectetur leo et ultricies.
-     2	– Sit amet consectetur adipiscing elit suspendisse et suscipit.
-     3	– Inceptos himenaeos vestibulum consectetur mauris a sem ullamcorper.
-     4	– Et iaculis dui donec finibus sem.
+     1	– Suspendisse luctus nibh vitae.
+     2	– At vivamus mattis sollicitudin fringilla nulla facilisi.
+     3	– Suspendisse libero diam tempor.
+     4	– Suscipit lectus vel faucibus odio.
 ```
 
 ### TC60 Shell Integration
 Word output can be piped into newline transforms for tokenized display.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 8 w -n -l | tr ' ' '\n'
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 8 w -p none -l | tr ' ' '\n'
 ```
 
 Exit status: 0
 
 ```text
-metus
+ut
+molestie
 quis
-dolor
-posuere
-in
-eget
-eget
-orci
+neque
+neque
+nulla
+nibh
+ultricies
 ```
 
 ### TC61 Sources
@@ -2108,35 +2189,35 @@ Available Sources
 
 Built-In Sources:
 - Lorem Ipsum (lorem) [default]
-  Id hendrerit vivamus suscipit nisl ac eleifend tempor nulla. Vitae ante nullam libero neque lobortis nec.
+  Ultricies id ante sed dictum pellentesque leo. Donec faucibus elit dui id varius arcu tristique eget cras mauris.
 
 - Hipster Ipsum (hipster)
-  Goth crucifix dreamcatcher truffaut occupy banjo mumblecore wayfarers pabst scenester. Locavore keffiyeh chia aesthetic distillery shoreditch adaptogen.
+  Selvage hella bespoke tofu stumptown typewriter irony vaporware synthwave forage. Hammock umami kickstarter tote small batch cronut glossier post ironic mixtape.
 
 - Tech Ipsum (tech)
-  Handshake sandbox orchestration automation observability refactor incident status page dependency. Roadmap sprint backlog schema runtime package endpoint.
+  Events audit trail retention policy data plane control plane edge. Release candidate instrumentation search relevance sync diff import export.
 
 - Pirate Ipsum (pirate)
-  Cutlass mariner deckhand chart cabin wake horizon crow's-nest broadside powder. Cutlass mariner deckhand chart cabin wake horizon crow's-nest broadside powder galley.
+  Wing sea glass rope coil salt wind harbor. Current anchor chain masthead voyage channel shoal moonbeam.
 
 - Food Ipsum (food)
-  Pistachio pomegranate grain bowl sourdough brioche croissant tartlet shortbread. Citrus peel honey maple sea salt cracked pepper.
+  Saucepan ladle spice rack pantry cellar butcher fishmonger. Carrot mushroom truffle chestnut hazelnut walnut pistachio.
 
 - Corporate Ipsum (corporate)
-  Operating cadence decision log action tracker status update narrative. Checkpoint next step service blueprint transformation proposal discovery brief operating assumption.
+  Business review pilot launch solution fit partnership renewal. Narrative briefing leadership offsite program charter business review pilot launch solution.
 
 - Spanish Ipsum (es)
-  Madera viento semilla fruto tarde manana noche. Espejo campana trigo perfume rioja pradera molino refugio horizonte calma.
+  Mirada sueno tiempo ritmo color palabra canto tierra mar. Olivo jazmin fuente sendero colina puerto costa valle espejo ropa manta.
 
 - French Ipsum (fr)
-  Cuisine terrasse avenue carnet douceur matin soir nuageux velours feuille. Encre musique danse caresse calme atelier marche.
+  Balcon lampe histoire refuge tissu guitare ronde prairie moulin horizon. Calme atelier marche orange cannelle citron farine patio.
 
 - German Ipsum (de)
-  Tal spiegel mantel buch brief tinte musik tanz ruhe. Wanderung theater galerie baeckerei freundlichkeit heimweg schimmer mauer.
+  Stein fluss haus duft stille laecheln blick zeit. Tal spiegel mantel buch brief tinte musik tanz ruhe markt.
 
 Imported Sources:
 - Custom Demo (custom-demo)
-  Atlas ember harbor signal twilight atlas ember harbor signal twilight atlas. Atlas ember harbor signal twilight atlas ember harbor signal twilight harbor.
+  Atlas ember harbor signal twilight atlas ember harbor signal twilight atlas. Atlas ember harbor signal twilight atlas ember harbor signal twilight twilight.
 
 Default source: lorem
 ```
@@ -2145,7 +2226,7 @@ Default source: lorem
 The long source option selects a named source corpus for one invocation.
 
 ```sh
-HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --source hipster 6 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/hipster.words' -
+HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --source hipster 6 words -p none -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/hipster.words' -
 ```
 
 Exit status: 0
@@ -2157,7 +2238,7 @@ Exit status: 0
 The short source option selects another named source corpus.
 
 ```sh
-HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' -s tech 6 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/tech.words' -
+HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' -s tech 6 words -p none -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/tech.words' -
 ```
 
 Exit status: 0
@@ -2169,7 +2250,7 @@ Exit status: 0
 Config can change the default source for bare and explicit generation.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_source='corporate'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/source-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/source-config.zsh' LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 6 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/corporate.words' -
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "default_source='corporate'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/source-config.zsh'; LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/source-config.zsh' LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 6 words -p none -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/corporate.words' -
 ```
 
 Exit status: 0
@@ -2193,7 +2274,7 @@ Exit status: 0
 Defaults mode installs the executable, config, corpus, bundled sources, and support directories into a temp HOME.
 
 ```sh
-tmp_home="$(mktemp -d)"; HOME="$tmp_home" zsh '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./install.sh' --yes >/tmp/lipsum-installer-defaults.out; rc=$?; cat /tmp/lipsum-installer-defaults.out; test -x "$tmp_home/.local/bin/lipsum" && test -f "$tmp_home/.lipsum/config" && grep -F 'emoji_charset=' "$tmp_home/.lipsum/config" >/dev/null && test -f "$tmp_home/.lipsum/words" && test -f "$tmp_home/.lipsum/sources/lorem.words" && test -f "$tmp_home/.lipsum/sources/hipster.words" && test -f "$tmp_home/.lipsum/sources/tech.words" && test -f "$tmp_home/.lipsum/sources/pirate.words" && test -f "$tmp_home/.lipsum/sources/food.words" && test -f "$tmp_home/.lipsum/sources/corporate.words" && test -f "$tmp_home/.lipsum/sources/de.words" && test -d "$tmp_home/.lipsum/templates" && HOME="$tmp_home" "$tmp_home/.local/bin/lipsum" 4 words -n -l; verify_rc=$?; rm -rf "$tmp_home" /tmp/lipsum-installer-defaults.out; exit $(( rc || verify_rc ))
+tmp_home="$(mktemp -d)"; HOME="$tmp_home" zsh '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./install.sh' --yes >/tmp/lipsum-installer-defaults.out; rc=$?; cat /tmp/lipsum-installer-defaults.out; test -x "$tmp_home/.local/bin/lipsum" && test -f "$tmp_home/.lipsum/config" && grep -F 'emoji_charset=' "$tmp_home/.lipsum/config" >/dev/null && grep -F "punctuation_mode='period'" "$tmp_home/.lipsum/config" >/dev/null && test -f "$tmp_home/.lipsum/words" && test -f "$tmp_home/.lipsum/sources/lorem.words" && test -f "$tmp_home/.lipsum/sources/hipster.words" && test -f "$tmp_home/.lipsum/sources/tech.words" && test -f "$tmp_home/.lipsum/sources/pirate.words" && test -f "$tmp_home/.lipsum/sources/food.words" && test -f "$tmp_home/.lipsum/sources/corporate.words" && test -f "$tmp_home/.lipsum/sources/de.words" && test -d "$tmp_home/.lipsum/templates" && HOME="$tmp_home" "$tmp_home/.local/bin/lipsum" 4 words -p none -l; verify_rc=$?; rm -rf "$tmp_home" /tmp/lipsum-installer-defaults.out; exit $(( rc || verify_rc ))
 ```
 
 Exit status: 0
@@ -2201,21 +2282,21 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.lxiUuoZ313/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.lxiUuoZ313/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.lxiUuoZ313/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.lxiUuoZ313/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.lxiUuoZ313/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.zfMbpm8sgZ/.local/bin to your PATH to run lipsum directly.
-neque fusce nisi faucibus
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.lxiUuoZ313/.local/bin to your PATH to run lipsum directly.
+sed iaculis nulla volutpat.
 ```
 
 ### TC67 Installer
 Interactive mode accepts step-by-step input and can change the default mode before installation.
 
 ```sh
-tmp_home="$(mktemp -d)"; answers=$(printf 'lines\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'); out="$(printf '%s' "$answers" | HOME="$tmp_home" zsh '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./install.sh' --interactive 2>&1)"; rc=$?; printf '%s\n' "$out"; HOME="$tmp_home" "$tmp_home/.local/bin/lipsum" -b -n -l | awk '/^./ { count++ } END { print count; if (count != 5) exit 1 }'; verify_rc=$?; rm -rf "$tmp_home"; exit $(( rc || verify_rc ))
+tmp_home="$(mktemp -d)"; answers=$(printf 'lines\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'); out="$(printf '%s' "$answers" | HOME="$tmp_home" zsh '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./install.sh' --interactive 2>&1)"; rc=$?; printf '%s\n' "$out"; HOME="$tmp_home" "$tmp_home/.local/bin/lipsum" -b -p none -l | awk '/^./ { count++ } END { print count; if (count != 5) exit 1 }'; verify_rc=$?; rm -rf "$tmp_home"; exit $(( rc || verify_rc ))
 ```
 
 Exit status: 0
@@ -2226,114 +2307,114 @@ Default mode
 This controls what a bare `lipsum` command generates.
 
 Preview:
-Fermentum nec at metus porta non pellentesque magna nunc quis.
+Diam dui mollis ultrices nec eu in pretium non nunc.
 
 Default mode [words] (words/characters/lines/sentences/paragraphs): 
 Default source
 Choose the source corpus used by default. Available: lorem hipster tech pirate food corporate es fr de.
 
 Preview:
-vulputate feugiat curae praesent dui lectus
+metus arcu aenean nunc tristique erat.
 
 Default source [lorem]: 
 Default word count
 Used when your default mode is words and you run `lipsum` with no count.
 
 Preview:
-Placerat mollis interdum purus quisque varius suscipit viverra id sagittis.
+Tristique tempus dui quam pellentesque nulla auctor orci interdum iaculis.
 
 Default word count [10]: 
 Default character count
 Used when your default mode is characters and you run `lipsum` with no count.
 
 Preview:
-E efficitur dui eu libero mollis
+R nec velit in porttitor suspend.
 
 Default character count [32]: 
 Default line count
 Used when your default mode is lines and you run `lipsum` with no count.
 
 Preview:
-– Felis nec sagittis duis molestie.
-– Magna nulla facilisi etiam.
-– Mauris tempor tincidunt curabitur volutpat augue nec lorem.
-– Cursus ex in consequat interdum turpis.
-– Imperdiet dictum mi eros commodo.
+– Non sodales pulvinar enim phasellus molestie et.
+– Semper elementum justo vitae hendrerit.
+– Aenean consectetur leo et ultricies venenatis.
+– Dui et euismod nulla ut.
+– Gravida metus nec dui fermentum semper nulla nec.
 
 Default line count [5]: 
 Default sentence count
 Used when your default mode is sentences and you run `lipsum` with no count.
 
 Preview:
-Vitae porta dignissim diam nisi cursus massa eget. Elementum facilisis turpis in quis rhoncus mauris orci varius. Orci turpis ac justo duis ac odio nec est vehicula cursus ut id. Egestas nec donec placerat porta condimentum curabitur mattis finibus.
+Orci ut pellentesque integer dapibus ante interdum ante lacinia. Porttitor malesuada nunc mauris rutrum eros id volutpat lacus enim. Eu dictum est integer mattis convallis egestas mauris luctus ultrices dui nec. In leo nunc aliquam commodo purus sed.
 
 Default sentence count [4]: 
 Default paragraph count
 Used when your default mode is paragraphs and you run `lipsum` with no count.
 
 Preview:
-Tristique ut proin ac mauris interdum imperdiet enim. Ac elementum facilisis turpis in quis rhoncus mauris orci. Platea dictumst aenean pulvinar quam eu semper maximus eros. Vivamus volutpat arcu quis nisi malesuada vitae egestas magna. In felis praesent pellentesque ex ut consequat feugiat etiam efficitur.
+Dui iaculis donec quis odio a urna suscipit feugiat. Ultricies scelerisque etiam vitae dolor tincidunt elit tristique feugiat sit amet vel turpis. Molestie eget eu sem fusce blandit tempus sodales.
 
-Fames ac turpis egestas sed velit urna gravida sit amet. Lectus purus eget accumsan odio malesuada at ut. Tortor consectetur nunc imperdiet elementum tempus nulla ante nulla tristique.
+Eu feugiat magna accumsan vestibulum semper dolor. Vitae vehicula dui mauris id euismod velit vivamus sed convallis. Ac porta praesent vitae auctor sapien ac. Quis facilisis facilisis sapien integer in ex gravida dui porta efficitur in in.
 
-Fusce tristique eros in aliquet semper praesent quis ex vestibulum ornare ex a pulvinar. Id tincidunt posuere sed luctus nulla. Morbi nec imperdiet enim etiam lacinia magna non ex pellentesque at. Ac dolor sagittis ac fermentum felis placerat nam convallis et. Donec et eros sit amet mauris iaculis suscipit curabitur iaculis vel.
+Rutrum ex aenean sed dictum lorem etiam tempus at dolor. Sed aliquam non felis at pellentesque ut. Ante nulla tristique vitae placerat vel cursus nec tortor nullam fringilla tempor.
 
 Default paragraph count [3]: 
 Default word length range
 Controls the character length of generated words when no explicit range is provided.
 
 Preview:
-aliquam eleifend ut neque erat ultricies
+feugiat tortor ante eu ipsum sed.
 
 Default word length range [1-12]: 
 Default line range
 Controls the number of words in each generated line.
 
 Preview:
-– nec consequat tempor nullam dignissim
-– mauris quis consequat vestibulum
-– aliquam turpis pretium nam at fringilla velit
+– nisl at gravida nulla libero non mi suspendisse.
+– nulla efficitur pretium tincidunt integer tincidunt purus ut.
+– purus ultricies ante ut blandit sem.
 
 Default line range [4-8]: 
 Default sentence range
 Controls the number of words in each generated sentence.
 
 Preview:
-id ipsum maecenas iaculis tortor quis. vel cursus diam sed blandit mauris nulla.
+lorem aliquam nec sed rhoncus odio sed condimentum scelerisque morbi. elementum facilisis turpis in quis rhoncus mauris orci.
 
 Default sentence range [6-14]: 
 Default paragraph range
 Controls the number of sentences in each generated paragraph.
 
 Preview:
-Varius ex aenean vel sodales arcu quis porttitor dolor integer sagittis congue. Amet arcu ac facilisis mollis urna praesent at mi sit amet elit ornare efficitur. Tortor varius ut elit ut sodales volutpat sapien mauris non. Viverra sed pulvinar a massa tristique tristique morbi luctus lectus purus.
+Vestibulum lacus in convallis vitae nisi at auctor. Suspendisse bibendum dolor leo vel mattis tellus. Lobortis risus a rutrum sem in a. Ornare ex a pulvinar nunc phasellus quis tortor dolor sed venenatis eros ac.
 
-Gravida sit amet risus eget malesuada tempor odio duis ut nisi tempor consectetur. Netus et malesuada fames ac turpis egestas donec et. Penatibus et magnis dis parturient montes nascetur ridiculus. Commodo odio sed varius ante id fermentum molestie cras.
+Tristique nunc a velit lectus interdum et malesuada fames ac ante ipsum. Bibendum id lacus in semper class aptent taciti sociosqu ad. Luctus quam condimentum sed mollis neque vestibulum etiam quis. Volutpat placerat erat vel tincidunt arcu tempus eget integer eu venenatis.
 
 Default paragraph range [3-5]: 
 Default paragraph sentence word range
 Controls the number of words in each sentence inside paragraph output.
 
 Preview:
-Primis in faucibus sed nunc ipsum. Lectus eget efficitur donec sed dui a metus pharetra. Quis nibh a suscipit donec velit ante facilisis a leo vitae. Lectus sed quam vehicula dignissim class aptent taciti sociosqu ad. Lacus etiam auctor tellus in dolor laoreet a mattis lorem fringilla nulla id.
+Ornare in et volutpat lorem phasellus massa risus lobortis eu pellentesque id aliquam. Dui nulla metus mauris efficitur non nulla ac. Praesent condimentum aliquam ornare in et volutpat lorem phasellus massa risus lobortis eu pellentesque.
 
 Default paragraph sentence word range [6-14]: 
 Default bullet character
 Used by `lipsum lines -b` when no explicit bullet character is provided.
 
 Preview:
-– nibh scelerisque ultrices vitae in ipsum aliquam
-– augue metus faucibus vel
-– lectus pellentesque in pharetra nisi egestas pellentesque habitant
+– eu neque ac scelerisque euismod.
+– elit vivamus iaculis libero eget consequat accumsan.
+– et leo quis facilisis facilisis sapien integer.
 
 Default bullet character [–]: 
 Default ordered list format
 Used by `lipsum lines -o` when no explicit ordered marker format is provided.
 
 Preview:
-1. Libero vel risus pellentesque ultrices ipsum.
-2. Ut varius libero placerat non.
-3. Lorem maecenas semper consectetur consequat integer nec pretium.
+1. Mollis ex id suscipit suscipit erat.
+2. Non ut in neque tempus ornare tortor.
+3. Sit amet risus eget.
 
 Default ordered list format [%d.]: 
 Copy on generate
@@ -2343,13 +2424,13 @@ Current default: no
 
 Copy on generate [no] (yes/no): 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.aUTlsuB9jo/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.aUTlsuB9jo/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.aUTlsuB9jo/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.aUTlsuB9jo/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.aUTlsuB9jo/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.local/bin to your PATH to run lipsum directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.aUTlsuB9jo/.local/bin to your PATH to run lipsum directly.
 5
 ```
 
@@ -2357,7 +2438,7 @@ Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.9cPrSrYVE9/.local/bin t
 Editor-config mode creates a config file, validates it, and leaves a working installed executable.
 
 ```sh
-tmp_home="$(mktemp -d)"; EDITOR='true' HOME="$tmp_home" zsh '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./install.sh' --editor-config >/tmp/lipsum-installer-editor.out 2>&1; rc=$?; cat /tmp/lipsum-installer-editor.out; test -f "$tmp_home/.lipsum/config" && HOME="$tmp_home" "$tmp_home/.local/bin/lipsum" 3 words -n -l; verify_rc=$?; rm -rf "$tmp_home" /tmp/lipsum-installer-editor.out; exit $(( rc || verify_rc ))
+tmp_home="$(mktemp -d)"; EDITOR='true' HOME="$tmp_home" zsh '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./install.sh' --editor-config >/tmp/lipsum-installer-editor.out 2>&1; rc=$?; cat /tmp/lipsum-installer-editor.out; test -f "$tmp_home/.lipsum/config" && HOME="$tmp_home" "$tmp_home/.local/bin/lipsum" 3 words -p none -l; verify_rc=$?; rm -rf "$tmp_home" /tmp/lipsum-installer-editor.out; exit $(( rc || verify_rc ))
 ```
 
 Exit status: 0
@@ -2365,21 +2446,21 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.3Uwmv9ZdyF/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.3Uwmv9ZdyF/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.3Uwmv9ZdyF/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.3Uwmv9ZdyF/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.3Uwmv9ZdyF/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.0ggWwpWG98/.local/bin to your PATH to run lipsum directly.
-est lacus libero
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.3Uwmv9ZdyF/.local/bin to your PATH to run lipsum directly.
+id ex mattis.
 ```
 
 ### TC69 Custom Sources
 Inline text can be used as a one-off source corpus.
 
 ```sh
-'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --text 'alpha beta gamma delta epsilon' 5 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' <(printf 'alpha beta gamma delta epsilon\n') -
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --text 'alpha beta gamma delta epsilon' 5 words -p none -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' <(printf 'alpha beta gamma delta epsilon\n') -
 ```
 
 Exit status: 0
@@ -2391,7 +2472,7 @@ Exit status: 0
 A file can provide a one-off source corpus.
 
 ```sh
-tmp='$(mktemp)'; printf 'maple river lantern harbor velvet canyon' > "$tmp"; out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --file "$tmp" 5 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' "$tmp" - 2>&1)"; rc=$?; rm -f "$tmp"; printf '%s\n' "$out"; exit $rc
+tmp='$(mktemp)'; printf 'maple river lantern harbor velvet canyon' > "$tmp"; out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --file "$tmp" 5 words -p none -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' "$tmp" - 2>&1)"; rc=$?; rm -f "$tmp"; printf '%s\n' "$out"; exit $rc
 ```
 
 Exit status: 0
@@ -2403,7 +2484,7 @@ Exit status: 0
 Stdin can provide a one-off source corpus via --text -.
 
 ```sh
-printf 'violet cedar ember meadow signal\n' | '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --text - 5 words -n -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' <(printf 'violet cedar ember meadow signal\n') -
+printf 'violet cedar ember meadow signal\n' | '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --text - 5 words -p none -l | tr ' ' '\n' | awk 'NR==FNR { for (i = 1; i <= NF; i++) seen[$i]=1; next } NF { if (!seen[$1]) bad=1 } END { exit bad }' <(printf 'violet cedar ember meadow signal\n') -
 ```
 
 Exit status: 0
@@ -2415,14 +2496,14 @@ Exit status: 0
 Custom input can be saved as a reusable named source.
 
 ```sh
-tmp_home="$(mktemp -d)"; first="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --text 'atlas ember harbor signal twilight' --save-source customdemo 5 words -n -l)"; second="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --source customdemo 5 words -n -l)"; printf 'first=%s\nsecond=%s\n' "$first" "$second"; test -f "$tmp_home/.lipsum/sources/customdemo.words"; rc=$?; rm -rf "$tmp_home"; exit $rc
+tmp_home="$(mktemp -d)"; first="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --text 'atlas ember harbor signal twilight' --save-source customdemo 5 words -p none -l)"; second="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' --source customdemo 5 words -p none -l)"; printf 'first=%s\nsecond=%s\n' "$first" "$second"; test -f "$tmp_home/.lipsum/sources/customdemo.words"; rc=$?; rm -rf "$tmp_home"; exit $rc
 ```
 
 Exit status: 0
 
 ```text
-first=twilight signal atlas ember atlas
-second=harbor signal signal twilight harbor
+first=ember harbor atlas signal twilight
+second=ember atlas atlas signal signal
 ```
 
 ### TC73 Errors
@@ -2461,7 +2542,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -2473,6 +2553,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -2512,8 +2595,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -2555,7 +2639,6 @@ Other Actions:
   [1msources, list-sources[0m       List built-in and saved source corpora with samples.
 
 Options:
-  [1m-n, -N, --no-full-stop[0m       Disable the full stop appended to output by default.
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
@@ -2567,6 +2650,9 @@ Options:
   [1m-o, -O, --ordered-list[0m [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
   [1m-e, -E, --emoji[0m              Mix emoji into generated output.
   [1m-r, -R, --range[0m [1mn|min-max[0m
                                [1mwords[0m: word length filter in characters
@@ -2606,8 +2692,9 @@ Examples:
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
   [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
-  [1mlipsum[0m 140 characters -e -n
+  [1mlipsum[0m 140 characters -e -p none
   [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
   [1mlipsum[0m sources
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
@@ -2617,13 +2704,13 @@ Examples:
 Explicit emoji mode mixes weighted emoji into word output without changing the requested word count.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 40 words -e -n -l)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F '😀' >/dev/null && printf '%s\n' "$out" | awk '{ print NF; if (NF != 40) exit 1 }'
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 40 words -e -p none -l)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F '😀' >/dev/null && printf '%s\n' "$out" | awk '{ print NF; if (NF != 40) exit 1 }'
 ```
 
 Exit status: 0
 
 ```text
-eget luctus facilisis maecenas turpis semper duis posuere a faucibus vitae fringilla libero consectetur magna venenatis rutrum aenean a id porttitor proin nec metus donec nunc rutrum et enim quam commodo eget ut orci turpis 😀 ante 😀 proin urna
+tincidunt nisi dui habitant ipsum et nunc lacus morbi gravida hendrerit quisque rutrum elit bibendum phasellus vestibulum ut morbi eleifend enim ex nibh pellentesque urna a nulla ornare aliquam libero bibendum leo vel posuere commodo eros 😀 libero 😀 non
 40
 ```
 
@@ -2631,13 +2718,13 @@ eget luctus facilisis maecenas turpis semper duis posuere a faucibus vitae fring
 Config-driven emoji defaults can be disabled for one invocation with --no-emoji.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_enabled=1\nemoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-default-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-default-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 40 words --no-emoji -n -l)"; printf '%s\n' "$out"; ! printf '%s\n' "$out" | grep -F '😀' >/dev/null && printf '%s\n' "$out" | awk '{ print NF; if (NF != 40) exit 1 }'
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_enabled=1\nemoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-default-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-default-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 40 words --no-emoji -p none -l)"; printf '%s\n' "$out"; ! printf '%s\n' "$out" | grep -F '😀' >/dev/null && printf '%s\n' "$out" | awk '{ print NF; if (NF != 40) exit 1 }'
 ```
 
 Exit status: 0
 
 ```text
-mauris scelerisque erat leo montes magna quisque nec lacus quis felis sed vehicula ac vel at ac tempus tristique sed metus in varius hendrerit imperdiet facilisi sit non sit volutpat felis ultricies molestie consequat lectus id nullam lacus sed torquent
+in tempor ante malesuada nec sagittis lectus et posuere eleifend mattis nam ipsum turpis curabitur mollis sem maecenas eu risus arcu purus eu nec sed et ex aptent suscipit lobortis luctus egestas aliquam vitae ligula duis in sem vivamus urna
 40
 ```
 
@@ -2645,13 +2732,13 @@ mauris scelerisque erat leo montes magna quisque nec lacus quis felis sed vehicu
 Character mode can append sparse emoji while keeping output visually message-like.
 
 ```sh
-mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-char-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-char-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 140 characters -e -n)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F '😀' >/dev/null
+mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts'; printf "emoji_charset='😀 😀 😀'\n" > '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-char-config.zsh'; out="$(LIPSUM_CONFIG='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/emoji-char-config.zsh' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' 140 characters -e -p none)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F '😀' >/dev/null
 ```
 
 Exit status: 0
 
 ```text
-Lvinar nunc phasellus quis tortor dolor sed venenatis eros ac arcu gravida id elementum tortor consectetur nunc imperdiet elementum tempus 😀
+Turpis egestas sed velit urna gravida sit amet risus eget malesuada tempor odio duis ut nisi tempor consectetur arcu at ultrices dui class 😀
 ```
 
 ### TC78 Emoji
@@ -2664,6 +2751,6 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-ec auctor vehicula eros justo vulputate odio a tempor orci leo nec dolor curabitur nunc nunc convallis sit amet ornare sit amet porttitor e. 😀
+or vivamus tempor egestas elit quis scelerisque suspendisse bibendum dolor leo vel mattis tellus feugiat quis donec bibendum accumsan rhonc. 😀
 ```
 

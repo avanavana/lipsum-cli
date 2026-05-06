@@ -132,8 +132,6 @@ Notes:
 
 ## Options
 
-- `-n`, `-N`, `--no-full-stop`
-  - Suppress the trailing full stop normally added to generated output.
 - `-l`, `-L`, `--lowercase`
   - Force lowercase output.
 - `-u`, `-U`, `--uppercase`
@@ -155,6 +153,12 @@ Notes:
   - Prefix each generated line with an ordered marker.
   - Only valid for `lines`.
   - Default format: `%d.`
+- `-p`, `-P`, `--punctuation [mode]`
+  - Set punctuation handling to `period`, `end`, `all`, or `none`.
+  - Bare `-p` defaults to `all`.
+  - `period` preserves the old behavior of sentence-ending periods.
+  - `end` allows `.`, `!`, and `?` as ending punctuation.
+  - `all` also sprinkles punctuation such as commas, parentheses, hyphens, and em dashes among words.
 - `-e`, `-E`, `--emoji`
   - Mix emoji into generated output.
   - Emoji are sparse and biased toward the ends of the generated text.
@@ -236,8 +240,9 @@ You can select a source for a single invocation with:
 ./lipsum --source tech 2 paragraphs
 ./lipsum --source corporate 5 lines
 ./lipsum -s es 2 paragraphs
-./lipsum 140 characters -e -n
+./lipsum 140 characters -e -p none
 ./lipsum 18 words -e -s tech
+./lipsum 12 words -p all
 ```
 
 You can also set a default source in `~/.lipsum/config`:
@@ -368,9 +373,18 @@ Ordered lists:
 Case formatting:
 
 ```sh
-./lipsum 6 words -n -l
-./lipsum 6 words -n -u
-./lipsum 6 words -n -t
+./lipsum 6 words -p none -l
+./lipsum 6 words -p none -u
+./lipsum 6 words -p none -t
+```
+
+Punctuation modes:
+
+```sh
+./lipsum 8 words -p period
+./lipsum 8 words -p end
+./lipsum 12 words -p all
+./lipsum 8 words -p none
 ```
 
 Word-length filtering:
@@ -393,7 +407,7 @@ Pipelines and shell usage:
 ```sh
 ./lipsum 4 lines -b | nl -ba
 ./lipsum 1 paragraph | fold -s -w 40
-printf '[%s]\n' "$('./lipsum' 4 words -n -l)"
+printf '[%s]\n' "$('./lipsum' 4 words -p none -l)"
 printf '3\n5\n' | xargs -I{} zsh -c "'./lipsum' 1 lines -r \"\$1\" -b" _ {}
 for n in 3 4 5; do ./lipsum 1 line -r "$n" -b; done
 ```
@@ -438,6 +452,7 @@ default_paragraph_sentence_word_range='6-14'
 
 default_bullet_char='–'
 default_ordered_list_format='%d.'
+punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
 emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
@@ -448,6 +463,7 @@ default_source='lorem'
 Notes:
 
 - The config file is sourced by zsh, so values should stay shell-friendly.
+- `punctuation_mode='period'` is the old default behavior, while `end`, `all`, and `none` broaden or remove punctuation.
 - `copy_on_generate=1` makes clipboard copying the default.
 - `emoji_enabled=1` makes emoji mixing the default.
 - `emoji_charset` is a space-separated weighted pool, so repeating an emoji makes it more likely to appear.
