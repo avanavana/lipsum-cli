@@ -8,30 +8,25 @@
 
 ---
 
-Current output modes:
-- `characters`
-- `words`
-- `lines`
-- `sentences`
-- `paragraphs`
-- `template`
+## Features
 
-Current utility features:
-- subcommand-only generation modes
-- exact counts and random count ranges
-- compact one-token short forms like `10c`, `s2`, `2-3l`, `P1-3`
-- named source corpora with `--source`
-- ad hoc source input from text, files, or stdin
-- internal range controls
-- output renderers: `plain`, `html`, `markdown`, `json`, `ndjson`
-- built-in and custom templates
-- optional emoji mixing for message-style placeholder content
-- lowercase, uppercase, and title-case output
-- bullets and ordered lists for line output
-- config-backed defaults from `~/.lipsum/config`
-- built-in clipboard copying
-- conventional branch naming enforced in CI
-- semantic-release driven GitHub releases and changelog automation
+**Flexible generation modes**
+Generate words, characters, lines, sentences, paragraphs, and reusable templates from one CLI. Counts can be exact or randomized over a range, with natural variation inside each unit.
+
+**Source-driven styles**
+Switch between classic lorem, hipster, tech, pirate, food, corporate, and i18n variants. You can also save your own source text from files, stdin, or inline input and reuse it by name.
+
+**Design-friendly controls**
+Shape the output with bullets, ordered lists, punctuation modes, casing, emoji, and word-length filters. It works well for mockups, prototypes, demos, sample payloads, and content skeletons.
+
+**Structured output formats**
+Render as plain text, HTML, Markdown, JSON, or NDJSON. That makes it easy to pipe into other shell tools or drop directly into product and content workflows.
+
+**Configurable defaults**
+Keep your preferred source, format, ranges, and behavior in `~/.lipsum/config`. Clipboard support and shell-friendly defaults make it comfortable to use as a daily utility.
+
+**Templates for speed-dial content**
+Use built-in templates for notifications, email subjects, conventional commits, citations, and more, or define your own. And more. View full documentation below.
 
 ## Requirements
 
@@ -46,11 +41,13 @@ Current utility features:
 ## Installation
 
 The installer sets up:
-- `~/.local/bin/lipsum`
+- `/usr/local/bin/lipsum`
 - `~/.lipsum/config`
 - `~/.lipsum/words`
 - `~/.lipsum/sources/`
 - `~/.lipsum/templates/`
+
+By default the installer targets `/usr/local/bin/lipsum`. If that path needs elevated permissions, it uses `sudo` for the executable install step while keeping config and support files in your home directory.
 
 Bundled sources currently include:
 - `lorem`
@@ -73,7 +70,7 @@ Bundled templates currently include:
 From this project directory, run:
 
 ```sh
-./install.sh
+$ ./install.sh
 ```
 
 When a TTY is available, the installer opens a menu:
@@ -97,95 +94,27 @@ Installer modes:
 Non-interactive installer options:
 
 ```sh
-./install.sh --yes
-./install.sh --interactive
-EDITOR=nano ./install.sh --editor-config
+$ ./install.sh --yes
+$ ./install.sh --interactive
+$ EDITOR=nano ./install.sh --editor-config
 ```
 
 If you prefer not to install yet, you can still run the script directly from the repo:
 
 ```sh
-./lipsum 5 words
+$ ./lipsum 5 words
 ```
 
 Once this repo is hosted publicly, the same installer can also be piped from the raw `install.sh` URL for a one-command setup.
 
-## Workflow
-
-This repo uses conventional commits and conventional branch names.
-
-Branch names follow:
-
-```text
-<type>/<description>
-<type>/<scope>/<description>
-```
-
-Allowed branch types:
-- `feat`
-- `fix`
-- `docs`
-- `style`
-- `refactor`
-- `perf`
-- `test`
-- `build`
-- `ci`
-- `chore`
-- `revert`
-- `release`
-
-Examples:
-
-```text
-feat/output-formats
-fix/template-json-rendering
-docs/release-automation
-ci/semantic-release
-```
-
-Pull requests are checked in GitHub Actions against that convention. The full contributor guidance lives in [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## Releases
-
-Releases are automated with [semantic-release](https://semantic-release.gitbook.io/semantic-release).
-
-Current release behavior:
-- releases are published from `main`
-- version tags use the default `v<version>` format
-- GitHub Releases are created automatically
-- `CHANGELOG.md` is updated automatically
-- the CLI version in [`lipsum`](./lipsum) and the version in [`package.json`](./package.json) are synchronized during release preparation
-
-GitHub workflows:
-- [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)
-  - validates branch names on pull requests
-  - runs the project test suite on pushes and pull requests
-- [`.github/workflows/release.yml`](./.github/workflows/release.yml)
-  - reruns tests on `main`
-  - runs `semantic-release` after the test job succeeds
-
-Local release-related commands:
-
-```sh
-pnpm branch:check feat/output-formats
-pnpm test
-pnpm release:dry-run
-```
-
-Notes:
-- `semantic-release` needs the repo to exist on GitHub with Actions enabled.
-- The release workflow uses the built-in `GITHUB_TOKEN`; no extra npm token is needed because this project is not publishing a package to npm.
-- The first automated release should be made from a clean `main` history with conventional commits already in place.
-
 ## Usage
 
 ```text
-lipsum [ options ] [ count|min-max ] [ command ]
-lipsum [ options ] [ command ] [ count|min-max ]
-lipsum [ options ] [ count|min-max ] template name
-lipsum [ options ] template name [ count|min-max ]
-lipsum [ other-action ]
+$ lipsum [ options ] [ count|min-max ] [ command ]
+$ lipsum [ options ] [ command ] [ count|min-max ]
+$ lipsum [ options ] [ count|min-max ] template name
+$ lipsum [ options ] template name [ count|min-max ]
+$ lipsum [ other-action ]
 ```
 
 Modes are subcommands only. They are not available as flags.
@@ -281,12 +210,12 @@ Top-level counts control how many units get generated.
 Examples:
 
 ```sh
-./lipsum 12
-./lipsum 2 words
-./lipsum words 2
-./lipsum 3-5 words
-./lipsum 4-6 lines
-./lipsum lines 4-6
+$ lipsum 12
+$ lipsum 2 words
+$ lipsum words 2
+$ lipsum 3-5 words
+$ lipsum 4-6 lines
+$ lipsum lines 4-6
 ```
 
 `3-5 words` means the command randomly chooses a count between 3 and 5, then generates that many words.
@@ -298,19 +227,19 @@ Single-letter subcommands can be combined directly with counts.
 Examples:
 
 ```sh
-./lipsum 10c
-./lipsum s2
-./lipsum 2-3l
-./lipsum P1-3
+$ lipsum 10c
+$ lipsum s2
+$ lipsum 2-3l
+$ lipsum P1-3
 ```
 
 These are equivalent to:
 
 ```sh
-./lipsum 10 characters
-./lipsum 2 sentences
-./lipsum 2-3 lines
-./lipsum 1-3 paragraphs
+$ lipsum 10 characters
+$ lipsum 2 sentences
+$ lipsum 2-3 lines
+$ lipsum 1-3 paragraphs
 ```
 
 ## Range Semantics
@@ -322,7 +251,7 @@ These are equivalent to:
 You can list installed sources with:
 
 ```sh
-./lipsum sources
+$ lipsum sources
 ```
 
 That screen separates built-in sources from imported custom sources, labels the current default, and shows a sample paragraph for each source.
@@ -330,13 +259,13 @@ That screen separates built-in sources from imported custom sources, labels the 
 You can select a source for a single invocation with:
 
 ```sh
-./lipsum --source hipster 8 words
-./lipsum --source tech 2 paragraphs
-./lipsum --source corporate 5 lines
-./lipsum -s es 2 paragraphs
-./lipsum 140 characters -e -p none
-./lipsum 18 words -e -s tech
-./lipsum 12 words -p all
+$ lipsum --source hipster 8 words
+$ lipsum --source tech 2 paragraphs
+$ lipsum --source corporate 5 lines
+$ lipsum -s es 2 paragraphs
+$ lipsum 140 characters -e -p none
+$ lipsum 18 words -e -s tech
+$ lipsum 12 words -p all
 ```
 
 You can also set a default source in `~/.lipsum/config`:
@@ -352,16 +281,16 @@ Source lookup works like this:
 You can also generate from one-off input without installing a source first:
 
 ```sh
-./lipsum --text 'alpha beta gamma delta epsilon' 3 words
-./lipsum --file ./notes.txt 2 paragraphs
-printf 'violet cedar ember meadow signal' | ./lipsum --text - 4 words
+$ lipsum --text 'alpha beta gamma delta epsilon' 3 words
+$ lipsum --file ./notes.txt 2 paragraphs
+$ printf 'violet cedar ember meadow signal' | lipsum --text - 4 words
 ```
 
 To save custom input for reuse:
 
 ```sh
-printf 'atlas ember harbor signal twilight' | ./lipsum --text - --save-source customdemo 4 words
-./lipsum --source customdemo 6 words
+$ printf 'atlas ember harbor signal twilight' | lipsum --text - --save-source customdemo 4 words
+$ lipsum --source customdemo 6 words
 ```
 
 ### Words
@@ -371,8 +300,8 @@ For `words`, `--range` filters generated words by character length.
 Examples:
 
 ```sh
-./lipsum 5 words -r 3-4
-./lipsum words 8 -r 6
+$ lipsum 5 words -r 3-4
+$ lipsum words 8 -r 6
 ```
 
 ### Lines
@@ -382,8 +311,8 @@ For `lines`, `--range` controls words per line.
 Examples:
 
 ```sh
-./lipsum 4-6 lines -r 6-10
-./lipsum lines 5 -r 4
+$ lipsum 4-6 lines -r 6-10
+$ lipsum lines 5 -r 4
 ```
 
 ### Sentences
@@ -393,8 +322,8 @@ For `sentences`, `--range` controls words per sentence.
 Examples:
 
 ```sh
-./lipsum 2-4 sentences -r 5
-./lipsum s3 -r 8-12
+$ lipsum 2-4 sentences -r 5
+$ lipsum s3 -r 8-12
 ```
 
 ### Paragraphs
@@ -404,8 +333,8 @@ For `paragraphs`, `--range` controls sentences per paragraph.
 Examples:
 
 ```sh
-./lipsum 2 paragraphs -r 3
-./lipsum P1-3 -r 2-4
+$ lipsum 2 paragraphs -r 3
+$ lipsum P1-3 -r 2-4
 ```
 
 ### Characters
@@ -419,9 +348,9 @@ For `template`, the top-level count controls how many rendered template items ar
 Examples:
 
 ```sh
-./lipsum template notification
-./lipsum 3 template conventional-commit -p none
-./lipsum template apa-citation 2
+$ lipsum template notification
+$ lipsum 3 template conventional-commit -p none
+$ lipsum template apa-citation 2
 ```
 
 If you also pass `--range` with `template`, it acts like `words` mode and filters the word lengths used inside template placeholders such as `{{words(2-5)}}`.
@@ -431,9 +360,9 @@ If you also pass `--range` with `template`, it acts like `words` mode and filter
 The default output format is `plain`. You can override it per invocation:
 
 ```sh
-./lipsum 4 lines -f html
-./lipsum 3 paragraphs -f json
-./lipsum 6 words -f ndjson -p none -l
+$ lipsum 4 lines -f html
+$ lipsum 3 paragraphs -f json
+$ lipsum 6 words -f ndjson -p none -l
 ```
 
 Current renderer behavior:
@@ -462,7 +391,7 @@ Markers support exactly one placeholder token:
 Numeric placeholders can be zero-padded:
 
 ```sh
-./lipsum 3 lines -o '%00z)'
+$ lipsum 3 lines -o '%00z)'
 ```
 
 Example outputs:
@@ -476,98 +405,98 @@ Example outputs:
 Basic usage:
 
 ```sh
-./lipsum
-./lipsum 8
-./lipsum --source fr 8 words
-./lipsum --text 'alpha beta gamma delta epsilon' 3 words
-./lipsum 100 characters
-./lipsum 3 paragraphs
-./lipsum template notification
-./lipsum 3 template conventional-commit -p none
+$ lipsum
+$ lipsum 8
+$ lipsum --source fr 8 words
+$ lipsum --text 'alpha beta gamma delta epsilon' 3 words
+$ lipsum 100 characters
+$ lipsum 3 paragraphs
+$ lipsum template notification
+$ lipsum 3 template conventional-commit -p none
 ```
 
 Website-style bullets:
 
 ```sh
-./lipsum 5 lines -b
-./lipsum 5 lines -b '*'
-./lipsum 4-6 lines -r 4-8 -b
+$ lipsum 5 lines -b
+$ lipsum 5 lines -b '*'
+$ lipsum 4-6 lines -r 4-8 -b
 ```
 
 Ordered lists:
 
 ```sh
-./lipsum 4 lines -o
-./lipsum 4 lines -o '(%A)'
-./lipsum 4 lines -o '%00z)'
+$ lipsum 4 lines -o
+$ lipsum 4 lines -o '(%A)'
+$ lipsum 4 lines -o '%00z)'
 ```
 
 Case formatting:
 
 ```sh
-./lipsum 6 words -p none -l
-./lipsum 6 words -p none -u
-./lipsum 6 words -p none -t
+$ lipsum 6 words -p none -l
+$ lipsum 6 words -p none -u
+$ lipsum 6 words -p none -t
 ```
 
 Punctuation modes:
 
 ```sh
-./lipsum 8 words -p period
-./lipsum 8 words -p end
-./lipsum 12 words -p all
-./lipsum 8 words -p none
+$ lipsum 8 words -p period
+$ lipsum 8 words -p end
+$ lipsum 12 words -p all
+$ lipsum 8 words -p none
 ```
 
 Word-length filtering:
 
 ```sh
-./lipsum 5 words -r 3-4
-./lipsum 8 words -r 6
+$ lipsum 5 words -r 3-4
+$ lipsum 8 words -r 6
 ```
 
 Clipboard:
 
 ```sh
-./lipsum 5 lines -b -c
-./lipsum 3 sentences --copy
-./lipsum 4 words --no-copy
+$ lipsum 5 lines -b -c
+$ lipsum 3 sentences --copy
+$ lipsum 4 words --no-copy
 ```
 
 Renderer formats:
 
 ```sh
-./lipsum 4 lines -f html
-./lipsum 3 paragraphs -f json
-./lipsum 5 words -f ndjson -p none -l
-./lipsum 3 lines -f markdown -p none
+$ lipsum 4 lines -f html
+$ lipsum 3 paragraphs -f json
+$ lipsum 5 words -f ndjson -p none -l
+$ lipsum 3 lines -f markdown -p none
 ```
 
 Templates:
 
 ```sh
-./lipsum templates
-./lipsum template notification
-./lipsum 3 template conventional-commit -p none
-./lipsum template apa-citation 2
-./lipsum 2 template email-subject -f json
+$ lipsum templates
+$ lipsum template notification
+$ lipsum 3 template conventional-commit -p none
+$ lipsum template apa-citation 2
+$ lipsum 2 template email-subject -f json
 ```
 
 Pipelines and shell usage:
 
 ```sh
-./lipsum 4 lines -b | nl -ba
-./lipsum 1 paragraph | fold -s -w 40
-printf '[%s]\n' "$('./lipsum' 4 words -p none -l)"
-printf '3\n5\n' | xargs -I{} zsh -c "'./lipsum' 1 lines -r \"\$1\" -b" _ {}
-for n in 3 4 5; do ./lipsum 1 line -r "$n" -b; done
+$ lipsum 4 lines -b | nl -ba
+$ lipsum 1 paragraph | fold -s -w 40
+$ printf '[%s]\n' "$(lipsum 4 words -p none -l)"
+$ printf '3\n5\n' | xargs -I{} zsh -c "lipsum 1 lines -r \"\$1\" -b" _ {}
+$ for n in 3 4 5; do lipsum 1 line -r "$n" -b; done
 ```
 
 Config actions:
 
 ```sh
-./lipsum init
-./lipsum config
+$ lipsum init
+$ lipsum config
 ```
 
 ## Configuration
@@ -575,13 +504,13 @@ Config actions:
 Initialize a starter config:
 
 ```sh
-./lipsum init
+$ lipsum init
 ```
 
 Then edit it with:
 
 ```sh
-./lipsum config
+$ lipsum config
 ```
 
 Current supported config keys:
@@ -657,7 +586,7 @@ Notes:
 Run the suite from the project root:
 
 ```sh
-./tests/run_lipsum_tests.zsh
+$ ./tests/run_lipsum_tests.zsh
 ```
 
 Artifacts:

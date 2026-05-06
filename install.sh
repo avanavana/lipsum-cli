@@ -14,7 +14,7 @@ typeset -a bundled_source_names=( hipster tech pirate food corporate es fr de )
 typeset -a bundled_template_names=( conventional-commit email-subject notification apa-citation status-update )
 
 typeset install_mode=''
-typeset bin_dir="${LIPSUM_INSTALL_BIN_DIR:-$HOME/.local/bin}"
+typeset bin_dir="${LIPSUM_INSTALL_BIN_DIR:-/usr/local/bin}"
 typeset config_dir="$HOME/.lipsum"
 typeset config_path="$config_dir/config"
 typeset words_path="$config_dir/words"
@@ -540,12 +540,25 @@ choose_install_mode () {
 }
 
 ensure_directories () {
-  mkdir -p "$bin_dir" "$config_dir" "$sources_dir" "$templates_dir" || die 'Could not create installation directories'
+  mkdir -p "$config_dir" "$sources_dir" "$templates_dir" || die 'Could not create installation directories'
 }
 
 install_executable () {
-  cp "$source_script" "$target_script" || die "Could not install lipsum to $target_script"
-  chmod 755 "$target_script" || die "Could not mark $target_script executable"
+  local target_dir="$target_script:h"
+
+  if mkdir -p "$target_dir" >/dev/null 2>&1 && cp "$source_script" "$target_script" >/dev/null 2>&1; then
+    chmod 755 "$target_script" || die "Could not mark $target_script executable"
+    return
+  fi
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo mkdir -p "$target_dir" || die "Could not create $target_dir with sudo"
+    sudo cp "$source_script" "$target_script" || die "Could not install lipsum to $target_script with sudo"
+    sudo chmod 755 "$target_script" || die "Could not mark $target_script executable with sudo"
+    return
+  fi
+
+  die "Could not install lipsum to $target_script. Re-run with --bin-dir or install sudo."
 }
 
 install_corpus_files () {
