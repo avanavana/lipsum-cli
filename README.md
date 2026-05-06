@@ -1,6 +1,12 @@
-# lipsum-cli
+<p align="center">
+  <img src=".github/logo.svg" alt="lipsum-cli logo" width="280">
+</p>
 
-A small zsh CLI for generating randomized placeholder text from a local word corpus.
+<h1 align="center">lipsum-cli</h1>
+
+<p align="center">
+  Generator textus locorum reservatorum pro linea mandatorum est.
+</p>
 
 Current output modes:
 - `characters`
