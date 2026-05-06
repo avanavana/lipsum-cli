@@ -2,11 +2,11 @@
   <img src=".github/logo.svg" alt="lipsum-cli logo" width="280">
 </p>
 
-<h1 align="center">lipsum-cli</h1>
-
 <p align="center">
   Generator textus locorum reservatorum pro linea mandatorum est.
 </p>
+
+---
 
 Current output modes:
 - `characters`
