@@ -42,6 +42,7 @@ Options:
   ${bold}-o, -O, --ordered-list${reset} [ fmt ]
                                Prefix each generated line with an ordered marker.
                                Default format: ${bold}%d.${reset}
+  ${bold}-e, -E, --emoji${reset}              Mix emoji into generated output.
   ${bold}-r, -R, --range${reset} ${bold}n|min-max${reset}
                                ${bold}words${reset}: word length filter in characters
                                       (defaults to config range when omitted)
@@ -51,6 +52,7 @@ Options:
                                ${bold}characters${reset}: ignored
   ${bold}-c, -C, --copy${reset}               Copy generated output to the clipboard and still print it.
   ${bold}--no-copy${reset}                    Disable clipboard copying even if enabled in config.
+  ${bold}--no-emoji${reset}                   Disable emoji even if enabled in config.
   ${bold}-v, -V, --version${reset}            Display the current version of this program.
   ${bold}-h, -H, --help${reset}               Display this help text.
 
@@ -79,10 +81,12 @@ Examples:
   ${bold}$progname${reset} --text 'alpha beta gamma delta' 3 words
   ${bold}$progname${reset} --file ./notes.txt 2 paragraphs
   ${bold}curl -fsSL https://example.com | $progname${reset} --text - --save-source example-site 5 lines
+  ${bold}$progname${reset} 140 characters -e -n
+  ${bold}$progname${reset} 18 words -e -s tech
   ${bold}$progname${reset} sources
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
-typeset __version='1.9.0'
+typeset __version='1.10.0'
 
 die () {
   print -u2 -- "Error: $1"
@@ -368,6 +372,8 @@ default_paragraph_sentence_word_range='6-14'
 default_bullet_char='–'
 default_ordered_list_format='%d.'
 copy_on_generate=0
+emoji_enabled=0
+emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 
 default_source='lorem'
 EOF
@@ -507,6 +513,34 @@ normalize_corpus_text () {
   text="${text%"${text##*[![:space:]]}"}"
 
   print -- "$text"
+}
+
+normalize_emoji_charset () {
+  local text="$1"
+
+  text="${text//$'\r'/ }"
+  text="${text//$'\n'/ }"
+  text="${text//$'\t'/ }"
+
+  while [[ $text == *'  '* ]]; do
+    text="${text//  / }"
+  done
+
+  text="${text#"${text%%[![:space:]]*}"}"
+  text="${text%"${text##*[![:space:]]}"}"
+
+  print -- "$text"
+}
+
+load_emoji_pool () {
+  local -i required=${1:-0}
+
+  emoji_charset="$(normalize_emoji_charset "$emoji_charset")"
+  emoji_pool=( ${(s: :)emoji_charset} )
+
+  if (( required )) && (( ${#emoji_pool[@]} == 0 )); then
+    die 'emoji_charset cannot be empty'
+  fi
 }
 
 source_exists () {
@@ -656,16 +690,19 @@ print_available_sources () {
 
 source_sample_paragraph () {
   local source_name="$(normalize_source_name "$1")"
+  local -i saved_emoji_active=$emoji_active
 
   resolve_source_dictionary_path "$source_name"
   load_dictionary
 
+  emoji_active=0
   count=1
   range_min=2
   range_max=2
   paragraph_sentence_word_min=7
   paragraph_sentence_word_max=11
   build_paragraphs
+  emoji_active=$saved_emoji_active
 }
 
 print_source_section () {
@@ -756,6 +793,9 @@ validate_config () {
   parse_positive_spec "$default_paragraph_sentence_word_range" config_paragraph_sentence_word_min config_paragraph_sentence_word_max 'default_paragraph_sentence_word_range' || die "Invalid default_paragraph_sentence_word_range in config: $default_paragraph_sentence_word_range"
 
   [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
+  [[ $emoji_enabled == 0 || $emoji_enabled == 1 ]] || die "emoji_enabled must be 0 or 1"
+  load_emoji_pool "$emoji_enabled"
+
   if (( ! source_set && ! custom_source_set )); then
     source_exists "$default_source" || die "Unknown default_source in config: $default_source"
   fi
@@ -948,6 +988,166 @@ apply_line_prefix () {
   print -- "$text"
 }
 
+random_emoji () {
+  local -i total=${#emoji_pool[@]}
+
+  (( total > 0 )) || die 'No emoji are available in emoji_charset'
+  rand_range 1 "$total"
+  REPLY="${emoji_pool[REPLY]}"
+}
+
+emoji_count_for_length () {
+  local -i text_length=$1
+  local -i token_count=$2
+  local -i emoji_count=0
+  local -i remainder=0
+
+  if (( ! emoji_active || token_count <= 0 || ${#emoji_pool[@]} == 0 || text_length <= 0 )); then
+    REPLY=0
+    return
+  fi
+
+  emoji_count=$(( text_length / 140 ))
+  remainder=$(( text_length % 140 ))
+
+  if (( remainder > 0 )) && (( RANDOM % 140 < remainder )); then
+    (( emoji_count++ ))
+  fi
+
+  if (( emoji_count == 0 && text_length >= 30 )) && (( RANDOM % 200 < text_length )); then
+    emoji_count=1
+  fi
+
+  if (( emoji_count > token_count )); then
+    emoji_count=$token_count
+  fi
+
+  REPLY=$emoji_count
+}
+
+apply_emoji_to_words () {
+  local -a words=( "$@" )
+  local -i token_count=${#words[@]}
+  local joined_words="${(j: :)words}"
+  local -i start_index=1
+  local -i emoji_count=0
+  local -i position=0
+  local -A used_positions=()
+  local token=''
+  local suffix=''
+  local emoji=''
+
+  (( token_count > 0 )) || {
+    REPLY=''
+    return
+  }
+
+  emoji_count_for_length "${#joined_words}" "$token_count"
+  emoji_count=$REPLY
+
+  if (( emoji_count <= 0 )); then
+    REPLY="${(j: :)words}"
+    return
+  fi
+
+  start_index=$(( token_count - 4 ))
+  if (( start_index < 1 )); then
+    start_index=1
+  fi
+
+  while (( emoji_count > 0 )); do
+    rand_range "$start_index" "$token_count"
+    position=$REPLY
+
+    if [[ -n ${used_positions[$position]} ]]; then
+      continue
+    fi
+
+    used_positions[$position]=1
+    token="${words[$position]}"
+    suffix=''
+
+    if [[ $token[-1] == [.!?] ]]; then
+      suffix="${token[-1]}"
+    fi
+
+    random_emoji
+    emoji="$REPLY"
+    words[$position]="${emoji}${suffix}"
+    (( emoji_count-- ))
+  done
+
+  REPLY="${(j: :)words}"
+}
+
+apply_emoji_to_character_text () {
+  local text="$1"
+  local -i requested_count=$2
+  local -i emoji_count=0
+  local -i available_length=0
+  local tail=''
+  local emoji=''
+  local separator=' '
+  local trimmed=''
+
+  if (( ! emoji_active || ${#emoji_pool[@]} == 0 )); then
+    print -- "$text"
+    return
+  fi
+
+  if (( requested_count <= 2 )); then
+    tail=''
+    while (( ${#tail} < requested_count )); do
+      random_emoji
+      tail+="$REPLY"
+    done
+
+    print -- "$tail"
+    return
+  fi
+
+  emoji_count_for_length "$requested_count" 2
+  emoji_count=$REPLY
+
+  if (( emoji_count <= 0 )); then
+    print -- "$text"
+    return
+  fi
+
+  while (( emoji_count > 0 )); do
+    random_emoji
+    emoji="$REPLY"
+
+    if [[ -n $tail ]]; then
+      tail+=" "
+    fi
+
+    tail+="$emoji"
+    (( emoji_count-- ))
+  done
+
+  available_length=$(( requested_count - ${#tail} ))
+
+  if (( available_length <= 0 )); then
+    print -- "${tail[1,$requested_count]}"
+    return
+  fi
+
+  if (( available_length <= 4 )); then
+    separator=''
+  fi
+
+  trimmed="${text[1,$available_length]}"
+  trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+
+  if [[ -n $trimmed ]]; then
+    print -- "${trimmed}${separator}${tail}"
+    return
+  fi
+
+  print -- "$tail"
+}
+
 random_words () {
   local -i requested_count=$1
   local -a words=()
@@ -978,6 +1178,11 @@ random_words () {
       local -a segment=( $dict_words[$start,$(( start + chunk - 1 ))] )
       words+=( "${segment[@]}" )
     done
+  fi
+
+  if (( emoji_active )); then
+    apply_emoji_to_words "${words[@]}"
+    return
   fi
 
   REPLY="${(j: :)words}"
@@ -1011,6 +1216,10 @@ build_characters () {
       break
     fi
   done
+
+  if (( emoji_active )); then
+    text="$(apply_emoji_to_character_text "$text" "$requested_count")"
+  fi
 
   REPLY="$(format_text "$text")"
 }
@@ -1108,6 +1317,8 @@ typeset default_paragraph_sentence_word_range='6-14'
 typeset default_bullet_char='–'
 typeset default_ordered_list_format='%d.'
 typeset -i copy_on_generate=0
+typeset -i emoji_enabled=0
+typeset emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 typeset default_source='lorem'
 
 typeset script_dir="${0:A:h}"
@@ -1153,10 +1364,13 @@ typeset -i paragraph_sentence_word_min=0
 typeset -i paragraph_sentence_word_max=0
 typeset -i copy_override=-1
 typeset -i copy_enabled=0
+typeset -i emoji_override=-1
+typeset -i emoji_active=0
 typeset ordered_prefix=''
 typeset ordered_suffix=''
 typeset ordered_kind=''
 typeset -i ordered_width=0
+typeset -a emoji_pool=()
 
 typeset -i max_characters=${LIPSUM_MAX_CHARACTERS:-200000}
 typeset -i max_words=${LIPSUM_MAX_WORDS:-50000}
@@ -1255,6 +1469,12 @@ while (( $# > 0 )); do
     --save-source=*)
       save_source_name="$(normalize_source_name "${1#*=}")"
       ;;
+    --emoji)
+      emoji_override=1
+      ;;
+    --no-emoji)
+      emoji_override=0
+      ;;
     --lowercase)
       case_mode='lower'
       ;;
@@ -1322,6 +1542,9 @@ while (( $# > 0 )); do
             range_set=1
             shift
             ;;
+          e|E)
+            emoji_override=1
+            ;;
           s|S)
             if (( index != ${#cluster} )); then
               die "Option -$short_opt requires a separate argument"
@@ -1378,7 +1601,7 @@ while (( $# > 0 )); do
 done
 
 if (( action_set )); then
-  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || ! punc )) || [[ $case_mode != 'normal' ]]; then
+  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || ! punc )) || [[ $case_mode != 'normal' ]]; then
     die "The action '$action_command' cannot be combined with generation options or commands"
   fi
 
@@ -1466,6 +1689,16 @@ if (( copy_override >= 0 )); then
   copy_enabled=$copy_override
 else
   copy_enabled=$copy_on_generate
+fi
+
+if (( emoji_override >= 0 )); then
+  emoji_active=$emoji_override
+else
+  emoji_active=$emoji_enabled
+fi
+
+if (( emoji_active )); then
+  load_emoji_pool 1
 fi
 
 if (( count_set )); then

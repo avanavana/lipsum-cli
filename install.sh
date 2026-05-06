@@ -39,6 +39,8 @@ typeset default_paragraph_sentence_word_range='6-14'
 typeset default_bullet_char='–'
 typeset default_ordered_list_format='%d.'
 typeset copy_on_generate=0
+typeset emoji_enabled=0
+typeset emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 typeset default_source='lorem'
 
 die () {
@@ -168,6 +170,8 @@ default_paragraph_sentence_word_range='$default_paragraph_sentence_word_range'
 default_bullet_char='$default_bullet_char'
 default_ordered_list_format='$default_ordered_list_format'
 copy_on_generate=$copy_on_generate
+emoji_enabled=$emoji_enabled
+emoji_charset='$emoji_charset'
 
 # Reserved for future source selection support.
 default_source='$default_source'

@@ -16,6 +16,7 @@ Current utility features:
 - named source corpora with `--source`
 - ad hoc source input from text, files, or stdin
 - internal range controls
+- optional emoji mixing for message-style placeholder content
 - lowercase, uppercase, and title-case output
 - bullets and ordered lists for line output
 - config-backed defaults from `~/.lipsum/config`
@@ -154,6 +155,11 @@ Notes:
   - Prefix each generated line with an ordered marker.
   - Only valid for `lines`.
   - Default format: `%d.`
+- `-e`, `-E`, `--emoji`
+  - Mix emoji into generated output.
+  - Emoji are sparse and biased toward the ends of the generated text.
+  - For `words`, emoji count toward the requested word total.
+  - For `characters`, output length becomes approximate when emoji are enabled.
 - `-r`, `-R`, `--range n|min-max`
   - `words`: filter generated words by word length in characters
   - if omitted for `words`, the default word-length range comes from config
@@ -165,6 +171,8 @@ Notes:
   - Copy generated output to the clipboard and still print it.
 - `--no-copy`
   - Disable clipboard copying even if enabled in config.
+- `--no-emoji`
+  - Disable emoji even if enabled in config.
 - `-h`, `-H`, `--help`
 - `-v`, `-V`, `--version`
 
@@ -228,6 +236,8 @@ You can select a source for a single invocation with:
 ./lipsum --source tech 2 paragraphs
 ./lipsum --source corporate 5 lines
 ./lipsum -s es 2 paragraphs
+./lipsum 140 characters -e -n
+./lipsum 18 words -e -s tech
 ```
 
 You can also set a default source in `~/.lipsum/config`:
@@ -429,6 +439,8 @@ default_paragraph_sentence_word_range='6-14'
 default_bullet_char='–'
 default_ordered_list_format='%d.'
 copy_on_generate=0
+emoji_enabled=0
+emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 
 default_source='lorem'
 ```
@@ -437,6 +449,8 @@ Notes:
 
 - The config file is sourced by zsh, so values should stay shell-friendly.
 - `copy_on_generate=1` makes clipboard copying the default.
+- `emoji_enabled=1` makes emoji mixing the default.
+- `emoji_charset` is a space-separated weighted pool, so repeating an emoji makes it more likely to appear.
 - If you edit the config externally and introduce an error, that error appears the next time you run `lipsum`.
 - If you edit via `lipsum config`, the command validates the config immediately after the editor exits.
 
@@ -460,6 +474,7 @@ Notes:
 - `LIPSUM_MAX_CHARACTERS` can be larger than the source corpus length because character mode repeats the source text internally until it has enough material to sample from cleanly.
 - Range filtering for `words` and range sizing for `lines`, `sentences`, and `paragraphs` are intentionally different behaviors.
 - Range is ignored for `characters`.
+- Emoji are sparse by design and biased toward the ends of words, lines, sentences, and paragraphs.
 
 ## Testing
 
@@ -483,6 +498,7 @@ Implemented:
 - compact short forms
 - named sources and custom source input
 - built-in alternate source styles
+- configurable emoji mixing
 - case formatting controls
 - word-length filters and per-unit ranges
 - bullets and ordered lists
