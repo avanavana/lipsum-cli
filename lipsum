@@ -10,6 +10,8 @@ typeset default_emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎
 typeset __usage="
 Usage: ${bold}$progname${reset} [ options ] [ ${bold}count|min-max${reset} ] [ ${bold}command${reset} ]
        ${bold}$progname${reset} [ options ] [ ${bold}command${reset} ] [ ${bold}count|min-max${reset} ]
+       ${bold}$progname${reset} [ options ] [ ${bold}count|min-max${reset} ] ${bold}template${reset} ${bold}name${reset}
+       ${bold}$progname${reset} [ options ] ${bold}template${reset} ${bold}name${reset} [ ${bold}count|min-max${reset} ]
        ${bold}$progname${reset} [ ${bold}other-action${reset} ]
        ${bold}$progname${reset} [ ${bold}-v/-V/--version${reset} ]
        ${bold}$progname${reset} [ ${bold}-h/-H/--help${reset} ]
@@ -23,12 +25,14 @@ Commands:
   ${bold}l, L, line, lines${reset}
   ${bold}s, S, sent, sents, sentence, sentences${reset}
   ${bold}p, P, para, paras, paragraph, paragraphs${reset}
+  ${bold}template, tpl, tmpl${reset}
 
 Other Actions:
   ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
   ${bold}config, settings, prefs, preferences${reset}
                                Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
   ${bold}sources, list-sources${reset}       List built-in and saved source corpora with samples.
+  ${bold}templates, list-templates${reset}   List built-in and saved templates with samples.
 
 Options:
   ${bold}-l, -L, --lowercase${reset}          Return output entirely in lowercase.
@@ -38,6 +42,7 @@ Options:
   ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the source corpus.
   ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the source corpus for this invocation.
   ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable named source.
+  ${bold}-f, -F, --format${reset} ${bold}name${reset}         Render as ${bold}plain${reset}, ${bold}html${reset}, ${bold}markdown${reset}, ${bold}json${reset}, or ${bold}ndjson${reset}.
   ${bold}-b, -B, --bullets${reset} [ char ]   Prefix each generated line with ${bold}char${reset} (default: '–').
   ${bold}-o, -O, --ordered-list${reset} [ fmt ]
                                Prefix each generated line with an ordered marker.
@@ -87,10 +92,15 @@ Examples:
   ${bold}$progname${reset} 140 characters -e -p none
   ${bold}$progname${reset} 18 words -e -s tech
   ${bold}$progname${reset} 12 words -p all
+  ${bold}$progname${reset} 4 lines -f html
+  ${bold}$progname${reset} 3 paragraphs -f json
+  ${bold}$progname${reset} template notification 4
+  ${bold}$progname${reset} 3 template conventional-commit -p none
+  ${bold}$progname${reset} templates
   ${bold}$progname${reset} sources
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
-typeset __version='1.11.0'
+typeset __version='1.12.0'
 
 die () {
   print -u2 -- "Error: $1"
@@ -225,6 +235,17 @@ format_text () {
 valid_punctuation_mode () {
   case "$1" in
     period|end|all|none)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+valid_output_format () {
+  case "$1" in
+    plain|html|markdown|json|ndjson)
       return 0
       ;;
     *)
@@ -395,7 +416,7 @@ is_short_command_char () {
 
 is_content_command_name () {
   case "$1" in
-    c|C|char|chars|character|characters|w|W|word|words|l|L|line|lines|s|S|sent|sents|sentence|sentences|p|P|para|paras|paragraph|paragraphs)
+    c|C|char|chars|character|characters|w|W|word|words|l|L|line|lines|s|S|sent|sents|sentence|sentences|p|P|para|paras|paragraph|paragraphs|template|tpl|tmpl)
       return 0
       ;;
     *)
@@ -406,7 +427,7 @@ is_content_command_name () {
 
 is_action_name () {
   case "$1" in
-    init|config|settings|prefs|preferences|sources|list-sources)
+    init|config|settings|prefs|preferences|sources|list-sources|templates|list-templates)
       return 0
       ;;
     *)
@@ -432,6 +453,9 @@ set_content_command () {
     p|P|para|paras|paragraph|paragraphs)
       content_command='paragraphs'
       ;;
+    template|tpl|tmpl)
+      content_command='template'
+      ;;
     *)
       die "Unrecognized command: $1"
       ;;
@@ -448,6 +472,9 @@ set_action_command () {
       ;;
     sources|list-sources)
       action_command='sources'
+      ;;
+    templates|list-templates)
+      action_command='templates'
       ;;
     *)
       die "Unrecognized action: $1"
@@ -558,6 +585,7 @@ default_paragraph_sentence_word_range='6-14'
 
 default_bullet_char='–'
 default_ordered_list_format='%d.'
+default_format='plain'
 punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
@@ -668,6 +696,107 @@ source_display_title () {
 source_file_path () {
   local name="$(normalize_source_name "$1")"
   REPLY="$source_dir/$name.words"
+}
+
+template_file_path () {
+  local name="$(normalize_source_name "$1")"
+  REPLY="$template_dir/$name.tpl"
+}
+
+bundled_template_file_path () {
+  local name="$(normalize_source_name "$1")"
+  REPLY="$bundled_template_dir/$name.tpl"
+}
+
+template_exists () {
+  local name="$(normalize_source_name "$1")"
+  local template_file=''
+  local bundled_template_file=''
+
+  [[ -n $name ]] || return 1
+  template_file_path "$name"
+  template_file="$REPLY"
+  bundled_template_file_path "$name"
+  bundled_template_file="$REPLY"
+
+  [[ -r $template_file || -r $bundled_template_file ]]
+}
+
+resolve_template_path () {
+  local name="$(normalize_source_name "$1")"
+  local template_file=''
+  local bundled_template_file=''
+
+  template_file_path "$name"
+  template_file="$REPLY"
+  bundled_template_file_path "$name"
+  bundled_template_file="$REPLY"
+
+  if [[ -r $template_file ]]; then
+    REPLY="$template_file"
+    return
+  fi
+
+  if [[ -r $bundled_template_file ]]; then
+    REPLY="$bundled_template_file"
+    return
+  fi
+
+  die "Template not found: $name"
+}
+
+template_display_title () {
+  local name="$1"
+  local path=''
+  local title=''
+
+  resolve_template_path "$name"
+  path="$REPLY"
+
+  while IFS= read -r line; do
+    if [[ $line =~ '^# title:[[:space:]]*(.+)$' ]]; then
+      title="$match[1]"
+      break
+    fi
+
+    [[ $line == '#'* ]] || break
+  done < "$path"
+
+  if [[ -n $title ]]; then
+    REPLY="$title"
+    return
+  fi
+
+  REPLY="${(C)${(L)${name//-/ }}}"
+}
+
+available_template_names () {
+  local -a names=()
+  local -A seen=()
+  local file=''
+  local base=''
+
+  for file in "$template_dir"/*.tpl(N); do
+    base="${file:t:r}"
+    base="$(normalize_source_name "$base")"
+
+    if [[ -z ${seen[$base]} ]]; then
+      names+=( "$base" )
+      seen[$base]=1
+    fi
+  done
+
+  for file in "$bundled_template_dir"/*.tpl(N); do
+    base="${file:t:r}"
+    base="$(normalize_source_name "$base")"
+
+    if [[ -z ${seen[$base]} ]]; then
+      names+=( "$base" )
+      seen[$base]=1
+    fi
+  done
+
+  REPLY="${(j: :)names}"
 }
 
 bundled_source_file_path () {
@@ -936,6 +1065,279 @@ print_source_section () {
   done
 }
 
+load_template_body () {
+  local name="$(normalize_source_name "$1")"
+  local path=''
+  local line=''
+  local body=''
+  local -i body_started=0
+
+  resolve_template_path "$name"
+  path="$REPLY"
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    if (( ! body_started )) && [[ $line == '#'* ]]; then
+      continue
+    fi
+
+    body_started=1
+
+    if [[ -n $body ]]; then
+      body+=$'\n'
+    fi
+
+    body+="$line"
+  done < "$path"
+
+  [[ -n $body ]] || die "Template is empty: $name"
+  REPLY="$body"
+}
+
+trim_spaces () {
+  local text="$1"
+  text="${text#"${text%%[![:space:]]*}"}"
+  text="${text%"${text##*[![:space:]]}"}"
+  print -- "$text"
+}
+
+template_positive_spec () {
+  local spec="$1"
+  local min_ref="$2"
+  local max_ref="$3"
+  local label="$4"
+
+  if [[ -z $spec ]]; then
+    typeset -g "$min_ref=1"
+    typeset -g "$max_ref=1"
+    return
+  fi
+
+  spec="$(trim_spaces "$spec")"
+  parse_positive_spec "$spec" "$min_ref" "$max_ref" "$label" || die "Invalid $label in template: $spec"
+}
+
+template_number () {
+  local spec="$1"
+  local -i spec_min=0
+  local -i spec_max=0
+
+  template_positive_spec "$spec" spec_min spec_max 'number'
+  rand_range "$spec_min" "$spec_max"
+}
+
+template_words () {
+  local spec="$1"
+  local -i spec_min=0
+  local -i spec_max=0
+
+  template_positive_spec "$spec" spec_min spec_max 'words'
+  rand_range "$spec_min" "$spec_max"
+  random_words "$REPLY"
+}
+
+template_sentence () {
+  local spec="$1"
+  local -i spec_min=0
+  local -i spec_max=0
+
+  template_positive_spec "$spec" spec_min spec_max 'sentence'
+  rand_range "$spec_min" "$spec_max"
+  random_sentence "$REPLY"
+}
+
+template_choice () {
+  local spec="$1"
+  local -a choices=()
+
+  spec="$(trim_spaces "$spec")"
+  [[ -n $spec ]] || die 'choice() in templates requires at least one option'
+  choices=( ${(s:|:)spec} )
+  (( ${#choices[@]} > 0 )) || die 'choice() in templates requires at least one option'
+  rand_range 1 "${#choices[@]}"
+  REPLY="$(trim_spaces "${choices[REPLY]}")"
+}
+
+template_emoji () {
+  local spec="$1"
+  local -i spec_min=0
+  local -i spec_max=0
+  local -i emoji_count=0
+  local -a emojis=()
+
+  if (( ${#emoji_pool[@]} == 0 )); then
+    load_emoji_pool 1
+  fi
+
+  template_positive_spec "$spec" spec_min spec_max 'emoji'
+  rand_range "$spec_min" "$spec_max"
+  emoji_count=$REPLY
+
+  while (( emoji_count > 0 )); do
+    random_emoji
+    emojis+=( "$REPLY" )
+    (( emoji_count-- ))
+  done
+
+  REPLY="${(j: :)emojis}"
+}
+
+render_template_expression () {
+  local expression="$1"
+  local name=''
+  local args=''
+
+  expression="$(trim_spaces "$expression")"
+
+  if [[ $expression =~ '^([A-Za-z][A-Za-z0-9_-]*)(\((.*)\))?$' ]]; then
+    name="${(L)match[1]}"
+    args="$match[3]"
+  else
+    die "Invalid template expression: $expression"
+  fi
+
+  case "$name" in
+    words|word)
+      template_words "$args"
+      ;;
+    sentence|sent)
+      template_sentence "$args"
+      ;;
+    number|int)
+      template_number "$args"
+      ;;
+    choice|pick)
+      template_choice "$args"
+      ;;
+    emoji)
+      template_emoji "$args"
+      ;;
+    *)
+      die "Unknown template expression: $name"
+      ;;
+  esac
+}
+
+render_template_text () {
+  local text="$1"
+  local output=''
+  local prefix=''
+  local suffix=''
+  local expression=''
+
+  while [[ $text == *'{{'* ]]; do
+    prefix="${text%%\{\{*}"
+    output+="$prefix"
+    suffix="${text#*\{\{}"
+
+    if [[ $suffix != *'}}'* ]]; then
+      die "Unclosed template expression in template '$selected_template'"
+    fi
+
+    expression="${suffix%%\}\}*}"
+    render_template_expression "$expression"
+    output+="$REPLY"
+    text="${suffix#*\}\}}"
+  done
+
+  output+="$text"
+  REPLY="$output"
+}
+
+template_sample_output () {
+  local name="$(normalize_source_name "$1")"
+  local saved_template="$selected_template"
+  local -i saved_count=$count
+  local saved_text="$generated_text"
+  local -a saved_items=( "${generated_items[@]}" )
+  local -i saved_emoji_active=$emoji_active
+  local saved_dictionary_path="$dictionary_path"
+  local sample_source=''
+
+  if (( ${#dict_words[@]} == 0 )); then
+    if [[ -n $resolved_source ]]; then
+      sample_source="$resolved_source"
+    else
+      sample_source="$default_source"
+    fi
+    resolve_source_dictionary_path "$sample_source"
+    load_dictionary
+  fi
+
+  selected_template="$name"
+  count=1
+  emoji_active=0
+  build_template
+  emoji_active=$saved_emoji_active
+  selected_template="$saved_template"
+  count=$saved_count
+  dictionary_path="$saved_dictionary_path"
+  generated_text="$saved_text"
+  generated_items=( "${saved_items[@]}" )
+}
+
+print_template_section () {
+  local heading="$1"
+  shift
+
+  local -a names=( "$@" )
+  local name=''
+  local title=''
+  local sample=''
+
+  print -- "$heading:"
+
+  if (( ${#names[@]} == 0 )); then
+    print -- '  (none)'
+    print -- ''
+    return
+  fi
+
+  for name in "${names[@]}"; do
+    template_display_title "$name"
+    title="$REPLY"
+    template_sample_output "$name"
+    sample="$REPLY"
+    print -- "- $title (${name})"
+    print -- "  $sample"
+    print -- ''
+  done
+}
+
+print_available_templates () {
+  local -a names=()
+  local -a built_in_names=()
+  local -a custom_names=()
+  local -A available=()
+  local name=''
+
+  available_template_names
+  names=( ${(s: :)REPLY} )
+
+  (( ${#names[@]} > 0 )) || die "No templates are available. Create one under $template_dir first."
+
+  for name in "${names[@]}"; do
+    available[$name]=1
+  done
+
+  for name in conventional-commit email-subject notification apa-citation status-update; do
+    if [[ -n ${available[$name]} ]]; then
+      built_in_names+=( "$name" )
+    fi
+  done
+
+  for name in "${names[@]}"; do
+    if [[ " ${built_in_names[*]} " != *" $name "* ]]; then
+      custom_names+=( "$name" )
+    fi
+  done
+
+  print -- 'Available Templates'
+  print -- ''
+  print_template_section 'Built-In Templates' "${built_in_names[@]}"
+  print_template_section 'Imported Templates' "${custom_names[@]}"
+  exit 0
+}
+
 load_dictionary () {
   [[ -n $dictionary_path ]] || die 'No dictionary path resolved'
   [[ -r $dictionary_path ]] || die "Dictionary file not found: $dictionary_path"
@@ -971,6 +1373,7 @@ save_source_text () {
 
 validate_config () {
   is_content_command_name "$default_mode" || die "Invalid default_mode in config: $default_mode"
+  [[ $default_mode != 'template' && $default_mode != 'tpl' && $default_mode != 'tmpl' ]] || die 'default_mode cannot be template; use an explicit template name at invocation time'
   default_source="$(normalize_source_name "$default_source")"
   [[ -n $default_source ]] || die 'default_source cannot be empty'
 
@@ -986,6 +1389,7 @@ validate_config () {
   parse_positive_spec "$default_word_length_range" config_word_length_min config_word_length_max 'default_word_length_range' || die "Invalid default_word_length_range in config: $default_word_length_range"
   parse_positive_spec "$default_paragraph_sentence_word_range" config_paragraph_sentence_word_min config_paragraph_sentence_word_max 'default_paragraph_sentence_word_range' || die "Invalid default_paragraph_sentence_word_range in config: $default_paragraph_sentence_word_range"
 
+  valid_output_format "$default_format" || die "Invalid default_format in config: $default_format"
   valid_punctuation_mode "$punctuation_mode" || die "Invalid punctuation_mode in config: $punctuation_mode"
   [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
   [[ $emoji_enabled == 0 || $emoji_enabled == 1 ]] || die "emoji_enabled must be 0 or 1"
@@ -1012,6 +1416,9 @@ default_count_for_command () {
       ;;
     paragraphs)
       REPLY=$default_paragraph_count
+      ;;
+    template)
+      REPLY=1
       ;;
     *)
       die "Unknown command: $1"
@@ -1058,6 +1465,181 @@ emit_output () {
   fi
 
   print -r -- "$text"
+}
+
+json_escape () {
+  local text="$1"
+  text="${text//\\/\\\\}"
+  text="${text//\"/\\\"}"
+  text="${text//$'\n'/\\n}"
+  text="${text//$'\r'/\\r}"
+  text="${text//$'\t'/\\t}"
+  text="${text//$'\f'/\\f}"
+  text="${text//$'\b'/\\b}"
+  print -r -- "\"$text\""
+}
+
+html_escape () {
+  local text="$1"
+  text="${text//&/&amp;}"
+  text="${text//</&lt;}"
+  text="${text//>/&gt;}"
+  text="${text//\"/&quot;}"
+  print -r -- "$text"
+}
+
+strip_line_prefix () {
+  local text="$1"
+
+  if (( ordered_list )); then
+    print -- "${text#* }"
+    return
+  fi
+
+  if (( bullets )); then
+    print -- "${text#"$bulletchar "}"
+    return
+  fi
+
+  print -- "$text"
+}
+
+render_json_array () {
+  local -a items=( "$@" )
+  local -a quoted_items=()
+  local item=''
+
+  for item in "${items[@]}"; do
+    quoted_items+=( "$(json_escape "$item")" )
+  done
+
+  print -r -- "[ ${(j:, :)quoted_items} ]"
+}
+
+render_html_list () {
+  local list_tag="$1"
+  shift
+
+  local -a items=( "$@" )
+  local item=''
+  local output="<$list_tag>"
+
+  for item in "${items[@]}"; do
+    item="$(strip_line_prefix "$item")"
+    output+=$'\n'
+    output+="  <li>$(html_escape "$item")</li>"
+  done
+
+  output+=$'\n'
+  output+="</$list_tag>"
+  print -r -- "$output"
+}
+
+render_output () {
+  local -a items=( "${generated_items[@]}" )
+  local item=''
+  local output=''
+
+  case "$output_format" in
+    plain)
+      print -r -- "$generated_text"
+      ;;
+    markdown)
+      case "$content_command" in
+        lines)
+          if (( bullets || ordered_list )); then
+            print -r -- "$generated_text"
+            return
+          fi
+
+          for item in "${items[@]}"; do
+            if [[ -n $output ]]; then
+              output+=$'\n'
+            fi
+            output+="- $item"
+          done
+          print -r -- "$output"
+          ;;
+        template)
+          if (( ${#items[@]} <= 1 )); then
+            print -r -- "$generated_text"
+            return
+          fi
+
+          for item in "${items[@]}"; do
+            if [[ -n $output ]]; then
+              output+=$'\n'
+            fi
+            output+="- $item"
+          done
+          print -r -- "$output"
+          ;;
+        *)
+          print -r -- "$generated_text"
+          ;;
+      esac
+      ;;
+    html)
+      case "$content_command" in
+        lines)
+          if (( ordered_list )); then
+            render_html_list 'ol' "${items[@]}"
+          else
+            render_html_list 'ul' "${items[@]}"
+          fi
+          ;;
+        paragraphs)
+          for item in "${items[@]}"; do
+            if [[ -n $output ]]; then
+              output+=$'\n'
+            fi
+            output+="<p>$(html_escape "$item")</p>"
+          done
+          print -r -- "$output"
+          ;;
+        words|sentences)
+          print -r -- "<p>$(html_escape "$generated_text")</p>"
+          ;;
+        template)
+          if (( ${#items[@]} > 1 )); then
+            render_html_list 'ul' "${items[@]}"
+          else
+            print -r -- "<p>$(html_escape "$generated_text")</p>"
+          fi
+          ;;
+        *)
+          print -r -- "<p>$(html_escape "$generated_text")</p>"
+          ;;
+      esac
+      ;;
+    json)
+      case "$content_command" in
+        characters)
+          json_escape "$generated_text"
+          ;;
+        *)
+          render_json_array "${items[@]}"
+          ;;
+      esac
+      ;;
+    ndjson)
+      if [[ $content_command == 'characters' ]]; then
+        json_escape "$generated_text"
+        return
+      fi
+
+      for item in "${items[@]}"; do
+        if [[ -n $output ]]; then
+          output+=$'\n'
+        fi
+        output+="$(json_escape "$item")"
+      done
+      print -r -- "$output"
+      ;;
+    *)
+      die "Unknown output format: $output_format"
+      ;;
+  esac
 }
 
 int_to_roman () {
@@ -1417,11 +1999,15 @@ build_characters () {
   fi
 
   REPLY="$(format_text "$text")"
+  generated_items=( "$REPLY" )
+  generated_text="$REPLY"
 }
 
 build_words () {
   random_words "$count"
   REPLY="$(format_text "$REPLY")"
+  generated_items=( ${(s: :)REPLY} )
+  generated_text="$REPLY"
 }
 
 build_lines () {
@@ -1446,6 +2032,8 @@ build_lines () {
   done
 
   REPLY="$output"
+  generated_items=( "${lines[@]}" )
+  generated_text="$REPLY"
 }
 
 build_sentences () {
@@ -1460,6 +2048,8 @@ build_sentences () {
   done
 
   REPLY="${(j: :)sentences}"
+  generated_items=( "${sentences[@]}" )
+  generated_text="$REPLY"
 }
 
 build_paragraphs () {
@@ -1496,6 +2086,38 @@ build_paragraphs () {
   done
 
   REPLY="$output"
+  generated_items=( "${paragraphs[@]}" )
+  generated_text="$REPLY"
+}
+
+build_template () {
+  local body=''
+  local -a items=()
+  local -i index=1
+  local output=''
+  local item=''
+
+  template_exists "$selected_template" || die "Template not found: $selected_template"
+  load_template_body "$selected_template"
+  body="$REPLY"
+
+  while (( index <= count )); do
+    render_template_text "$body"
+    items+=( "$REPLY" )
+    (( index++ ))
+  done
+
+  for item in "${items[@]}"; do
+    if [[ -n $output ]]; then
+      output+=$'\n'
+    fi
+
+    output+="$item"
+  done
+
+  generated_items=( "${items[@]}" )
+  generated_text="$output"
+  REPLY="$output"
 }
 
 typeset default_mode='words'
@@ -1511,6 +2133,7 @@ typeset default_word_length_range='1-12'
 typeset default_paragraph_sentence_word_range='6-14'
 typeset default_bullet_char='–'
 typeset default_ordered_list_format='%d.'
+typeset default_format='plain'
 typeset punctuation_mode='period'
 typeset -i copy_on_generate=0
 typeset -i emoji_enabled=0
@@ -1519,13 +2142,16 @@ typeset default_source='lorem'
 
 typeset script_dir="${0:A:h}"
 typeset source_dir="${LIPSUM_SOURCE_DIR:-$HOME/.lipsum/sources}"
+typeset template_dir="${LIPSUM_TEMPLATE_DIR:-$HOME/.lipsum/templates}"
 typeset legacy_dictionary_path="$HOME/.lipsum/words"
 typeset dictionary_override="${LIPSUM_DICT:-}"
 typeset bundled_source_dir="$script_dir/share/sources"
+typeset bundled_template_dir="$script_dir/share/templates"
 typeset bundled_dictionary_path="$script_dir/share/lorem.words"
 typeset dictionary_path=''
 typeset selected_source=''
 typeset resolved_source=''
+typeset selected_template=''
 typeset custom_source_text=''
 typeset custom_source_file=''
 typeset save_source_name=''
@@ -1549,6 +2175,7 @@ typeset -i bullets=0
 typeset -i ordered_list=0
 typeset bulletchar=''
 typeset ordered_formula=''
+typeset output_format=''
 typeset -i bulletchar_set=0
 typeset -i ordered_formula_set=0
 typeset -i range_set=0
@@ -1566,6 +2193,8 @@ typeset ordered_prefix=''
 typeset ordered_suffix=''
 typeset ordered_kind=''
 typeset -i ordered_width=0
+typeset generated_text=''
+typeset -a generated_items=()
 typeset -a emoji_pool=()
 typeset -A emoji_lookup=()
 
@@ -1673,6 +2302,16 @@ while (( $# > 0 )); do
     --save-source=*)
       save_source_name="$(normalize_source_name "${1#*=}")"
       ;;
+    --format)
+      [[ -n $2 ]] || die "Missing format for --format"
+      valid_output_format "$2" || die "Invalid output format: $2"
+      output_format="$2"
+      shift
+      ;;
+    --format=*)
+      valid_output_format "${1#*=}" || die "Invalid output format: ${1#*=}"
+      output_format="${1#*=}"
+      ;;
     --emoji)
       emoji_override=1
       ;;
@@ -1754,6 +2393,16 @@ while (( $# > 0 )); do
           e|E)
             emoji_override=1
             ;;
+          f|F)
+            if (( index != ${#cluster} )); then
+              die "Option -$short_opt requires a separate argument"
+            fi
+
+            [[ -n $2 ]] || die "Missing format for -$short_opt"
+            valid_output_format "$2" || die "Invalid output format: $2"
+            output_format="$2"
+            shift
+            ;;
           s|S)
             if (( index != ${#cluster} )); then
               die "Option -$short_opt requires a separate argument"
@@ -1781,11 +2430,13 @@ while (( $# > 0 )); do
         (( index++ ))
       done
       ;;
-    *)
-      if is_action_name "$1"; then
-        if (( action_set )); then
-          die "Multiple actions specified"
-        fi
+	    *)
+      if [[ $content_command == 'template' && -z $selected_template ]]; then
+        selected_template="$(normalize_source_name "$1")"
+      elif is_action_name "$1"; then
+	        if (( action_set )); then
+	          die "Multiple actions specified"
+	        fi
 
         set_action_command "$1"
         action_set=1
@@ -1810,7 +2461,7 @@ while (( $# > 0 )); do
 done
 
 if (( action_set )); then
-  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' ]]; then
+  if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' || -n $output_format || -n $selected_template ]]; then
     die "The action '$action_command' cannot be combined with generation options or commands"
   fi
 
@@ -1829,6 +2480,10 @@ validate_config
 
 if (( action_set )) && [[ $action_command == 'sources' ]]; then
   print_available_sources
+fi
+
+if (( action_set )) && [[ $action_command == 'templates' ]]; then
+  print_available_templates
 fi
 
 if (( source_set && custom_source_set )); then
@@ -1883,6 +2538,10 @@ else
   set_content_command "$default_mode"
 fi
 
+if [[ $content_command == 'template' && -z $selected_template ]]; then
+  die 'A template name is required after the template command'
+fi
+
 if (( bulletchar_set )); then
   :
 else
@@ -1892,6 +2551,12 @@ fi
 if (( ordered_list )) && (( ! ordered_formula_set )); then
   ordered_formula="$default_ordered_list_format"
   ordered_formula_set=1
+fi
+
+if [[ -n $output_format ]]; then
+  :
+else
+  output_format="$default_format"
 fi
 
 if (( copy_override >= 0 )); then
@@ -1941,6 +2606,21 @@ case "$content_command" in
         filtered_words+=( "$word" )
       fi
     done
+    ;;
+  template)
+    if (( range_set )); then
+      local_word_length_min=$range_min
+      local_word_length_max=$range_max
+      word_length_filter_set=1
+      filtered_words=()
+
+      for word in "${dict_words[@]}"; do
+        local -i word_length=${#word}
+        if (( word_length >= local_word_length_min && word_length <= local_word_length_max )); then
+          filtered_words+=( "$word" )
+        fi
+      done
+    fi
     ;;
   lines)
     if (( ! range_set )); then
@@ -1992,6 +2672,9 @@ case "$content_command" in
   paragraphs)
     (( count <= max_paragraphs )) || die "Paragraph count capped at $max_paragraphs. Set LIPSUM_MAX_PARAGRAPHS to raise it."
     ;;
+  template)
+    (( count <= max_lines )) || die "Template count capped at $max_lines. Set LIPSUM_MAX_LINES to raise it."
+    ;;
 esac
 
 case "$content_command" in
@@ -2010,9 +2693,12 @@ case "$content_command" in
   paragraphs)
     build_paragraphs
     ;;
+  template)
+    build_template
+    ;;
   *)
     die "Unknown command: $content_command"
     ;;
 esac
 
-emit_output "$REPLY"
+emit_output "$(render_output)"

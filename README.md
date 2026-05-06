@@ -8,6 +8,7 @@ Current output modes:
 - `lines`
 - `sentences`
 - `paragraphs`
+- `template`
 
 Current utility features:
 - subcommand-only generation modes
@@ -16,6 +17,8 @@ Current utility features:
 - named source corpora with `--source`
 - ad hoc source input from text, files, or stdin
 - internal range controls
+- output renderers: `plain`, `html`, `markdown`, `json`, `ndjson`
+- built-in and custom templates
 - optional emoji mixing for message-style placeholder content
 - lowercase, uppercase, and title-case output
 - bullets and ordered lists for line output
@@ -51,6 +54,13 @@ Bundled sources currently include:
 - `es`
 - `fr`
 - `de`
+
+Bundled templates currently include:
+- `conventional-commit`
+- `email-subject`
+- `notification`
+- `apa-citation`
+- `status-update`
 
 From this project directory, run:
 
@@ -97,6 +107,8 @@ Once this repo is hosted publicly, the same installer can also be piped from the
 ```text
 lipsum [ options ] [ count|min-max ] [ command ]
 lipsum [ options ] [ command ] [ count|min-max ]
+lipsum [ options ] [ count|min-max ] template name
+lipsum [ options ] template name [ count|min-max ]
 lipsum [ other-action ]
 ```
 
@@ -109,6 +121,7 @@ Modes are subcommands only. They are not available as flags.
 - `l`, `L`, `line`, `lines`
 - `s`, `S`, `sent`, `sents`, `sentence`, `sentences`
 - `p`, `P`, `para`, `paras`, `paragraph`, `paragraphs`
+- `template`, `tpl`, `tmpl`
 
 If you omit the command, the default mode is `words` unless changed in config.
 
@@ -124,6 +137,9 @@ If you omit the command, the default mode is `words` unless changed in config.
 - `sources`
 - `list-sources`
   - List built-in and imported named source corpora, show the configured default, and print a sample paragraph for each source.
+- `templates`
+- `list-templates`
+  - List built-in and imported templates and print a sample render for each one.
 
 Notes:
 - `lipsum config` creates the config file first if it does not exist.
@@ -147,6 +163,8 @@ Notes:
   - Use a file's contents as the source corpus for this invocation.
 - `--save-source name`
   - Save custom text or file input as a reusable named source under `~/.lipsum/sources/`.
+- `-f`, `-F`, `--format name`
+  - Render generated output as `plain`, `html`, `markdown`, `json`, or `ndjson`.
 - `-b`, `-B`, `--bullets [char]`
   - Prefix each generated line with a bullet marker.
 - `-o`, `-O`, `--ordered-list [fmt]`
@@ -318,6 +336,42 @@ Examples:
 
 For `characters`, `--range` is ignored.
 
+### Templates
+
+For `template`, the top-level count controls how many rendered template items are produced.
+
+Examples:
+
+```sh
+./lipsum template notification
+./lipsum 3 template conventional-commit -p none
+./lipsum template apa-citation 2
+```
+
+If you also pass `--range` with `template`, it acts like `words` mode and filters the word lengths used inside template placeholders such as `{{words(2-5)}}`.
+
+## Output Formats
+
+The default output format is `plain`. You can override it per invocation:
+
+```sh
+./lipsum 4 lines -f html
+./lipsum 3 paragraphs -f json
+./lipsum 6 words -f ndjson -p none -l
+```
+
+Current renderer behavior:
+- `plain`
+  - The existing CLI output.
+- `html`
+  - Wraps `lines` in `<ul>` or `<ol>`, wraps paragraphs in `<p>` tags, and wraps single-block output in `<p>`.
+- `markdown`
+  - Leaves most output unchanged, but turns unprefixed `lines` into markdown bullet lists.
+- `json`
+  - Emits a JSON string for `characters` and JSON arrays for multi-item output such as words, lines, sentences, paragraphs, and templates.
+- `ndjson`
+  - Emits one JSON string per generated item.
+
 ## Ordered List Formats
 
 Markers support exactly one placeholder token:
@@ -352,6 +406,8 @@ Basic usage:
 ./lipsum --text 'alpha beta gamma delta epsilon' 3 words
 ./lipsum 100 characters
 ./lipsum 3 paragraphs
+./lipsum template notification
+./lipsum 3 template conventional-commit -p none
 ```
 
 Website-style bullets:
@@ -400,6 +456,25 @@ Clipboard:
 ./lipsum 5 lines -b -c
 ./lipsum 3 sentences --copy
 ./lipsum 4 words --no-copy
+```
+
+Renderer formats:
+
+```sh
+./lipsum 4 lines -f html
+./lipsum 3 paragraphs -f json
+./lipsum 5 words -f ndjson -p none -l
+./lipsum 3 lines -f markdown -p none
+```
+
+Templates:
+
+```sh
+./lipsum templates
+./lipsum template notification
+./lipsum 3 template conventional-commit -p none
+./lipsum template apa-citation 2
+./lipsum 2 template email-subject -f json
 ```
 
 Pipelines and shell usage:
@@ -452,6 +527,7 @@ default_paragraph_sentence_word_range='6-14'
 
 default_bullet_char='–'
 default_ordered_list_format='%d.'
+default_format='plain'
 punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
@@ -464,6 +540,7 @@ Notes:
 
 - The config file is sourced by zsh, so values should stay shell-friendly.
 - `punctuation_mode='period'` is the old default behavior, while `end`, `all`, and `none` broaden or remove punctuation.
+- `default_format='plain'` keeps the existing CLI behavior, while `html`, `markdown`, `json`, and `ndjson` change the renderer used when you do not pass `--format`.
 - `copy_on_generate=1` makes clipboard copying the default.
 - `emoji_enabled=1` makes emoji mixing the default.
 - `emoji_charset` is a space-separated weighted pool, so repeating an emoji makes it more likely to appear.
@@ -477,6 +554,10 @@ Notes:
   - Override the config file path.
 - `LIPSUM_DICT`
   - Override the default corpus file path.
+- `LIPSUM_SOURCE_DIR`
+  - Override the directory used for named source corpora.
+- `LIPSUM_TEMPLATE_DIR`
+  - Override the directory used for user templates.
 - `LIPSUM_CLIPBOARD_COMMAND`
   - Override clipboard handling with a custom shell command.
 - `LIPSUM_MAX_CHARACTERS`
@@ -490,6 +571,8 @@ Notes:
 
 - `LIPSUM_MAX_CHARACTERS` can be larger than the source corpus length because character mode repeats the source text internally until it has enough material to sample from cleanly.
 - Range filtering for `words` and range sizing for `lines`, `sentences`, and `paragraphs` are intentionally different behaviors.
+- Templates are stored as `.tpl` files under `~/.lipsum/templates/` and bundled examples also ship in `share/templates/`.
+- Template placeholders currently support `{{words(...)}}`, `{{sentence(...)}}`, `{{number(...)}}`, `{{choice(...)}}`, and `{{emoji(...)}}`.
 - Range is ignored for `characters`.
 - Emoji are sparse by design and biased toward the ends of words, lines, sentences, and paragraphs.
 
@@ -515,6 +598,8 @@ Implemented:
 - compact short forms
 - named sources and custom source input
 - built-in alternate source styles
+- output renderers
+- built-in and custom templates
 - configurable emoji mixing
 - case formatting controls
 - word-length filters and per-unit ranges
@@ -524,4 +609,5 @@ Implemented:
 
 Planned next:
 
-- structured formats and templates
+- richer template tokens and structure controls
+- a separate `lipsumize` ingestion CLI

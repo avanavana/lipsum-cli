@@ -8,8 +8,10 @@ typeset default_emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎
 typeset local_lipsum="$script_dir/lipsum"
 typeset local_words="$script_dir/share/lorem.words"
 typeset local_sources_dir="$script_dir/share/sources"
+typeset local_templates_dir="$script_dir/share/templates"
 typeset raw_base_url="${LIPSUM_INSTALL_RAW_BASE:-https://raw.githubusercontent.com/avanavana/lipsum-cli/main}"
 typeset -a bundled_source_names=( hipster tech pirate food corporate es fr de )
+typeset -a bundled_template_names=( conventional-commit email-subject notification apa-citation status-update )
 
 typeset install_mode=''
 typeset bin_dir="${LIPSUM_INSTALL_BIN_DIR:-$HOME/.local/bin}"
@@ -22,6 +24,7 @@ typeset target_script="$bin_dir/lipsum"
 typeset source_script=''
 typeset bundled_words=''
 typeset bundled_sources_dir=''
+typeset bundled_templates_dir=''
 typeset staged_dir=''
 typeset editor_cmd="${VISUAL:-${EDITOR:-vi}}"
 typeset -i tty_fd=-1
@@ -39,6 +42,7 @@ typeset default_word_length_range='1-12'
 typeset default_paragraph_sentence_word_range='6-14'
 typeset default_bullet_char='–'
 typeset default_ordered_list_format='%d.'
+typeset default_format='plain'
 typeset punctuation_mode='period'
 typeset copy_on_generate=0
 typeset emoji_enabled=0
@@ -118,10 +122,11 @@ download_file () {
 }
 
 prepare_payloads () {
-  if [[ -r $local_lipsum && -r $local_words && -d $local_sources_dir ]]; then
+  if [[ -r $local_lipsum && -r $local_words && -d $local_sources_dir && -d $local_templates_dir ]]; then
     source_script="$local_lipsum"
     bundled_words="$local_words"
     bundled_sources_dir="$local_sources_dir"
+    bundled_templates_dir="$local_templates_dir"
     return
   fi
 
@@ -129,13 +134,19 @@ prepare_payloads () {
   source_script="$staged_dir/lipsum"
   bundled_words="$staged_dir/lorem.words"
   bundled_sources_dir="$staged_dir/sources"
+  bundled_templates_dir="$staged_dir/templates"
 
   download_file "$raw_base_url/lipsum" "$source_script"
   download_file "$raw_base_url/share/lorem.words" "$bundled_words"
   mkdir -p "$bundled_sources_dir" || die "Could not create staged source directory"
+  mkdir -p "$bundled_templates_dir" || die "Could not create staged template directory"
   local source_name=''
   for source_name in "${bundled_source_names[@]}"; do
     download_file "$raw_base_url/share/sources/$source_name.words" "$bundled_sources_dir/$source_name.words"
+  done
+  local template_name=''
+  for template_name in "${bundled_template_names[@]}"; do
+    download_file "$raw_base_url/share/templates/$template_name.tpl" "$bundled_templates_dir/$template_name.tpl"
   done
   chmod 755 "$source_script" || die "Could not mark staged lipsum executable"
 }
@@ -171,6 +182,7 @@ default_paragraph_sentence_word_range='$default_paragraph_sentence_word_range'
 
 default_bullet_char='$default_bullet_char'
 default_ordered_list_format='$default_ordered_list_format'
+default_format='$default_format'
 punctuation_mode='$punctuation_mode'
 copy_on_generate=$copy_on_generate
 emoji_enabled=$emoji_enabled
@@ -390,6 +402,28 @@ prompt_copy_default () {
   done
 }
 
+prompt_choice_default_format () {
+  while :; do
+    prompt_header 'Default format' 'Choose how generated output is rendered when you do not pass --format explicitly.'
+    show_preview 3 lines -f "$default_format"
+    read_line "Default format [${default_format}] (plain/html/markdown/json/ndjson): "
+
+    if [[ -z $REPLY ]]; then
+      return
+    fi
+
+    case "$REPLY" in
+      plain|html|markdown|json|ndjson)
+        default_format="$REPLY"
+        return
+        ;;
+      *)
+        print -u2 -- 'Please enter plain, html, markdown, json, or ndjson.'
+        ;;
+    esac
+  done
+}
+
 run_guided_setup () {
   prompt_choice_default_mode
   prompt_choice_default_source
@@ -405,6 +439,7 @@ run_guided_setup () {
   prompt_range default_paragraph_sentence_word_range 'Default paragraph sentence word range' 'Controls the number of words in each sentence inside paragraph output.' 1 paragraphs
   prompt_text_value default_bullet_char 'Default bullet character' 'Used by `lipsum lines -b` when no explicit bullet character is provided.' 3 lines -b -p none -l
   prompt_text_value default_ordered_list_format 'Default ordered list format' 'Used by `lipsum lines -o` when no explicit ordered marker format is provided.' 3 lines -o
+  prompt_choice_default_format
   prompt_copy_default
 }
 
@@ -526,6 +561,13 @@ install_corpus_files () {
   for source_name in "${bundled_source_names[@]}"; do
     if [[ ! -e $sources_dir/$source_name.words ]]; then
       cp "$bundled_sources_dir/$source_name.words" "$sources_dir/$source_name.words" || die "Could not install bundled source corpus: $source_name"
+    fi
+  done
+
+  local template_name=''
+  for template_name in "${bundled_template_names[@]}"; do
+    if [[ ! -e $templates_dir/$template_name.tpl ]]; then
+      cp "$bundled_templates_dir/$template_name.tpl" "$templates_dir/$template_name.tpl" || die "Could not install bundled template: $template_name"
     fi
   done
 }
