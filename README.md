@@ -24,6 +24,8 @@ Current utility features:
 - bullets and ordered lists for line output
 - config-backed defaults from `~/.lipsum/config`
 - built-in clipboard copying
+- conventional branch naming enforced in CI
+- semantic-release driven GitHub releases and changelog automation
 
 ## Requirements
 
@@ -101,6 +103,74 @@ If you prefer not to install yet, you can still run the script directly from the
 ```
 
 Once this repo is hosted publicly, the same installer can also be piped from the raw `install.sh` URL for a one-command setup.
+
+## Workflow
+
+This repo uses conventional commits and conventional branch names.
+
+Branch names follow:
+
+```text
+<type>/<description>
+<type>/<scope>/<description>
+```
+
+Allowed branch types:
+- `feat`
+- `fix`
+- `docs`
+- `style`
+- `refactor`
+- `perf`
+- `test`
+- `build`
+- `ci`
+- `chore`
+- `revert`
+- `release`
+
+Examples:
+
+```text
+feat/output-formats
+fix/template-json-rendering
+docs/release-automation
+ci/semantic-release
+```
+
+Pull requests are checked in GitHub Actions against that convention. The full contributor guidance lives in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Releases
+
+Releases are automated with [semantic-release](https://semantic-release.gitbook.io/semantic-release).
+
+Current release behavior:
+- releases are published from `main`
+- version tags use the default `v<version>` format
+- GitHub Releases are created automatically
+- `CHANGELOG.md` is updated automatically
+- the CLI version in [`lipsum`](./lipsum) and the version in [`package.json`](./package.json) are synchronized during release preparation
+
+GitHub workflows:
+- [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)
+  - validates branch names on pull requests
+  - runs the project test suite on pushes and pull requests
+- [`.github/workflows/release.yml`](./.github/workflows/release.yml)
+  - reruns tests on `main`
+  - runs `semantic-release` after the test job succeeds
+
+Local release-related commands:
+
+```sh
+pnpm branch:check feat/output-formats
+pnpm test
+pnpm release:dry-run
+```
+
+Notes:
+- `semantic-release` needs the repo to exist on GitHub with Actions enabled.
+- The release workflow uses the built-in `GITHUB_TOKEN`; no extra npm token is needed because this project is not publishing a package to npm.
+- The first automated release should be made from a clean `main` history with conventional commits already in place.
 
 ## Usage
 
@@ -606,6 +676,8 @@ Implemented:
 - bullets and ordered lists
 - config-backed defaults
 - built-in clipboard copying
+- conventional branch validation in CI
+- semantic-release based GitHub release automation
 
 Planned next:
 

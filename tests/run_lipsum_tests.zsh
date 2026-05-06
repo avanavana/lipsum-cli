@@ -40,7 +40,7 @@ Scripts under test:
 
 ## Test Plan
 
-This plan covers the current CLI shape where generation modes are subcommands only, counts can appear before or after the subcommand, compact one-token short forms are supported, template generation is available as a first-class command, config editing/init are separate utility commands, output case can be controlled explicitly, multiple renderer formats are available, ordered lists are available for line output, emoji mixing can be enabled explicitly or via config, and clipboard copying can be enabled directly or via config.
+This plan covers the current CLI shape where generation modes are subcommands only, counts can appear before or after the subcommand, compact one-token short forms are supported, template generation is available as a first-class command, config editing/init are separate utility commands, output case can be controlled explicitly, multiple renderer formats are available, ordered lists are available for line output, emoji mixing can be enabled explicitly or via config, clipboard copying can be enabled directly or via config, and release automation scaffolding is present for branch-name enforcement and semantic-release.
 
 Coverage areas:
 - Syntax and basic CLI metadata.
@@ -59,6 +59,7 @@ Coverage areas:
 - Config commands and config-driven defaults.
 - Clipboard behaviors including explicit copy, config-driven copy, and explicit no-copy override.
 - Installer flows for defaults, guided setup, and editor-config mode.
+- Release automation scaffolding including branch-name validation and semantic-release configuration.
 - Error handling for invalid combinations, removed mode flags, invalid ranges, incompatible options, and size caps.
 - Shell integration patterns users are likely to rely on: loops, \`xargs\`, command substitution, stdin-driven wrappers, and output pipelines.
 
@@ -110,6 +111,9 @@ run_case () {
 register_case 'TC01' 'Smoke' 'Syntax check parses cleanly.' "zsh -n $lp"
 register_case 'TC02' 'Metadata' 'Short help flag renders the updated usage screen and examples.' "$lp -h"
 register_case 'TC03' 'Metadata' 'Long version flag returns the version string.' "$lp --version"
+register_case 'TC03A' 'Release Tooling' 'Branch-name validation accepts a conventional branch name.' "node '$project_dir/scripts/validate-branch-name.mjs' feat/output-formats"
+register_case 'TC03B' 'Release Tooling' 'Branch-name validation rejects a non-conventional branch name.' "node '$project_dir/scripts/validate-branch-name.mjs' not_a_valid_branch"
+register_case 'TC03C' 'Release Tooling' 'semantic-release configuration loads and targets main.' "node -e \"const config = require('./release.config.cjs'); console.log(config.branches.join(',')); if (!config.plugins.length || config.branches[0] !== 'main') process.exit(1);\""
 register_case 'TC04' 'Defaults' 'Bare invocation uses the default words mode.' "$lp"
 register_case 'TC05' 'Defaults' 'A bare numeric argument is treated as a default word count.' "$lp 6"
 register_case 'TC06' 'Words' 'Count before mode works for exact word counts.' "$lp 2 words"
