@@ -1,0 +1,270 @@
+#!/bin/zsh
+
+emulate -L zsh
+setopt pipe_fail
+
+typeset progname="$(basename "$0")"
+typeset __version='0.9.0'
+typeset source_dir="${LIPSUM_SOURCE_DIR:-$HOME/.lipsum/sources}"
+typeset -a reserved_source_names=( lorem hipster tech pirate food corporate es fr de )
+typeset bold=$'\033[1m'
+typeset reset=$'\033[0m'
+typeset __usage="
+Usage: ${bold}${progname}${reset} [ options ] ${bold}name${reset} ${bold}input${reset}
+       ${bold}${progname}${reset} [ ${bold}-v/-V/--version${reset} ]
+       ${bold}${progname}${reset} [ ${bold}-h/-H/--help${reset} ]
+
+Create or update a reusable lipsum source corpus from local text, HTML, EPUB, stdin,
+or a URL, then save it under ${bold}~/.lipsum/sources/${reset} for use with ${bold}lipsum${reset}.
+
+Options:
+  ${bold}-f, -F, --force${reset}      Overwrite an existing imported source.
+  ${bold}-v, -V, --version${reset}    Display the current version.
+  ${bold}-h, -H, --help${reset}       Display this help text.
+
+Examples:
+  ${bold}$progname${reset} bookish ~/Documents/book.txt
+  ${bold}$progname${reset} startup-copy ./landing-page.html
+  ${bold}$progname${reset} moby-dick ~/Books/moby-dick.epub
+  ${bold}$progname${reset} example-site https://www.example.com
+  ${bold}curl -fsSL https://example.com | $progname${reset} example-site -
+  ${bold}$progname${reset} --force example-site https://www.example.com"
+
+die () {
+  print -u2 -- "Error: $1"
+  print -u2 -- ''
+  print -u2 -r -- "$__usage"
+  exit 1
+}
+
+print_usage () {
+  print -r -- "$__usage"
+  exit 0
+}
+
+print_version () {
+  print -- "$__version"
+  exit 0
+}
+
+normalize_source_name () {
+  local name="$1"
+  print -- "${(L)name}"
+}
+
+valid_source_name () {
+  local name="$(normalize_source_name "$1")"
+  [[ -n $name && $name =~ '^[a-z0-9][a-z0-9_-]*$' ]]
+}
+
+reserved_source_name () {
+  local name="$(normalize_source_name "$1")"
+  local reserved_name=''
+
+  for reserved_name in "${reserved_source_names[@]}"; do
+    if [[ $name == $reserved_name ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+source_file_path () {
+  local name="$(normalize_source_name "$1")"
+  REPLY="$source_dir/$name.words"
+}
+
+is_url_input () {
+  [[ $1 == http://* || $1 == https://* ]]
+}
+
+html_to_text () {
+  perl -CS -0pe '
+    s/<script\b.*?<\/script>/ /gis;
+    s/<style\b.*?<\/style>/ /gis;
+    s/<noscript\b.*?<\/noscript>/ /gis;
+    s/&nbsp;/ /gis;
+    s/&amp;/ and /gis;
+    s/&quot;/ /gis;
+    s/&#39;/'"'"'/gis;
+    s/&lt;/ /gis;
+    s/&gt;/ /gis;
+    s/<[^>]+>/ /g;
+  '
+}
+
+normalize_corpus_text () {
+  perl -CS -0pe '
+    s/[^\p{L}\p{N}]+/ /g;
+    s/\s+/ /g;
+    s/^\s+//;
+    s/\s+$//;
+  '
+}
+
+fetch_url_text () {
+  local url="$1"
+
+  command -v curl >/dev/null 2>&1 || die 'curl is required for URL input'
+  curl -fsSL "$url" || die "Could not fetch URL: $url"
+}
+
+extract_epub_text () {
+  local epub_path="$1"
+  local entry=''
+  local -a entries=()
+  local combined=''
+
+  command -v unzip >/dev/null 2>&1 || die 'unzip is required for EPUB input'
+  entries=( ${(f)"$(unzip -Z1 "$epub_path" 2>/dev/null | grep -Ei '\.(xhtml|html|htm|xml)$')"} )
+  (( ${#entries[@]} > 0 )) || die "No readable XHTML or HTML entries found in EPUB: $epub_path"
+
+  for entry in "${entries[@]}"; do
+    combined+=$'\n'
+    combined+="$(unzip -p "$epub_path" "$entry" 2>/dev/null)"
+  done
+
+  print -- "$combined"
+}
+
+input_kind_from_path () {
+  local input_path="$1"
+  local extension="${input_path:e:l}"
+
+  case "$extension" in
+    html|htm|xhtml)
+      REPLY='html'
+      ;;
+    epub)
+      REPLY='epub'
+      ;;
+    *)
+      REPLY='text'
+      ;;
+  esac
+}
+
+word_count_for_text () {
+  local text="$1"
+  local -a words=()
+
+  words=( ${(s: :)text} )
+  REPLY="${#words[@]}"
+}
+
+preview_text () {
+  local text="$1"
+  local -i preview_limit=18
+  local -a words=()
+  local -a preview_words=()
+
+  words=( ${(s: :)text} )
+  preview_words=( "${words[1,preview_limit]}" )
+  REPLY="${(j: :)preview_words}"
+}
+
+typeset source_name=''
+typeset input_spec=''
+typeset normalized_source=''
+typeset source_path=''
+typeset extracted_text=''
+typeset input_kind=''
+typeset preview=''
+typeset word_count=''
+typeset -i force_overwrite=0
+
+while (( $# > 0 )); do
+  case "$1" in
+    -f|-F|--force)
+      force_overwrite=1
+      ;;
+    -v|-V|--version)
+      print_version
+      ;;
+    -h|-H|--help)
+      print_usage
+      ;;
+    --*)
+      die "Illegal option $1"
+      ;;
+    -*)
+      die "Illegal option $1"
+      ;;
+    *)
+      if [[ -z $source_name ]]; then
+        source_name="$1"
+      elif [[ -z $input_spec ]]; then
+        input_spec="$1"
+      else
+        die "Unknown argument: $1"
+      fi
+      ;;
+  esac
+
+  shift
+done
+
+[[ -n $source_name ]] || die 'A source name is required'
+[[ -n $input_spec ]] || die 'An input path, URL, or - for stdin is required'
+
+normalized_source="$(normalize_source_name "$source_name")"
+valid_source_name "$normalized_source" || die "Invalid source name: $source_name"
+reserved_source_name "$normalized_source" && die "Source name is reserved: $normalized_source"
+
+if [[ $input_spec == '-' ]]; then
+  input_kind='stdin'
+  extracted_text="$(cat)"
+elif is_url_input "$input_spec"; then
+  input_kind='url'
+  extracted_text="$(fetch_url_text "$input_spec")"
+  if [[ $extracted_text == *'<'*'>'* ]]; then
+    extracted_text="$(printf '%s' "$extracted_text" | html_to_text)"
+  fi
+elif [[ -r $input_spec ]]; then
+  input_kind_from_path "$input_spec"
+  input_kind="$REPLY"
+
+  case "$input_kind" in
+    html)
+      extracted_text="$(<"$input_spec")"
+      extracted_text="$(printf '%s' "$extracted_text" | html_to_text)"
+      ;;
+    epub)
+      extracted_text="$(extract_epub_text "$input_spec")"
+      extracted_text="$(printf '%s' "$extracted_text" | html_to_text)"
+      ;;
+    *)
+      extracted_text="$(<"$input_spec")"
+      ;;
+  esac
+else
+  die "Input not found or unreadable: $input_spec"
+fi
+
+normalized_source="$(normalize_source_name "$source_name")"
+extracted_text="$(printf '%s' "$extracted_text" | normalize_corpus_text)"
+[[ -n $extracted_text ]] || die 'No usable corpus text could be extracted from the input'
+
+mkdir -p "$source_dir" || die "Could not create source directory: $source_dir"
+source_file_path "$normalized_source"
+source_path="$REPLY"
+
+if [[ -e $source_path && $force_overwrite -eq 0 ]]; then
+  die "Source already exists: $normalized_source (use --force to overwrite)"
+fi
+
+print -r -- "$extracted_text" >| "$source_path" || die "Could not write source file: $source_path"
+
+word_count_for_text "$extracted_text"
+word_count="$REPLY"
+preview_text "$extracted_text"
+preview="$REPLY"
+
+print -- "Saved source: $normalized_source"
+print -- "Type: $input_kind"
+print -- "Path: $source_path"
+print -- "Words: $word_count"
+print -- ''
+print -- 'Preview:'
+print -- "$preview"
