@@ -31,7 +31,7 @@ Other Actions:
   ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
   ${bold}config, settings, prefs, preferences${reset}
                                Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
-  ${bold}sources, list-sources${reset}       List built-in and saved source corpora with samples.
+  ${bold}sources, list-sources${reset}       List sources, inspect one source, or manage imported sources.
   ${bold}templates, list-templates${reset}   List saved templates with samples.
 
 Options:
@@ -100,6 +100,9 @@ Examples:
   ${bold}$progname${reset} 3 template blog-post -p none
   ${bold}$progname${reset} templates
   ${bold}$progname${reset} sources
+  ${bold}$progname${reset} sources corporate
+  ${bold}$progname${reset} sources customdemo --rename renamed-demo
+  ${bold}$progname${reset} sources customdemo --set-default
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
 typeset __version='0.9.0'
@@ -633,6 +636,42 @@ open_config () {
   exit 0
 }
 
+upsert_config_string () {
+  local key="$1"
+  local value="$2"
+  local escaped_value="${value//\'/\'\\\'\'}"
+  local temp_path=''
+  local line=''
+  local -i replaced=0
+
+  ensure_config_directory
+
+  if [[ ! -e $config_path ]]; then
+    default_config_contents >| "$config_path" || die "Could not write config file: $config_path"
+  fi
+
+  temp_path="$(mktemp "${TMPDIR:-/tmp}/lipsum-config.XXXXXX")" || die 'Could not create temporary config file'
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    if [[ $line == ${key}=* ]]; then
+      print -r -- "${key}='${escaped_value}'" >> "$temp_path" || die "Could not update config file: $config_path"
+      replaced=1
+    else
+      print -r -- "$line" >> "$temp_path" || die "Could not update config file: $config_path"
+    fi
+  done < "$config_path"
+
+  if (( ! replaced )); then
+    if [[ -s $temp_path ]]; then
+      print -- '' >> "$temp_path" || die "Could not update config file: $config_path"
+    fi
+
+    print -r -- "${key}='${escaped_value}'" >> "$temp_path" || die "Could not update config file: $config_path"
+  fi
+
+  mv "$temp_path" "$config_path" || die "Could not update config file: $config_path"
+}
+
 load_config () {
   if [[ -r $config_path ]]; then
     source "$config_path"
@@ -772,6 +811,16 @@ source_display_title () {
       REPLY="${REPLY//_/ }"
       ;;
   esac
+}
+
+source_kind () {
+  local name="$(normalize_source_name "$1")"
+
+  if built_in_source_name "$name"; then
+    REPLY='built-in'
+  else
+    REPLY='imported'
+  fi
 }
 
 source_file_path () {
@@ -994,6 +1043,52 @@ resolve_source_dictionary_path () {
   die "Source not found: $name"
 }
 
+resolved_source_path () {
+  local name="$(normalize_source_name "$1")"
+  local source_file=''
+  local bundled_source_file=''
+
+  source_file_path "$name"
+  source_file="$REPLY"
+  bundled_source_file_path "$name"
+  bundled_source_file="$REPLY"
+
+  if [[ $name == 'lorem' ]]; then
+    if [[ -n $dictionary_override ]]; then
+      [[ -r $dictionary_override ]] || die "Dictionary file not found: $dictionary_override"
+      REPLY="$dictionary_override"
+      return
+    fi
+
+    if [[ -r $source_file ]]; then
+      REPLY="$source_file"
+      return
+    fi
+
+    if [[ -r $legacy_dictionary_path ]]; then
+      REPLY="$legacy_dictionary_path"
+      return
+    fi
+
+    if [[ -r $bundled_source_file ]]; then
+      REPLY="$bundled_source_file"
+      return
+    fi
+  else
+    if [[ -r $source_file ]]; then
+      REPLY="$source_file"
+      return
+    fi
+
+    if [[ -r $bundled_source_file ]]; then
+      REPLY="$bundled_source_file"
+      return
+    fi
+  fi
+
+  die "Source not found: $name"
+}
+
 available_source_names () {
   local -a names=()
   local -A seen=()
@@ -1083,6 +1178,16 @@ source_sample_paragraph () {
   emoji_active=$saved_emoji_active
 }
 
+source_word_count () {
+  local source_name="$(normalize_source_name "$1")"
+  local -i saved_emoji_active=$emoji_active
+
+  resolve_source_dictionary_path "$source_name"
+  load_dictionary
+  emoji_active=$saved_emoji_active
+  REPLY="${#dict_words[@]}"
+}
+
 print_source_section () {
   local heading="$1"
   local default_name="$2"
@@ -1118,6 +1223,151 @@ print_source_section () {
     print -- "  $sample"
     print -- ''
   done
+}
+
+print_source_details () {
+  local source_name="$(normalize_source_name "$1")"
+  local title=''
+  local source_type=''
+  local path=''
+  local sample=''
+  local word_count=''
+  local default_name="$(normalize_source_name "$default_source")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  source_display_title "$source_name"
+  title="$REPLY"
+  source_kind "$source_name"
+  source_type="$REPLY"
+  resolved_source_path "$source_name"
+  path="$REPLY"
+  source_word_count "$source_name"
+  word_count="$REPLY"
+  source_sample_paragraph "$source_name"
+  sample="$REPLY"
+
+  print -- 'Source Details'
+  print -- ''
+  print -- "Title: $title"
+  print -- "Slug: $source_name"
+  print -- "Type: $source_type"
+  print -- "Path: $path"
+  print -- "Default: $([[ $source_name == $default_name ]] && print yes || print no)"
+  print -- "Word count: $word_count"
+  print -- ''
+  print -- 'Sample:'
+  print -- "$sample"
+  exit 0
+}
+
+set_default_source () {
+  local source_name="$(normalize_source_name "$1")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  upsert_config_string 'default_source' "$source_name"
+  print -- "Default source set to $source_name"
+  exit 0
+}
+
+rename_source () {
+  local source_name="$(normalize_source_name "$1")"
+  local new_name="$(normalize_source_name "$2")"
+  local source_path=''
+  local target_path=''
+  local default_name="$(normalize_source_name "$default_source")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  built_in_source_name "$source_name" && die "Built-in sources cannot be renamed: $source_name"
+  valid_source_name "$new_name" || die "Invalid source name: $new_name"
+  [[ $source_name != $new_name ]] || die "Source is already named $source_name"
+
+  if source_exists "$new_name"; then
+    die "A source named $new_name already exists"
+  fi
+
+  source_file_path "$source_name"
+  source_path="$REPLY"
+  [[ -f $source_path ]] || die "Imported source file not found: $source_path"
+
+  source_file_path "$new_name"
+  target_path="$REPLY"
+  mv "$source_path" "$target_path" || die "Could not rename source: $source_name"
+
+  if [[ $default_name == $source_name ]]; then
+    upsert_config_string 'default_source' "$new_name"
+  fi
+
+  print -- "Renamed source $source_name to $new_name"
+  exit 0
+}
+
+delete_source () {
+  local source_name="$(normalize_source_name "$1")"
+  local source_path=''
+  local reply=''
+  local default_name="$(normalize_source_name "$default_source")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  built_in_source_name "$source_name" && die "Built-in sources cannot be deleted: $source_name"
+
+  source_file_path "$source_name"
+  source_path="$REPLY"
+  [[ -f $source_path ]] || die "Imported source file not found: $source_path"
+
+  print -n -- "Delete source '$source_name'? [y/N] "
+  IFS= read -r reply
+
+  case "${(L)reply}" in
+    y|yes)
+      rm -f "$source_path" || die "Could not delete source: $source_name"
+      if [[ $default_name == $source_name ]]; then
+        upsert_config_string 'default_source' 'lorem'
+      fi
+      print -- "Deleted source $source_name"
+      ;;
+    *)
+      print -- 'Cancelled.'
+      ;;
+  esac
+
+  exit 0
+}
+
+handle_sources_action () {
+  local management_count=0
+
+  if [[ -n $source_action_rename_to ]]; then
+    (( management_count++ ))
+  fi
+
+  (( source_action_delete )) && (( management_count++ ))
+  (( source_action_set_default )) && (( management_count++ ))
+
+  if (( management_count > 1 )); then
+    die 'Use only one source-management action at a time'
+  fi
+
+  if (( management_count > 0 )) && [[ -z $managed_source_name ]]; then
+    die 'Source-management actions require a source name after the sources action'
+  fi
+
+  if [[ -z $managed_source_name ]]; then
+    print_available_sources
+  fi
+
+  if [[ -n $source_action_rename_to ]]; then
+    rename_source "$managed_source_name" "$source_action_rename_to"
+  fi
+
+  if (( source_action_delete )); then
+    delete_source "$managed_source_name"
+  fi
+
+  if (( source_action_set_default )); then
+    set_default_source "$managed_source_name"
+  fi
+
+  print_source_details "$managed_source_name"
 }
 
 load_template_body () {
@@ -2188,6 +2438,10 @@ typeset resolved_source=''
 typeset selected_template=''
 typeset template_subcommand=''
 typeset template_from_path=''
+typeset managed_source_name=''
+typeset source_action_rename_to=''
+typeset -i source_action_delete=0
+typeset -i source_action_set_default=0
 typeset custom_source_text=''
 typeset custom_source_file=''
 typeset save_source_name=''
@@ -2346,6 +2600,20 @@ while (( $# > 0 )); do
     --from=*)
       template_from_path="${1#*=}"
       ;;
+    --delete)
+      source_action_delete=1
+      ;;
+    --rename)
+      [[ -n $2 ]] || die 'Missing new source name for --rename'
+      source_action_rename_to="$(normalize_source_name "$2")"
+      shift
+      ;;
+    --rename=*)
+      source_action_rename_to="$(normalize_source_name "${1#*=}")"
+      ;;
+    --set-default)
+      source_action_set_default=1
+      ;;
     --format)
       [[ -n $2 ]] || die "Missing format for --format"
       valid_output_format "$2" || die "Invalid output format: $2"
@@ -2475,7 +2743,9 @@ while (( $# > 0 )); do
       done
       ;;
 	    *)
-      if [[ $content_command == 'template' && -z $template_subcommand && -z $selected_template ]]; then
+      if (( action_set )) && [[ $action_command == 'sources' && -z $managed_source_name ]]; then
+        managed_source_name="$(normalize_source_name "$1")"
+      elif [[ $content_command == 'template' && -z $template_subcommand && -z $selected_template ]]; then
         case "$1" in
           new|edit)
             template_subcommand="$1"
@@ -2539,6 +2809,10 @@ if (( action_set )); then
     die "The action '$action_command' cannot be combined with generation options or commands"
   fi
 
+  if [[ $action_command != 'sources' ]] && { [[ -n $managed_source_name || -n $source_action_rename_to ]] || (( source_action_delete || source_action_set_default )); }; then
+    die "The action '$action_command' cannot be combined with source-management options"
+  fi
+
   case "$action_command" in
     init)
       init_config
@@ -2553,7 +2827,7 @@ load_config
 validate_config
 
 if (( action_set )) && [[ $action_command == 'sources' ]]; then
-  print_available_sources
+  handle_sources_action
 fi
 
 if (( action_set )) && [[ $action_command == 'templates' ]]; then
