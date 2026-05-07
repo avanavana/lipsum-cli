@@ -141,7 +141,16 @@ If you omit the command, the default mode is `words` unless changed in config.
   - Open the config file in `$VISUAL`, `$EDITOR`, or `vi`.
 - `sources`
 - `list-sources`
-  - List built-in and imported named source corpora, show the configured default, and print a sample paragraph for each source.
+  - `lipsum sources`
+    - List built-in and imported named source corpora, show the configured default, and print a sample paragraph for each source.
+  - `lipsum sources <source>`
+    - Show details for one source, including its title, slug, type, resolved path, and a sample paragraph.
+  - `lipsum sources <source> --delete`
+    - Delete an imported source after confirmation. Built-in sources cannot be deleted.
+  - `lipsum sources <source> --rename <new-name>`
+    - Rename an imported source. If it was the default source, config is updated automatically.
+  - `lipsum sources <source> --set-default`
+    - Set that source as the default in `~/.lipsum/config`.
 - `templates`
 - `list-templates`
   - List built-in and imported templates and print a sample render for each one.
@@ -255,6 +264,15 @@ $ lipsum sources
 ```
 
 That screen separates built-in sources from imported custom sources, labels the current default, and shows a sample paragraph for each source.
+
+You can also inspect and manage one source at a time:
+
+```sh
+$ lipsum sources corporate
+$ lipsum sources customdemo --rename renamed-demo
+$ lipsum sources customdemo --set-default
+$ lipsum sources customdemo --delete
+```
 
 You can select a source for a single invocation with:
 
@@ -480,6 +498,16 @@ $ lipsum template notification
 $ lipsum 3 template conventional-commit -p none
 $ lipsum template apa-citation 2
 $ lipsum 2 template email-subject -f json
+```
+
+Source management:
+
+```sh
+$ lipsum sources
+$ lipsum sources corporate
+$ lipsum sources customdemo --rename renamed-demo
+$ lipsum sources renamed-demo --set-default
+$ printf 'y\n' | lipsum sources renamed-demo --delete
 ```
 
 Pipelines and shell usage:
