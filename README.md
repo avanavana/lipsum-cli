@@ -16,6 +16,9 @@ Generate words, characters, lines, sentences, paragraphs, and reusable templates
 **Source-driven styles**
 Switch between classic lorem, hipster, tech, pirate, food, corporate, and i18n variants. You can also save your own source text from files, stdin, or inline input and reuse it by name.
 
+**Companion source importer**
+Use `lipsumize` to turn local text, HTML, EPUBs, stdin, or URLs into reusable corpora under `~/.lipsum/sources/`. It keeps ingestion separate from generation while sharing the same source library.
+
 **Design-friendly controls**
 Shape the output with bullets, ordered lists, punctuation modes, casing, emoji, and word-length filters. It works well for mockups, prototypes, demos, sample payloads, and content skeletons.
 
@@ -42,12 +45,13 @@ Use built-in templates for notifications, email subjects, conventional commits, 
 
 The installer sets up:
 - `/usr/local/bin/lipsum`
+- `/usr/local/bin/lipsumize`
 - `~/.lipsum/config`
 - `~/.lipsum/words`
 - `~/.lipsum/sources/`
 - `~/.lipsum/templates/`
 
-By default the installer targets `/usr/local/bin/lipsum`. If that path needs elevated permissions, it uses `sudo` for the executable install step while keeping config and support files in your home directory.
+By default the installer targets `/usr/local/bin/lipsum` and `/usr/local/bin/lipsumize`. If that path needs elevated permissions, it uses `sudo` for the executable install step while keeping config and support files in your home directory.
 
 Bundled sources currently include:
 - `lorem`
@@ -103,6 +107,7 @@ If you prefer not to install yet, you can still run the script directly from the
 
 ```sh
 $ ./lipsum 5 words
+$ ./lipsumize bookish ./notes.txt
 ```
 
 Once this repo is hosted publicly, the same installer can also be piped from the raw `install.sh` URL for a one-command setup.
@@ -118,6 +123,14 @@ $ lipsum [ other-action ]
 ```
 
 Modes are subcommands only. They are not available as flags.
+
+`lipsumize` uses this companion syntax:
+
+```text
+$ lipsumize [ options ] name input
+```
+
+where `input` can be a local text file, local HTML file, local EPUB, `-` for stdin, or an `http://` / `https://` URL.
 
 ## Commands
 
@@ -291,6 +304,16 @@ To save custom input for reuse:
 ```sh
 $ printf 'atlas ember harbor signal twilight' | lipsum --text - --save-source customdemo 4 words
 $ lipsum --source customdemo 6 words
+```
+
+Or create a reusable source corpus with `lipsumize`:
+
+```sh
+$ lipsumize bookish ~/Documents/book.txt
+$ lipsumize startup-copy ./landing-page.html
+$ lipsumize example-site https://www.example.com
+$ curl -fsSL https://example.com | lipsumize example-site -
+$ lipsum --source example-site 8 words
 ```
 
 ### Words
@@ -611,10 +634,10 @@ Implemented:
 - bullets and ordered lists
 - config-backed defaults
 - built-in clipboard copying
+- companion `lipsumize` corpus importing
 - conventional branch validation in CI
 - semantic-release based GitHub release automation
 
 Planned next:
 
 - richer template tokens and structure controls
-- a separate `lipsumize` ingestion CLI
