@@ -35,6 +35,9 @@ jobs:
           node-version: 'lts/*'
           cache: 'pnpm'
 
+      - name: Install zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
