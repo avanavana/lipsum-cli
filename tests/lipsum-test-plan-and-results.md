@@ -1,6 +1,6 @@
 # lipsum Test Plan And Results
 
-Generated: 2026-05-06 15:42:00 EDT
+Generated: 2026-05-07 11:12:20 EDT
 
 Scripts under test:
 - [/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum](/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum)
@@ -113,6 +113,11 @@ Coverage areas:
 - TC62 Sources: The long source option selects a named source corpus for one invocation.
 - TC63 Sources: The short source option selects another named source corpus.
 - TC64 Sources: Config can change the default source for bare and explicit generation.
+- TC64A Sources: A specific source can be inspected through the sources action.
+- TC64B Sources: An imported source can be renamed through the sources action.
+- TC64C Sources: A source can be set as the default through the sources action.
+- TC64D Sources: Deleting a source asks for confirmation and removes the imported source.
+- TC64E Errors: Built-in sources cannot be deleted through the sources action.
 - TC65 Installer: Installer syntax checks cleanly.
 - TC66 Installer: Defaults mode installs the executable, config, corpus, bundled sources, bundled templates, and support directories into a temp HOME.
 - TC67 Installer: Interactive mode accepts step-by-step input and can change the default mode before installation.
@@ -176,7 +181,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -243,6 +248,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -310,7 +318,7 @@ Bare invocation uses the default words mode.
 Exit status: 0
 
 ```text
-Et risus odio imperdiet tempus blandit eget convallis ex lectus.
+Nam ex turpis pellentesque ac nisl finibus ligula dui accumsan.
 ```
 
 ### TC05 Defaults
@@ -323,7 +331,7 @@ A bare numeric argument is treated as a default word count.
 Exit status: 0
 
 ```text
-Tortor sem eros nulla in phasellus.
+Varius dolor ornare diam lacus eget.
 ```
 
 ### TC06 Words
@@ -336,7 +344,7 @@ Count before mode works for exact word counts.
 Exit status: 0
 
 ```text
-Nunc cursus.
+Sed venenatis.
 ```
 
 ### TC07 Words
@@ -349,7 +357,7 @@ Mode before count still works for exact word counts.
 Exit status: 0
 
 ```text
-Sed consectetur.
+Fringilla tincidunt.
 ```
 
 ### TC08 Words
@@ -362,7 +370,7 @@ A top-level count range works for default words mode.
 Exit status: 0
 
 ```text
-5
+3
 ```
 
 ### TC09 Words
@@ -375,7 +383,7 @@ A top-level count range works with an explicit word subcommand.
 Exit status: 0
 
 ```text
-4
+5
 ```
 
 ### TC10 Words
@@ -401,7 +409,7 @@ Count before the characters subcommand works.
 Exit status: 0
 
 ```text
-Dapibus nullam at suscipit nisl nulla imperdiet suscipit ipsum eget consequat quisque pharetra vitae.
+Cumsan est nulla facilisi nulla suscipit velit vitae commodo interdum sapien neque consectetur mi ac.
 ```
 
 ### TC12 Characters
@@ -414,7 +422,7 @@ Character count ranges resolve to a random exact count.
 Exit status: 0
 
 ```text
-28
+30
 ```
 
 ### TC13 Characters
@@ -440,11 +448,11 @@ Typical website bullet use case uses shorter default line lengths.
 Exit status: 0
 
 ```text
-– In pellentesque condimentum libero nullam at leo consectetur.
-– Massa at volutpat massa volutpat id curabitur consectetur.
-– Curabitur vel ante in neque lacinia.
-– Ut bibendum a nisl curabitur ex odio.
-– Dolor sit amet consectetur.
+– Diam quis purus eleifend egestas donec.
+– Ac porta nunc orci.
+– Nunc fermentum elementum orci ut cursus sem.
+– Ut rutrum ex aenean sed.
+– Felis vitae vehicula dui mauris.
 ```
 
 ### TC15 Lines
@@ -457,12 +465,11 @@ Random top-level line counts and internal line lengths both work together.
 Exit status: 0
 
 ```text
+7
 8
 9
-8
-8
+9
 10
-7
 ```
 
 ### TC16 Lines
@@ -492,7 +499,7 @@ Default sentences mode generates the requested number of sentences.
 Exit status: 0
 
 ```text
-Purus sagittis volutpat donec elementum mi nec diam. Orci ut fermentum risus molestie eu.
+Curabitur in magna arcu fusce bibendum nibh ac convallis. Sed mi pellentesque consequat purus et varius metus curabitur dapibus sem ut.
 ```
 
 ### TC18 Sentences
@@ -508,6 +515,7 @@ Exit status: 0
 5
 5
 5
+5
 ```
 
 ### TC19 Paragraphs
@@ -520,9 +528,9 @@ Default paragraphs mode emits multiple paragraphs with blank-line separation.
 Exit status: 0
 
 ```text
-Eleifend in sed tincidunt tincidunt mauris sed faucibus lectus efficitur. Lobortis eu pellentesque id aliquam at lectus maecenas dictum. Lorem iaculis consectetur pellentesque nec malesuada felis aenean elit elit facilisis at magna.
+Dui a metus pharetra condimentum sed consectetur metus eu maximus eleifend enim augue. Etiam dignissim eget eros ac mollis mauris vel. Turpis sed ullamcorper lorem ut volutpat placerat. Rutrum nisl pellentesque leo metus tristique at interdum sit amet imperdiet in. Odio eget urna volutpat elementum at vitae lectus suspendisse.
 
-Eros in auctor praesent congue tincidunt risus quisque pulvinar eget nunc ac. Euismod dictum praesent sollicitudin euismod libero consectetur feugiat nunc rutrum ac sed sollicitudin elit. Interdum sapien neque consectetur mi ac sagittis felis est eget est cras tempus.
+Phasellus et urna erat vestibulum ante ipsum primis in faucibus orci luctus et ultrices. Nunc pellentesque sagittis molestie tortor curabitur leo arcu tempus eu. Nisi in venenatis rutrum diam sapien sodales libero ac maximus tellus leo eget orci.
 ```
 
 ### TC20 Paragraphs
@@ -575,7 +583,7 @@ Compact range+command suffix form works.
 Exit status: 0
 
 ```text
-3
+2
 ```
 
 ### TC24 Compact Forms
@@ -601,7 +609,7 @@ Lowercase output works with the new lowercase option.
 Exit status: 0
 
 ```text
-suscipit feugiat purus pharetra
+a ac integer amet
 ```
 
 ### TC26 Case
@@ -614,7 +622,7 @@ Uppercase output works.
 Exit status: 0
 
 ```text
-MASSA RHONCUS ID BIBENDUM
+ULLAMCORPER DUI NON MAXIMUS
 ```
 
 ### TC27 Case
@@ -627,7 +635,7 @@ Title case output works.
 Exit status: 0
 
 ```text
-Vestibulum Euismod Consequat Ultrices
+Aliquam Rutrum Vestibulum Etiam
 ```
 
 ### TC79 Punctuation
@@ -664,7 +672,7 @@ None punctuation mode removes terminal punctuation entirely.
 Exit status: 0
 
 ```text
-suscipit nullam ipsum ultricies lectus sit elementum nulla
+egestas varius lacinia sed mi venenatis semper in
 ```
 
 ### TC82 Formats
@@ -678,9 +686,9 @@ Exit status: 0
 
 ```text
 <ul>
-  <li>Gravida sit amet risus eget.</li>
-  <li>Justo a massa accumsan ut cursus ante.</li>
-  <li>Diam maecenas nec urna sed ante lobortis pharetra.</li>
+  <li>Nullam lacinia risus tellus eu mattis purus tincidunt.</li>
+  <li>Cras eu varius dolor vivamus tempor egestas elit.</li>
+  <li>Egestas vulputate tortor ante posuere lorem ac.</li>
 </ul>
 ```
 
@@ -694,9 +702,9 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-- diam commodo varius maecenas aliquet
-- ipsum primis in faucibus
-- nunc a velit lectus interdum
+- fringilla pellentesque ac condimentum
+- et urna erat vestibulum ante
+- augue dictum vitae phasellus in
 ```
 
 ### TC84 Formats
@@ -709,7 +717,7 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-[ "Enim nulla facilisi sed at pretium magna ac iaculis diam. Euismod nulla ut aliquet imperdiet ex. Odio nunc bibendum auctor metus vitae tincidunt donec at tincidunt tellus suspendisse. Nec dapibus integer id eros tortor donec pharetra. Augue eu mattis semper nisi mauris tempor quam.", "Orci molestie nec mauris nec sem. Porttitor odio sit amet nisl consequat iaculis nam augue dolor ultrices ut suscipit. Vel finibus ex congue a mauris. Ante finibus proin eu blandit libero vel eleifend risus morbi vehicula lacus id hendrerit." ]
+[ "Turpis non tempor nisi facilisis ut nunc arcu turpis pharetra eu nulla. Eget malesuada tempor odio duis ut nisi tempor consectetur arcu. A condimentum porta duis placerat augue ac mi aliquam pellentesque phasellus molestie semper ante. Aliquet iaculis ante a placerat turpis semper et suspendisse eu nulla ut nunc. Sed sagittis id vulputate ac elit phasellus bibendum id lacus in.", "Ligula ut quam mattis auctor vestibulum iaculis ligula diam a egestas massa. Nisl nulla imperdiet suscipit ipsum eget consequat quisque pharetra vitae est eu eleifend mauris. At vitae lectus suspendisse sed magna dui in leo velit. Leo sed accumsan ante at blandit gravida justo enim. Per inceptos himenaeos donec eu varius orci nulla." ]
 ```
 
 ### TC85 Formats
@@ -722,10 +730,10 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-"nec"
-"quis"
-"lobortis"
-"gravida"
+"urna"
+"vitae"
+"ut"
+"cubilia"
 ```
 
 ### TC86 Templates
@@ -738,7 +746,7 @@ A built-in template can render a single item.
 Exit status: 0
 
 ```text
-ut bibendum turpis nam sit amet cursus! 💡
+facilisi nulla suscipit mauris feugiat id dignissim velit! 💡
 ```
 
 ### TC87 Templates
@@ -768,23 +776,23 @@ Available Templates
 
 Built-In Templates:
 - Conventional Commit (conventional-commit)
-  fix: risus eget fermentum ligula
+  feat: a metus gravida in
 
 - Email Subject (email-subject)
-  follow-up: eu donec
+  follow-up: phasellus molestie semper ante sed
 
 - Notification (notification)
-  tincidunt integer orci sodales posuere nam et! 👍
+  fusce dictum mauris id netus et malesuada fames ac. 🔥
 
 - APA Citation (apa-citation)
-  convallis, quis. (1992). Efficitur metus vel posuere risus libero vel.
+  in, pellentesque. (2000). Quis est nec pretium.
 
 - Status Update (status-update)
-  tracking amet volutpat iaculis!
+  wrapping suspendisse et!
 
 Imported Templates:
 - Custom Ticket (custom-ticket)
-  ticket-804 alpha
+  ticket-995 beta
 ```
 
 ### TC89 Templates
@@ -797,7 +805,7 @@ tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/templates"; printf '# title
 Exit status: 0
 
 ```text
-ticket-920 gamma
+ticket-657 alpha
 ```
 
 ### TC90 Templates
@@ -810,7 +818,7 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-[ "fix: orci luctus et", "style: tortor varius ut elit ut" ]
+[ "refactor: malesuada fames ac turpis egestas", "perf: tristique morbi" ]
 ```
 
 ### TC91 Config
@@ -823,7 +831,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-[ "nec est", "proin viverra" ]
+[ "nec accumsan", "donec est" ]
 ```
 
 ### TC28 Ordered Lists
@@ -836,9 +844,9 @@ Default ordered lists use numeric markers.
 Exit status: 0
 
 ```text
-1. Lorem ultricies pharetra pellentesque quis.
-2. Vel justo ac quam pulvinar aliquet.
-3. Vestibulum turpis phasellus ac pulvinar.
+1. Cursus scelerisque in fringilla justo.
+2. Dolor non iaculis sem tempus et mauris vel.
+3. In fringilla enim eros at nulla aliquam.
 ```
 
 ### TC29 Ordered Lists
@@ -851,10 +859,10 @@ Ordered list formulas support alphabetic markers.
 Exit status: 0
 
 ```text
-(A) In faucibus vestibulum ante ipsum primis.
-(B) Nunc orci ac lectus sed.
-(C) Netus et malesuada fames ac.
-(D) Non non magna sed at erat orci cras.
+(A) Feugiat quis donec bibendum accumsan rhoncus ut.
+(B) Rhoncus ut ultrices ex a.
+(C) Accumsan odio malesuada at ut consectetur.
+(D) Bibendum turpis non tempor nisi facilisis ut.
 ```
 
 ### TC30 Ordered Lists
@@ -867,9 +875,9 @@ Ordered list formulas support zero-padded zero-indexed digits.
 Exit status: 0
 
 ```text
-000) Ac rutrum lacus cras ac nisl dictum.
-001) Mauris libero efficitur metus vel posuere risus.
-002) Ligula fusce laoreet pharetra ultrices pellentesque habitant.
+000) Tellus in ullamcorper pulvinar nisl ante suscipit.
+001) Sodales molestie praesent lectus odio elementum pretium eleifend.
+002) At posuere turpis dapibus.
 ```
 
 ### TC31 Config Actions
@@ -983,8 +991,8 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=etiam eu viverra quam
-clipboard=etiam eu viverra quam
+stdout=quis mauris inceptos maximus
+clipboard=quis mauris inceptos maximus
 ```
 
 ### TC38 Copy
@@ -997,8 +1005,8 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=mattis tincidunt gravida velit
-clipboard=mattis tincidunt gravida velit
+stdout=commodo imperdiet quis consectetur
+clipboard=commodo imperdiet quis consectetur
 ```
 
 ### TC39 Copy
@@ -1011,7 +1019,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=sagittis rhoncus euismod id
+stdout=vestibulum vitae elit tortor
 clipboard_exists=1
 ```
 
@@ -1051,7 +1059,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1118,6 +1126,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1158,7 +1169,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1225,6 +1236,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1265,7 +1279,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1332,6 +1346,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1372,7 +1389,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1439,6 +1456,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1479,7 +1499,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1546,6 +1566,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1586,7 +1609,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1653,6 +1676,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1693,7 +1719,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1760,6 +1786,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1800,7 +1829,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1867,6 +1896,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -1907,7 +1939,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -1974,6 +2006,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -2014,7 +2049,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -2081,6 +2116,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -2121,7 +2159,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -2188,6 +2226,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -2228,7 +2269,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -2295,6 +2336,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -2335,7 +2379,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/bad-config.zsh[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -2402,6 +2446,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -2416,9 +2463,9 @@ for n in 3 4 5; do '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-– Feugiat nunc rutrum.
-– Egestas orci vel porta.
-– Eleifend egestas donec efficitur consequat.
+– At magna in.
+– Libero efficitur metus vel.
+– Consectetur condimentum ipsum purus ultricies.
 ```
 
 ### TC54 Shell Integration
@@ -2431,8 +2478,8 @@ printf '4\n6\n' | while read -r n; do '/Users/avanavana/Dropbox/My Mac (MacBook-
 Exit status: 0
 
 ```text
-accumsan felis sed erat.
-dui consequat hendrerit pellentesque et justo.
+lobortis eu pellentesque id.
+suscipit sed lobortis at aliquet eu.
 ```
 
 ### TC55 Shell Integration
@@ -2445,8 +2492,8 @@ printf '3\n5\n' | xargs -I{} zsh -c "'/Users/avanavana/Dropbox/My Mac (MacBook-P
 Exit status: 0
 
 ```text
-– Diam maecenas nec.
-– Purus feugiat diam commodo varius.
+– Sed phasellus quis.
+– Nisl eget velit pulvinar vulputate.
 ```
 
 ### TC56 Shell Integration
@@ -2459,7 +2506,7 @@ printf '[%s]\n' "$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-[nec suscipit ut morbi]
+[at vestibulum pharetra ornare]
 ```
 
 ### TC57 Shell Integration
@@ -2472,7 +2519,7 @@ printf 'stdin is ignored here\n' | '/Users/avanavana/Dropbox/My Mac (MacBook-Pro
 Exit status: 0
 
 ```text
-Integer suscipit neque nisi sit.
+Ante eget parturient felis dignissim.
 ```
 
 ### TC58 Shell Integration
@@ -2485,11 +2532,13 @@ Paragraph output can be piped into fold for visual wrapping.
 Exit status: 0
 
 ```text
-Mauris libero efficitur metus vel 
-posuere. Nisl ultrices scelerisque eros 
-porta nec phasellus nec faucibus risus. 
-Ex dolor egestas ut est quis consequat 
-venenatis quam lorem ipsum.
+Felis id orci sodales posuere nam et. 
+Eu neque ac scelerisque euismod leo 
+donec tempor a nisi. Suscipit volutpat 
+scelerisque et augue suspendisse auctor 
+tellus quis egestas vulputate tortor. 
+Porta rutrum libero a bibendum quam 
+posuere in.
 ```
 
 ### TC59 Shell Integration
@@ -2502,10 +2551,10 @@ Bullet output can be piped into line numbering for visual review.
 Exit status: 0
 
 ```text
-     1	– Dui luctus varius purus congue in praesent varius.
-     2	– A sem ullamcorper maximus nullam.
-     3	– Amet imperdiet lectus tincidunt maximus phasellus.
-     4	– Libero neque ultricies id.
+     1	– Id tellus suscipit nec volutpat mi molestie.
+     2	– Cubilia curae aliquam vestibulum id.
+     3	– Mollis mauris vel nisi ut magna placerat.
+     4	– Luctus dui pellentesque nunc eget.
 ```
 
 ### TC60 Shell Integration
@@ -2518,14 +2567,14 @@ Word output can be piped into newline transforms for tokenized display.
 Exit status: 0
 
 ```text
-consectetur
-risus
-curabitur
-ultrices
-ex
-posuere
-fringilla
-pretium
+aliquam
+justo
+sapien
+vitae
+in
+donec
+tristique
+donec
 ```
 
 ### TC61 Sources
@@ -2542,35 +2591,35 @@ Available Sources
 
 Built-In Sources:
 - Lorem Ipsum (lorem) [default]
-  Commodo mollis phasellus dictum leo luctus quam condimentum sed. Erat volutpat cras quis justo in urna.
+  Commodo odio id pharetra ligula quisque convallis magna ante ut molestie. Magna augue hendrerit nulla convallis interdum neque turpis non.
 
 - Hipster Ipsum (hipster)
-  Banjo mumblecore wayfarers pabst scenester lo fi. Cardigan hammock umami kickstarter tote small batch.
+  Mug selvage readymade succulents brunch kinfolk cardigan pickled microbatch cloud bread. Quinoa narwhal wolf leggings street art lomo.
 
 - Tech Ipsum (tech)
-  Docs preview staging production canary release candidate instrumentation search. Feature flag telemetry dashboard workflow session cache vector model prompt.
+  Dashboard workflow session cache vector model prompt dataset notebook query. Auth provider tenant workspace config registry commit.
 
 - Pirate Ipsum (pirate)
-  Pump dockside lantern reef breaker compass rose longboat shoreline wave. Cannon rope splice driftwood treasure map harbor bell stern bow helm.
+  Bell stern bow helm skipper signal flare. Gold doubloon sea chest reef line knotwork wake trail moon.
 
 - Food Ipsum (food)
-  Fishmonger greengrocer vineyard farmhouse garden party supper club pastry. Brioche croissant tartlet shortbread crumble infusion tasting menu supper brunch.
+  Peppercorn rosemary saffron cardamom clove ginger sesame olive. Preserve jam tarragon dill mint parsley chive.
 
 - Corporate Ipsum (corporate)
-  Planning horizon commercial model revenue mix margin. Streamlining priority matrix facilitator summary synthesis memo.
+  Handoff cross-functional collaboration documentation dashboard metrics evidence insight recommendation dependency unblock. Assumption risk register escalation path market signal planning horizon commercial.
 
 - Spanish Ipsum (es)
-  Verano invierno primavera otono sonrisa latido huella. Harina barrotejado patio corredor balcon techo cuaderno.
+  Patio corredor balcon techo cuaderno farol cuento abrazo sonido refugio. Ritmo color palabra canto tierra mar destino memoria deseo.
 
 - French Ipsum (fr)
-  Guitare ronde prairie moulin horizon cuisine terrasse avenue carnet douceur. Vallee miroir manteau livre lettre encre musique danse caresse calme.
+  Ombre place ruelle pont brise semence fruit etoile. Printemps ete automne voyage carte village colline port vallee.
 
 - German Ipsum (de)
-  Hof balkon lampe geschichte zuflucht stoff gitarre runde wiese muhle horizont. Feuer schatten platz gasse bruecke wind samen frucht.
+  Brief tinte musik tanz ruhe markt orange zimt zitrone mehl hof. Hof balkon lampe geschichte zuflucht stoff gitarre runde wiese muhle horizont.
 
 Imported Sources:
 - Custom Demo (custom-demo)
-  Atlas ember harbor signal twilight atlas ember harbor signal. Atlas ember harbor signal twilight atlas ember harbor signal twilight.
+  Atlas ember harbor signal twilight atlas ember harbor signal twilight twilight. Atlas ember harbor signal twilight atlas ember harbor signal twilight ember.
 
 Default source: lorem
 ```
@@ -2611,6 +2660,178 @@ Exit status: 0
 ```text
 ```
 
+### TC64A Sources
+A specific source can be inspected through the sources action.
+
+```sh
+out="$(HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources corporate)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F 'Source Details' >/dev/null && printf '%s\n' "$out" | grep -F 'Title: Corporate Ipsum' >/dev/null && printf '%s\n' "$out" | grep -F 'Slug: corporate' >/dev/null && printf '%s\n' "$out" | grep -F 'Type: built-in' >/dev/null && printf '%s\n' "$out" | grep -F 'Sample:' >/dev/null
+```
+
+Exit status: 0
+
+```text
+Source Details
+
+Title: Corporate Ipsum
+Slug: corporate
+Type: built-in
+Path: /Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/corporate.words
+Default: no
+Word count: 151
+
+Sample:
+Value stream customer journey executive summary working session. Resourcing capacity governance steering committee operating cadence decision log.
+```
+
+### TC64B Sources
+An imported source can be renamed through the sources action.
+
+```sh
+tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; printf 'atlas ember harbor signal twilight\n' > "$tmp_home/.lipsum/sources/custom-demo.words"; out="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources custom-demo --rename renamed-demo)"; rc=$?; printf '%s\n' "$out"; test -f "$tmp_home/.lipsum/sources/renamed-demo.words" && test ! -f "$tmp_home/.lipsum/sources/custom-demo.words"; verify_rc=$?; rm -rf "$tmp_home"; exit $(( rc || verify_rc ))
+```
+
+Exit status: 0
+
+```text
+Renamed source custom-demo to renamed-demo
+```
+
+### TC64C Sources
+A source can be set as the default through the sources action.
+
+```sh
+tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; printf 'atlas ember harbor signal twilight\n' > "$tmp_home/.lipsum/sources/custom-demo.words"; out="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources custom-demo --set-default)"; rc=$?; printf '%s\n' "$out"; grep -F "default_source='custom-demo'" "$tmp_home/.lipsum/config" >/dev/null; verify_rc=$?; rm -rf "$tmp_home"; exit $(( rc || verify_rc ))
+```
+
+Exit status: 0
+
+```text
+Default source set to custom-demo
+```
+
+### TC64D Sources
+Deleting a source asks for confirmation and removes the imported source.
+
+```sh
+tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; printf 'default_source='\''custom-demo'\''\n' > "$tmp_home/.lipsum/config"; printf 'atlas ember harbor signal twilight\n' > "$tmp_home/.lipsum/sources/custom-demo.words"; out="$(printf 'y\n' | HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources custom-demo --delete)"; rc=$?; printf '%s\n' "$out"; test ! -f "$tmp_home/.lipsum/sources/custom-demo.words" && grep -F "default_source='lorem'" "$tmp_home/.lipsum/config" >/dev/null; verify_rc=$?; rm -rf "$tmp_home"; exit $(( rc || verify_rc ))
+```
+
+Exit status: 0
+
+```text
+Delete source 'custom-demo'? [y/N] Deleted source custom-demo
+```
+
+### TC64E Errors
+Built-in sources cannot be deleted through the sources action.
+
+```sh
+'/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources lorem --delete
+```
+
+Exit status: 1
+
+```text
+Error: Built-in sources cannot be deleted: lorem
+
+
+Usage: [1mlipsum[0m [ options ] [ [1mcount|min-max[0m ] [ [1mcommand[0m ]
+       [1mlipsum[0m [ options ] [ [1mcommand[0m ] [ [1mcount|min-max[0m ]
+       [1mlipsum[0m [ options ] [ [1mcount|min-max[0m ] [1mtemplate[0m [1mname[0m
+       [1mlipsum[0m [ options ] [1mtemplate[0m [1mname[0m [ [1mcount|min-max[0m ]
+       [1mlipsum[0m [ [1mother-action[0m ]
+       [1mlipsum[0m [ [1m-v/-V/--version[0m ]
+       [1mlipsum[0m [ [1m-h/-H/--help[0m ]
+
+Generate a custom amount of placeholder text (lipsum) in the form of words,
+characters, lines, sentences, or paragraphs. Modes are subcommands only.
+
+Commands:
+  [1mc, C, char, chars, character, characters[0m
+  [1mw, W, word, words[0m
+  [1ml, L, line, lines[0m
+  [1ms, S, sent, sents, sentence, sentences[0m
+  [1mp, P, para, paras, paragraph, paragraphs[0m
+  [1mtemplate, tpl, tmpl[0m
+
+Other Actions:
+  [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
+  [1mconfig, settings, prefs, preferences[0m
+                               Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
+
+Options:
+  [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
+  [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
+  [1m-t, -T, --title-case[0m         Return output in title case.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
+  [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
+  [1m-o, -O, --ordered-list[0m [ fmt ]
+                               Prefix each generated line with an ordered marker.
+                               Default format: [1m%d.[0m
+  [1m-p, -P, --punctuation[0m [ mode ]
+                               Set punctuation handling: [1mperiod[0m, [1mend[0m, [1mall[0m, [1mnone[0m
+                               Bare [1m-p[0m defaults to [1mall[0m
+  [1m-e, -E, --emoji[0m              Mix emoji into generated output.
+  [1m-r, -R, --range[0m [1mn|min-max[0m
+                               [1mwords[0m: word length filter in characters
+                                      (defaults to config range when omitted)
+                               [1mlines[0m: words per line
+                               [1msentences[0m: words per sentence
+                               [1mparagraphs[0m: sentences per paragraph
+                               [1mcharacters[0m: ignored
+  [1m-c, -C, --copy[0m               Copy generated output to the clipboard and still print it.
+  [1m--no-copy[0m                    Disable clipboard copying even if enabled in config.
+  [1m--no-emoji[0m                   Disable emoji even if enabled in config.
+  [1m-v, -V, --version[0m            Display the current version of this program.
+  [1m-h, -H, --help[0m               Display this help text.
+
+Compact Short Forms:
+  [1m10c[0m   [1ms2[0m   [1m2-3l[0m   [1mP1-3[0m
+
+Ordered List Marker Symbols:
+  [1m%d[0m = digit (1-indexed)
+  [1m%z[0m = digit (0-indexed)
+  [1m%i[0m = lowercase roman
+  [1m%I[0m = uppercase roman
+  [1m%a[0m = lowercase alphabetical
+  [1m%A[0m = uppercase alphabetical
+  Numeric markers may be zero-padded, e.g. [1m%00z)[0m
+
+Examples:
+  [1mlipsum[0m 12
+  [1mlipsum[0m 2 words
+  [1mlipsum[0m words 2
+  [1mlipsum[0m 3-5 words
+  [1mlipsum[0m 5 words -r 3-4
+  [1mlipsum[0m 4-6 lines -r 6-10 -b
+  [1mlipsum[0m 4 lines -o
+  [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m --source hipster 8 words
+  [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
+  [1mlipsum[0m --file ./notes.txt 2 paragraphs
+  [1mcurl -fsSL https://example.com | lipsum[0m --text - --save-source example-site 5 lines
+  [1mlipsum[0m 140 characters -e -p none
+  [1mlipsum[0m 18 words -e -s tech
+  [1mlipsum[0m 12 words -p all
+  [1mlipsum[0m 4 lines -f html
+  [1mlipsum[0m 3 paragraphs -f json
+  [1mlipsum[0m template notification 4
+  [1mlipsum[0m 3 template conventional-commit -p none
+  [1mlipsum[0m templates
+  [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
+  [1mlipsum[0m 3 sentences -c
+  [1mlipsum[0m config
+```
+
 ### TC65 Installer
 Installer syntax checks cleanly.
 
@@ -2635,14 +2856,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Jnl5mtdXjp/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Jnl5mtdXjp/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Jnl5mtdXjp/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Jnl5mtdXjp/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Jnl5mtdXjp/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.FxZcxyUIXo/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.FxZcxyUIXo/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.FxZcxyUIXo/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.FxZcxyUIXo/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.FxZcxyUIXo/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Jnl5mtdXjp/.local/bin to your PATH to run lipsum directly.
-tellus enim felis aliquam.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.FxZcxyUIXo/.local/bin to your PATH to run lipsum directly.
+mollis tellus diam tempor.
 ```
 
 ### TC67 Installer
@@ -2660,123 +2881,123 @@ Default mode
 This controls what a bare `lipsum` command generates.
 
 Preview:
-Nibh purus gravida lectus sagittis quam magna fringilla ante dui.
+Dolor metus donec et ac urna praesent sed commodo lorem.
 
 Default mode [words] (words/characters/lines/sentences/paragraphs): 
 Default source
 Choose the source corpus used by default. Available: lorem hipster tech pirate food corporate es fr de.
 
 Preview:
-sed nulla ut dis cras elementum.
+risus malesuada aliquam mollis interdum suscipit.
 
 Default source [lorem]: 
 Default word count
 Used when your default mode is words and you run `lipsum` with no count.
 
 Preview:
-Quis lacinia magna suscipit nulla sapien morbi dictumst egestas turpis.
+Velit pretium volutpat quam ac sed et bibendum magna ac.
 
 Default word count [10]: 
 Default character count
 Used when your default mode is characters and you run `lipsum` with no count.
 
 Preview:
-Rmentum semper nulla nec quam fa.
+Sed phasellus quis bibendum veli.
 
 Default character count [32]: 
 Default line count
 Used when your default mode is lines and you run `lipsum` with no count.
 
 Preview:
-– Sapien eleifend rutrum aenean et.
-– Pharetra purus id aliquam.
-– Nec lorem viverra rutrum suspendisse viverra auctor.
-– Nam elit ante ultricies.
-– Leo luctus quam condimentum.
+– Blandit turpis nulla pretium.
+– Purus sed fringilla pellentesque.
+– Dictum enim donec laoreet ex dolor non.
+– Nulla sit amet finibus.
+– Ex posuere aliquet nunc euismod.
 
 Default line count [5]: 
 Default sentence count
 Used when your default mode is sentences and you run `lipsum` with no count.
 
 Preview:
-Quis ante porta tempus nec at lorem sed a. Maximus risus fusce ut pharetra risus suspendisse vestibulum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia. Nam elit ante ultricies maximus felis sit amet suscipit sagittis felis.
+Conubia nostra per inceptos himenaeos vestibulum consectetur. Cursus diam sed blandit mauris nulla facilisi vestibulum eget blandit sem fusce et blandit. Nunc euismod a aenean ex lorem vehicula et odio. Condimentum massa vel porta massa morbi feugiat sem in bibendum blandit.
 
 Default sentence count [4]: 
 Default paragraph count
 Used when your default mode is paragraphs and you run `lipsum` with no count.
 
 Preview:
-Mattis purus tincidunt eu donec vel justo ac quam pulvinar aliquet donec iaculis. Faucibus quis consectetur diam cursus ut aliquet magna quis nisl. Elit sit amet dui consequat hendrerit pellentesque et justo eleifend. Phasellus bibendum id lacus in semper.
+Proin id diam gravida dui blandit finibus praesent egestas feugiat maximus morbi sodales fringilla. Massa tincidunt neque ut sagittis quam. Ac velit ac semper dictum enim donec laoreet ex dolor non. Porta nec phasellus nec faucibus risus praesent. Consectetur nisi sed suscipit quam purus vel sem.
 
-Nisl ultrices scelerisque eros porta nec phasellus nec faucibus risus praesent ac. Consectetur adipiscing elit suspendisse et suscipit velit pellentesque quis ultrices enim. Nunc sit amet imperdiet augue at rhoncus nulla nullam et tristique sapien vestibulum.
+Ut scelerisque sapien non feugiat lobortis urna massa efficitur purus ut bibendum augue felis. Venenatis aliquam sodales massa libero ut scelerisque tellus. Id nunc fermentum elementum orci ut cursus. Porta quisque vulputate lectus diam sagittis pellentesque risus elementum non. Mollis dui cras nec elit eu nisl luctus eleifend pellentesque habitant morbi.
 
-Dolor curabitur nunc nunc convallis sit amet ornare sit amet porttitor et ipsum vestibulum. Rhoncus mauris orci varius natoque penatibus et magnis. Donec vulputate dictum orci non rhoncus aliquam fermentum lacinia. Varius metus curabitur dapibus sem ut finibus pharetra vivamus vestibulum.
+Neque consectetur mi ac sagittis felis est eget est cras tempus tempus. Leo luctus quam condimentum sed mollis neque vestibulum etiam quis. Tincidunt lorem aliquam nec sed rhoncus odio sed condimentum scelerisque morbi.
 
 Default paragraph count [3]: 
 Default word length range
 Controls the character length of generated words when no explicit range is provided.
 
 Preview:
-condimentum velit semper egestas vestibulum mollis.
+mi dignissim at bibendum massa luctus.
 
 Default word length range [1-12]: 
 Default line range
 Controls the number of words in each generated line.
 
 Preview:
-– in ex gravida dui porta.
-– augue nullam eleifend accumsan felis et.
-– tempus nulla ante nulla tristique vitae placerat vel.
+– a ex eu turpis euismod dictum praesent sollicitudin.
+– sit amet dui consequat hendrerit pellentesque et.
+– turpis egestas maecenas at dui risus.
 
 Default line range [4-8]: 
 Default sentence range
 Controls the number of words in each generated sentence.
 
 Preview:
-faucibus ligula sed pellentesque sodales sapien dui varius elit in laoreet. velit et dictum tincidunt purus nam at consectetur diam nunc sed dui.
+nec donec fringilla orci quis ex. risus nec tristique metus finibus et nulla mollis ex.
 
 Default sentence range [6-14]: 
 Default paragraph range
 Controls the number of sentences in each generated paragraph.
 
 Preview:
-Tristique lacus integer nec dui orci etiam ultrices. Orci eu tristique arcu vestibulum nec lectus turpis. Dictum non vel quam curabitur malesuada et risus a dignissim mauris tempus quam. Elit morbi tristique rhoncus auctor cras id nunc. Porttitor facilisis duis fringilla dui at ornare sodales pellentesque mollis bibendum.
+In erat et commodo nam elit ante ultricies maximus. Et netus et malesuada fames ac. Libero eget consequat accumsan sed porta tristique augue nec convallis sem gravida id. Duis a lobortis mi vestibulum tempus consectetur tellus id sodales suspendisse potenti duis.
 
-Nulla nec quam faucibus faucibus felis vitae. Dictum maximus dui et euismod nulla. Vestibulum lacus in convallis vitae nisi at auctor proin ornare blandit nunc ac.
+Ipsum primis in faucibus aliquam erat volutpat. Mi pharetra vel aliquam a efficitur at enim morbi pulvinar mauris. Conubia nostra per inceptos himenaeos maecenas condimentum condimentum rutrum donec.
 
 Default paragraph range [3-5]: 
 Default paragraph sentence word range
 Controls the number of words in each sentence inside paragraph output.
 
 Preview:
-Metus venenatis eget sed vehicula tellus in ullamcorper pulvinar. Leo nec tristique velit donec orci dui fringilla. Tristique lacus integer nec dui orci. Cubilia curae aliquam vestibulum id tortor at placerat in gravida imperdiet odio sed gravida. A egestas praesent commodo posuere consectetur suspendisse vitae diam libero morbi nec.
+In luctus enim praesent ornare mattis porttitor nunc porttitor odio sit amet. Massa turpis porttitor quis ullamcorper nec condimentum vitae ante nullam libero. Nibh ac convallis feugiat praesent condimentum aliquam ornare. Elit suspendisse et suscipit velit pellentesque quis ultrices enim orci. Ut massa aliquam molestie vivamus at euismod nulla.
 
 Default paragraph sentence word range [6-14]: 
 Default bullet character
 Used by `lipsum lines -b` when no explicit bullet character is provided.
 
 Preview:
-– quam est ac turpis aliquam id lacus eget.
-– condimentum rutrum donec faucibus elit dui id.
-– fames ac ante ipsum primis in faucibus donec.
+– id fermentum sodales libero donec.
+– dui fermentum semper nulla nec.
+– suscipit ipsum eget consequat quisque pharetra.
 
 Default bullet character [–]: 
 Default ordered list format
 Used by `lipsum lines -o` when no explicit ordered marker format is provided.
 
 Preview:
-1. Leo nec egestas purus sapien et nisi.
-2. Congue vestibulum blandit erat sed sollicitudin rhoncus.
-3. Vehicula nunc venenatis dui aliquet tristique dictum.
+1. Turpis egestas sed velit.
+2. Eu nulla ut volutpat maximus.
+3. Quis egestas vulputate tortor ante.
 
 Default ordered list format [%d.]: 
 Default format
 Choose how generated output is rendered when you do not pass --format explicitly.
 
 Preview:
-Aliquam fusce nec risus et dui dapibus.
-Donec bibendum accumsan rhoncus ut ultrices.
-Litora torquent per conubia nostra per.
+Augue imperdiet odio ut consectetur nulla.
+Quisque mi magna cursus ac.
+Vivamus hendrerit metus urna sed rutrum nisi.
 
 Default format [plain] (plain/html/markdown/json/ndjson): 
 Copy on generate
@@ -2786,13 +3007,13 @@ Current default: no
 
 Copy on generate [no] (yes/no): 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IQaVmRb0yu/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IQaVmRb0yu/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IQaVmRb0yu/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IQaVmRb0yu/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IQaVmRb0yu/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OEr4TTwKby/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OEr4TTwKby/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OEr4TTwKby/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OEr4TTwKby/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OEr4TTwKby/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.IQaVmRb0yu/.local/bin to your PATH to run lipsum directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OEr4TTwKby/.local/bin to your PATH to run lipsum directly.
 5
 ```
 
@@ -2808,14 +3029,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.cKzTZe3E7B/.local/bin/lipsum
-Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.cKzTZe3E7B/.lipsum/config
-Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.cKzTZe3E7B/.lipsum/words
-Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.cKzTZe3E7B/.lipsum/sources
-Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.cKzTZe3E7B/.lipsum/templates
+Executable: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jGhA2rD159/.local/bin/lipsum
+Config:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jGhA2rD159/.lipsum/config
+Corpus:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jGhA2rD159/.lipsum/words
+Sources:    /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jGhA2rD159/.lipsum/sources
+Templates:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jGhA2rD159/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.cKzTZe3E7B/.local/bin to your PATH to run lipsum directly.
-condimentum nec varius.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jGhA2rD159/.local/bin to your PATH to run lipsum directly.
+ut nibh pellentesque.
 ```
 
 ### TC69 Custom Sources
@@ -2864,8 +3085,8 @@ tmp_home="$(mktemp -d)"; first="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My 
 Exit status: 0
 
 ```text
-first=atlas harbor signal harbor ember
-second=harbor harbor atlas atlas harbor
+first=harbor atlas signal harbor signal
+second=atlas atlas signal signal harbor
 ```
 
 ### TC73 Errors
@@ -2904,7 +3125,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -2971,6 +3192,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -3011,7 +3235,7 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List built-in and saved source corpora with samples.
+  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
   [1mtemplates, list-templates[0m   List built-in and saved templates with samples.
 
 Options:
@@ -3078,6 +3302,9 @@ Examples:
   [1mlipsum[0m 3 template conventional-commit -p none
   [1mlipsum[0m templates
   [1mlipsum[0m sources
+  [1mlipsum[0m sources corporate
+  [1mlipsum[0m sources customdemo --rename renamed-demo
+  [1mlipsum[0m sources customdemo --set-default
   [1mlipsum[0m 3 sentences -c
   [1mlipsum[0m config
 ```
@@ -3092,7 +3319,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-duis venenatis consectetur bibendum magna a non eget in mattis nisi tincidunt ut lobortis magna odio lacus congue pretium faucibus ante in bibendum in vitae nullam iaculis velit integer eget nec urna phasellus vestibulum quisque sit 😀 😀 accumsan phasellus
+morbi orci vestibulum fringilla dui condimentum etiam non eros mauris efficitur vitae augue nec convallis nunc in suspendisse a turpis consectetur fusce vestibulum non vitae sapien ac nulla quisque volutpat orci quis vel volutpat augue leo malesuada 😀 porttitor ac
 40
 ```
 
@@ -3106,7 +3333,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-integer morbi turpis praesent arcu ut nunc feugiat libero enim ligula vulputate habitant ac a porta eros ultricies vitae arcu gravida ut morbi nascetur orci ac lacus consequat tortor ultrices purus tempor metus elit suscipit pulvinar justo praesent curae ac
+ac quis in varius vel elit sollicitudin mi erat feugiat curabitur nisl mattis nisi consectetur neque dictum non aliquam mattis vivamus malesuada sed ex convallis mi faucibus elit massa auctor per cursus placerat mi posuere nulla ut ut dui lectus
 40
 ```
 
@@ -3120,7 +3347,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-Amet rhoncus tincidunt aliquam erat volutpat ut dignissim magna eget nulla ornare ornare suspendisse eget nisi massa proin in vehicula magn 😀
+Agittis felis mauris quis magna elementum commodo arcu in luctus enim praesent ornare mattis porttitor nunc porttitor odio sit amet nisl co 😀
 ```
 
 ### TC78 Emoji
@@ -3133,6 +3360,6 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-diet elementum tempus nulla ante nulla tristique vitae placerat vel cursus nec tortor nullam fringilla tempor arcu a malesuada lacus vivamu. 😀
+ce maximus massa sit amet rhoncus tincidunt aliquam erat volutpat ut dignissim magna eget nulla ornare ornare suspendisse eget nisi massa p. 😀
 ```
 
