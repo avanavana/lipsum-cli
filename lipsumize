@@ -14,7 +14,7 @@ Usage: ${bold}${progname}${reset} [ options ] ${bold}name${reset} ${bold}input${
        ${bold}${progname}${reset} [ ${bold}-v/-V/--version${reset} ]
        ${bold}${progname}${reset} [ ${bold}-h/-H/--help${reset} ]
 
-Create or update a reusable lipsum source corpus from local text, HTML, EPUB, stdin,
+Create or update a reusable lipsum flavor from local text, HTML, EPUB, stdin,
 or a URL, then save it under ${bold}~/.lipsum/sources/${reset} for use with ${bold}lipsum${reset}.
 
 Options:
@@ -170,8 +170,6 @@ typeset normalized_source=''
 typeset source_path=''
 typeset extracted_text=''
 typeset input_kind=''
-typeset preview=''
-typeset word_count=''
 typeset -i force_overwrite=0
 
 while (( $# > 0 )); do
@@ -265,15 +263,4 @@ fi
 
 print -r -- "$extracted_text" >| "$source_path" || die "Could not write source file: $source_path"
 
-word_count_for_text "$extracted_text"
-word_count="$REPLY"
-preview_text "$extracted_text"
-preview="$REPLY"
-
-print -- "Saved source: $normalized_source"
-print -- "Type: $input_kind"
-print -- "Path: $source_path"
-print -- "Words: $word_count"
-print -- ''
-print -- 'Preview:'
-print -- "$preview"
+print -- "Saved as ${bold}$normalized_source${reset} to ${bold}$source_path${reset}"

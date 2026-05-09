@@ -17,22 +17,46 @@ Set MarginFill "#737373"
 Set BorderRadius 10
 Set TypingSpeed 40ms
 
-Type "Generate lipsum with built-in corpora: lorem, hipster, tech, pirate, food, corporate, es, fr, de..."
-Sleep 1500ms
-Ctrl+U
+Hide
+Type "export HOME=/tmp/lipsum-demo-2"
+Enter
+Type "export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin"
+Enter
+Type "rm -rf /tmp/lipsum-demo-2"
+Enter
+Type "mkdir -p ~/.lipsum ~/.lipsum/sources"
+Enter
+Type "cp share/lorem.words ~/.lipsum/words"
+Enter
+Type "clear"
+Enter
+Show
+Type "# Generate lipsum with 9 built-in flavors of ipsum..."
+Enter
+Type "lipsum sources --names"
+Enter
+Sleep 2400ms
 
 Type "lipsum --source hipster 8 words"
 Enter
 Sleep 2400ms
 
+Hide
+Type "clear"
+Enter
+Show
 Type "Use text on-the-fly from the command line..."
 Sleep 1200ms
 Ctrl+U
 
-Type "printf 'launch clear polished collaborative scalable secure flexible reliable modern friendly' | lipsum --text - 90 characters --punctuation end"
+Type "lipsum --text 'Friendly onboarding makes products feel calmer while helpful hints keep people moving.' 1 sentence --range 6-8"
 Enter
 Sleep 2800ms
 
+Hide
+Type "clear"
+Enter
+Show
 Type "Or save it as a reusable, named source..."
 Sleep 1200ms
 Ctrl+U
@@ -41,10 +65,14 @@ Type "printf 'launch clear polished collaborative scalable secure flexible relia
 Enter
 Sleep 2800ms
 
-Type "lipsum --source product-copy 110 characters --punctuation end"
+Type "lipsum --source product-copy 2 lines --range 3-4 --bullets"
 Enter
 Sleep 2600ms
 
+Hide
+Type "clear"
+Enter
+Show
 Type "Use and save any source you like, even long-form content—the rabbit hole goes deep..."
 Sleep 1500ms
 Ctrl+U
@@ -52,6 +80,14 @@ Ctrl+U
 Type "cat examples/alice.txt"
 Enter
 Sleep 3200ms
+
+Hide
+Type "clear"
+Enter
+Show
+Type "Source lipsum from any text file..."
+Sleep 1200ms
+Ctrl+U
 
 Type "lipsumize wonderland examples/alice.txt"
 Enter

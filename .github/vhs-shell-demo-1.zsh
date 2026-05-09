@@ -11,7 +11,7 @@ cp "$original_home/.lipsum/words" "$demo_home/.lipsum/words"
 mkdir -p "$demo_home/.lipsum/templates"
 
 cat > "$demo_home/.zshrc" <<'EOF'
-PROMPT='%F{#737373}> %f'
+PROMPT='%F{8}>%f '
 EOF
 
 export HOME="$demo_home"

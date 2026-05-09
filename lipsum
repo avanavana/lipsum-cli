@@ -31,17 +31,17 @@ Other Actions:
   ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
   ${bold}config, settings, prefs, preferences${reset}
                                Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
-  ${bold}sources, list-sources${reset}       List sources, inspect one source, or manage imported sources.
+  ${bold}sources, list-sources${reset}       List lipsum flavors, inspect one flavor, or manage saved flavors.
   ${bold}templates, list-templates${reset}   List saved templates with samples.
 
 Options:
   ${bold}-l, -L, --lowercase${reset}          Return output entirely in lowercase.
   ${bold}-u, -U, --uppercase${reset}          Return output entirely in uppercase.
   ${bold}-t, -T, --title-case${reset}         Return output in title case.
-  ${bold}-s, -S, --source${reset} ${bold}name${reset}         Choose a named source corpus such as ${bold}lorem${reset} or ${bold}hipster${reset}.
-  ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the source corpus.
-  ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the source corpus for this invocation.
-  ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable named source.
+  ${bold}-s, -S, --source${reset} ${bold}name${reset}         Choose a lipsum flavor such as ${bold}lorem${reset} or ${bold}hipster${reset}.
+  ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the flavor source.
+  ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the flavor source for this invocation.
+  ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable lipsum flavor.
   ${bold}--from${reset} ${bold}path${reset}             Seed a template from an example file with ${bold}template new|edit${reset}.
   ${bold}-f, -F, --format${reset} ${bold}name${reset}         Render as ${bold}plain${reset}, ${bold}html${reset}, ${bold}markdown${reset}, ${bold}json${reset}, or ${bold}ndjson${reset}.
   ${bold}-b, -B, --bullets${reset} [ char ]   Prefix each generated line with ${bold}char${reset} (default: '–').
@@ -86,6 +86,7 @@ Examples:
   ${bold}$progname${reset} 4-6 lines -r 6-10 -b
   ${bold}$progname${reset} 4 lines -o
   ${bold}$progname${reset} 4 lines -o '(%A)'
+  ${bold}$progname${reset} sources --names
   ${bold}$progname${reset} --source hipster 8 words
   ${bold}$progname${reset} --text 'alpha beta gamma delta' 3 words
   ${bold}$progname${reset} --file ./notes.txt 2 paragraphs
@@ -621,6 +622,7 @@ init_config () {
 open_config () {
   local editor="${VISUAL:-${EDITOR:-vi}}"
   local quoted_path="${(q)config_path}"
+  local editor_command=''
 
   ensure_config_directory
 
@@ -628,7 +630,13 @@ open_config () {
     default_config_contents >| "$config_path" || die "Could not write config file: $config_path"
   fi
 
-  zsh -fc "setopt nonomatch; $editor $quoted_path" || die "Editor command failed"
+  if [[ -x $editor ]]; then
+    editor_command="${(q)editor} $quoted_path"
+  else
+    editor_command="$editor $quoted_path"
+  fi
+
+  zsh -fc "setopt nonomatch; $editor_command" || die "Editor command failed"
 
   load_config
   validate_config
@@ -686,8 +694,15 @@ launch_editor_for_file () {
   local target_path="$1"
   local editor="${VISUAL:-${EDITOR:-vi}}"
   local quoted_path="${(q)target_path}"
+  local editor_command=''
 
-  zsh -fc "setopt nonomatch; $editor $quoted_path" || die "Editor command failed"
+  if [[ -x $editor ]]; then
+    editor_command="${(q)editor} $quoted_path"
+  else
+    editor_command="$editor $quoted_path"
+  fi
+
+  zsh -fc "setopt nonomatch; $editor_command" || die "Editor command failed"
 }
 
 template_starter_contents () {
@@ -735,7 +750,7 @@ create_template () {
 
   write_template_seed "$template_path" "$name"
   launch_editor_for_file "$template_path"
-  print -- "Template is ready: $template_path"
+  print -- "Template ready: $name"
   exit 0
 }
 
@@ -753,7 +768,7 @@ edit_template () {
   fi
 
   launch_editor_for_file "$template_path"
-  print -- "Template is ready: $template_path"
+  print -- "Template ready: $name"
   exit 0
 }
 
@@ -1152,11 +1167,51 @@ print_available_sources () {
     fi
   done
 
-  print -- 'Available Sources'
+  print -- 'Available Flavors'
   print -- ''
-  print_source_section 'Built-In Sources' "$default_name" "${built_in_names[@]}"
-  print_source_section 'Imported Sources' "$default_name" "${custom_names[@]}"
-  print -- "Default source: $default_name"
+  print_source_section 'Built-In Flavors' "$default_name" "${built_in_names[@]}"
+  print_source_section 'Saved Flavors' "$default_name" "${custom_names[@]}"
+  print -- "Default flavor: $default_name"
+
+  exit 0
+}
+
+source_short_label () {
+  local source_name="$(normalize_source_name "$1")"
+
+  case "$source_name" in
+    lorem)
+      REPLY='original'
+      ;;
+    *)
+      REPLY="$source_name"
+      ;;
+  esac
+}
+
+print_source_name_list () {
+  local -a names=()
+  local source_name=''
+  local label=''
+
+  available_source_names
+  names=( ${(s: :)REPLY} )
+
+  (( ${#names[@]} > 0 )) || die "No flavors are available. Install bundled flavors into $source_dir first."
+
+  for source_name in lorem hipster tech pirate food corporate es fr de; do
+    if source_exists "$source_name"; then
+      source_short_label "$source_name"
+      label="$REPLY"
+      print -- "- $label"
+    fi
+  done
+
+  for source_name in "${names[@]}"; do
+    if ! built_in_source_name "$source_name"; then
+      print -- "- $source_name"
+    fi
+  done
 
   exit 0
 }
@@ -1246,7 +1301,7 @@ print_source_details () {
   source_sample_paragraph "$source_name"
   sample="$REPLY"
 
-  print -- 'Source Details'
+  print -- 'Flavor Details'
   print -- ''
   print -- "Title: $title"
   print -- "Slug: $source_name"
@@ -1265,7 +1320,7 @@ set_default_source () {
 
   source_exists "$source_name" || die "Source not found: $source_name"
   upsert_config_string 'default_source' "$source_name"
-  print -- "Default source set to $source_name"
+  print -- "Default flavor set to $source_name"
   exit 0
 }
 
@@ -1297,7 +1352,7 @@ rename_source () {
     upsert_config_string 'default_source' "$new_name"
   fi
 
-  print -- "Renamed source $source_name to $new_name"
+  print -- "Renamed flavor $source_name to $new_name"
   exit 0
 }
 
@@ -1314,7 +1369,7 @@ delete_source () {
   source_path="$REPLY"
   [[ -f $source_path ]] || die "Imported source file not found: $source_path"
 
-  print -n -- "Delete source '$source_name'? [y/N] "
+  print -n -- "Delete flavor '$source_name'? [y/N] "
   IFS= read -r reply
 
   case "${(L)reply}" in
@@ -1323,7 +1378,7 @@ delete_source () {
       if [[ $default_name == $source_name ]]; then
         upsert_config_string 'default_source' 'lorem'
       fi
-      print -- "Deleted source $source_name"
+      print -- "Deleted flavor $source_name"
       ;;
     *)
       print -- 'Cancelled.'
@@ -1336,6 +1391,10 @@ delete_source () {
 handle_sources_action () {
   local management_count=0
 
+  if (( source_action_names )); then
+    (( management_count++ ))
+  fi
+
   if [[ -n $source_action_rename_to ]]; then
     (( management_count++ ))
   fi
@@ -1344,11 +1403,19 @@ handle_sources_action () {
   (( source_action_set_default )) && (( management_count++ ))
 
   if (( management_count > 1 )); then
-    die 'Use only one source-management action at a time'
+    die 'Use only one flavor-management action at a time'
   fi
 
   if (( management_count > 0 )) && [[ -z $managed_source_name ]]; then
-    die 'Source-management actions require a source name after the sources action'
+    if (( source_action_names )); then
+      print_source_name_list
+    fi
+
+    die 'Flavor-management actions require a flavor name after the sources action'
+  fi
+
+  if (( source_action_names )) && [[ -n $managed_source_name ]]; then
+    die '--names cannot be combined with a specific flavor name'
   fi
 
   if [[ -z $managed_source_name ]]; then
@@ -1654,6 +1721,7 @@ save_source_text () {
   source_file_path "$name"
   source_path="$REPLY"
   print -r -- "$source_text" >| "$source_path" || die "Could not write source file: $source_path"
+  REPLY="$source_path"
 }
 
 validate_config () {
@@ -1747,6 +1815,7 @@ emit_output () {
 
   if (( copy_enabled )); then
     copy_text "$text"
+    print -u2 -- "${bold}Copied to clipboard.${reset}"
   fi
 
   print -r -- "$text"
@@ -2441,6 +2510,7 @@ typeset template_from_path=''
 typeset managed_source_name=''
 typeset source_action_rename_to=''
 typeset -i source_action_delete=0
+typeset -i source_action_names=0
 typeset -i source_action_set_default=0
 typeset custom_source_text=''
 typeset custom_source_file=''
@@ -2602,6 +2672,9 @@ while (( $# > 0 )); do
       ;;
     --delete)
       source_action_delete=1
+      ;;
+    --names)
+      source_action_names=1
       ;;
     --rename)
       [[ -n $2 ]] || die 'Missing new source name for --rename'
@@ -2809,8 +2882,8 @@ if (( action_set )); then
     die "The action '$action_command' cannot be combined with generation options or commands"
   fi
 
-  if [[ $action_command != 'sources' ]] && { [[ -n $managed_source_name || -n $source_action_rename_to ]] || (( source_action_delete || source_action_set_default )); }; then
-    die "The action '$action_command' cannot be combined with source-management options"
+  if [[ $action_command != 'sources' ]] && { [[ -n $managed_source_name || -n $source_action_rename_to ]] || (( source_action_delete || source_action_names || source_action_set_default )); }; then
+    die "The action '$action_command' cannot be combined with flavor-management options"
   fi
 
   case "$action_command" in
@@ -2868,7 +2941,10 @@ if (( custom_source_set )); then
   [[ -n $custom_source_text ]] || die 'Custom source text is empty'
 
   if [[ -n $save_source_name ]]; then
+    typeset saved_source_path=''
     save_source_text "$save_source_name" "$custom_source_text"
+    saved_source_path="$REPLY"
+    print -u2 -- "Saved as ${bold}$save_source_name${reset} to ${bold}$saved_source_path${reset}"
     resolved_source="$save_source_name"
   else
     resolved_source='custom'

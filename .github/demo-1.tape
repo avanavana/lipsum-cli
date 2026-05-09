@@ -14,6 +14,20 @@ Set MarginFill "#737373"
 Set BorderRadius 10
 Set TypingSpeed 40ms
 
+Hide
+Type "export HOME=/tmp/lipsum-demo-1"
+Enter
+Type "export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin"
+Enter
+Type "rm -rf /tmp/lipsum-demo-1"
+Enter
+Type "mkdir -p ~/.lipsum"
+Enter
+Type "cp share/lorem.words ~/.lipsum/words"
+Enter
+Type "clear"
+Enter
+Show
 Type "Generate placeholder text for just about any need..."
 Sleep 1200ms
 Ctrl+U
@@ -22,7 +36,7 @@ Type "lipsum 8 words"
 Enter
 Sleep 2200ms
 
-Type "lipsum 3 lines --range 4-6 --bullets"
+Type "lipsum 3 lines --range 4-6 --bullets --copy"
 Enter
 Sleep 2400ms
 
@@ -34,6 +48,10 @@ Type "lipsum 2-3l -r 3-4 -o '%00z)' -p none"
 Enter
 Sleep 2800ms
 
+Hide
+Type "clear"
+Enter
+Show
 Type "Even generate lipsum with emoji..."
 Sleep 1200ms
 Ctrl+U

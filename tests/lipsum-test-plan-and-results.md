@@ -1,6 +1,6 @@
 # lipsum Test Plan And Results
 
-Generated: 2026-05-09 11:45:15 EDT
+Generated: 2026-05-09 17:10:35 EDT
 
 Scripts under test:
 - [/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum](/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum)
@@ -113,11 +113,11 @@ Coverage areas:
 - TC58 Shell Integration: Paragraph output can be piped into fold for visual wrapping.
 - TC59 Shell Integration: Bullet output can be piped into line numbering for visual review.
 - TC60 Shell Integration: Word output can be piped into newline transforms for tokenized display.
-- TC61 Sources: The sources action separates built-in and imported sources and includes sample paragraphs.
+- TC61 Sources: The sources action separates built-in and saved flavors and includes sample paragraphs.
 - TC62 Sources: The long source option selects a named source corpus for one invocation.
 - TC63 Sources: The short source option selects another named source corpus.
 - TC64 Sources: Config can change the default source for bare and explicit generation.
-- TC64A Sources: A specific source can be inspected through the sources action.
+- TC64A Sources: A specific flavor can be inspected through the sources action.
 - TC64B Sources: An imported source can be renamed through the sources action.
 - TC64C Sources: A source can be set as the default through the sources action.
 - TC64D Sources: Deleting a source asks for confirmation and removes the imported source.
@@ -189,17 +189,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -244,6 +244,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -340,7 +341,7 @@ Bare invocation uses the default words mode.
 Exit status: 0
 
 ```text
-Lacus est faucibus eget consectetur blandit et aliquet tincidunt neque.
+Tristique non vitae pharetra sollicitudin lacinia sagittis dolor nullam neque.
 ```
 
 ### TC05 Defaults
@@ -353,7 +354,7 @@ A bare numeric argument is treated as a default word count.
 Exit status: 0
 
 ```text
-At lorem nec habitasse donec eu.
+Dui fringilla ex tristique et odio.
 ```
 
 ### TC06 Words
@@ -366,7 +367,7 @@ Count before mode works for exact word counts.
 Exit status: 0
 
 ```text
-Ex ut.
+Faucibus vestibulum.
 ```
 
 ### TC07 Words
@@ -379,7 +380,7 @@ Mode before count still works for exact word counts.
 Exit status: 0
 
 ```text
-Aliquam mauris.
+Duis ut.
 ```
 
 ### TC08 Words
@@ -405,7 +406,7 @@ A top-level count range works with an explicit word subcommand.
 Exit status: 0
 
 ```text
-5
+3
 ```
 
 ### TC10 Words
@@ -431,7 +432,7 @@ Count before the characters subcommand works.
 Exit status: 0
 
 ```text
-Sagittis sollicitudin nullam hendrerit purus ut malesuada porttitor duis ut auctor nunc quis tristiq.
+Ulum diam ex luctus sed sollicitudin ut bibendum a nisl curabitur ex odio aliquam sit amet diam in c.
 ```
 
 ### TC12 Characters
@@ -444,7 +445,7 @@ Character count ranges resolve to a random exact count.
 Exit status: 0
 
 ```text
-29
+28
 ```
 
 ### TC13 Characters
@@ -470,11 +471,11 @@ Typical website bullet use case uses shorter default line lengths.
 Exit status: 0
 
 ```text
-– Ante mi euismod eget dui vitae auctor.
-– Penatibus et magnis dis.
-– Nisi facilisis ut nunc.
-– Orci a condimentum porta duis placerat.
-– A fringilla aliquam vel nisi dolor.
+– Molestie eu etiam molestie neque sit amet.
+– Tempor a nisi in.
+– Sapien non iaculis erat.
+– Et netus et malesuada fames ac turpis.
+– Dictum a vehicula vel maximus quis ligula.
 ```
 
 ### TC15 Lines
@@ -487,10 +488,12 @@ Random top-level line counts and internal line lengths both work together.
 Exit status: 0
 
 ```text
-8
+9
 7
-8
-8
+6
+7
+6
+10
 ```
 
 ### TC16 Lines
@@ -507,7 +510,9 @@ Exit status: 0
 3
 3
 3
-4
+3
+3
+6
 ```
 
 ### TC17 Sentences
@@ -520,7 +525,7 @@ Default sentences mode generates the requested number of sentences.
 Exit status: 0
 
 ```text
-Fermentum consequat felis pulvinar at morbi volutpat fermentum metus at vehicula. Porttitor et ipsum vestibulum ultrices enim sed ipsum tristique imperdiet donec sollicitudin.
+Pharetra nisi egestas pellentesque habitant morbi tristique senectus et netus et malesuada fames. Eget eu sem fusce blandit tempus sodales aliquam ut ipsum et arcu aliquam dignissim.
 ```
 
 ### TC18 Sentences
@@ -535,7 +540,6 @@ Exit status: 0
 ```text
 5
 5
-5
 ```
 
 ### TC19 Paragraphs
@@ -548,9 +552,9 @@ Default paragraphs mode emits multiple paragraphs with blank-line separation.
 Exit status: 0
 
 ```text
-At pellentesque ut gravida mauris non condimentum commodo dui odio. Nascetur ridiculus mus ut aliquet iaculis ante a placerat. Id tortor at placerat in gravida imperdiet odio sed gravida. Tristique gravida donec posuere lectus purus eget accumsan odio malesuada at ut consectetur malesuada.
+Nec eros nulla nec eros ullamcorper. Tristique imperdiet donec sollicitudin justo a. Sem quisque sagittis at orci ut pellentesque integer dapibus ante interdum ante lacinia. Et suscipit velit pellentesque quis ultrices enim orci varius natoque penatibus et magnis.
 
-In venenatis rutrum diam sapien sodales libero ac maximus tellus leo. Enim neque sed nunc morbi quis ex at lacus rutrum. Vulputate dictum orci non rhoncus aliquam fermentum.
+Arcu quis nisi malesuada vitae egestas magna tempor suspendisse quis augue egestas. Nec enim nulla malesuada sem urna fermentum consequat felis pulvinar at morbi volutpat. Faucibus suspendisse erat justo bibendum quis faucibus sed vulputate. Duis ut nisi tempor consectetur arcu at ultrices dui.
 ```
 
 ### TC20 Paragraphs
@@ -629,7 +633,7 @@ Lowercase output works with the new lowercase option.
 Exit status: 0
 
 ```text
-sed consectetur et nec.
+vulputate vitae lobortis quis.
 ```
 
 ### TC26 Case
@@ -642,7 +646,7 @@ Uppercase output works.
 Exit status: 0
 
 ```text
-PELLENTESQUE BLANDIT DIAM FUSCE.
+VENENATIS MAXIMUS IPSUM IN.
 ```
 
 ### TC27 Case
@@ -655,7 +659,7 @@ Title case output works.
 Exit status: 0
 
 ```text
-Dolor Odio A At.
+Et Cras Suscipit Malesuada.
 ```
 
 ### TC79 Punctuation
@@ -705,9 +709,9 @@ Exit status: 0
 
 ```text
 <ul>
-  <li>Dolor velit suscipit sed lobortis at aliquet.</li>
-  <li>A venenatis felis ultricies sit amet lorem.</li>
-  <li>Imperdiet proin at enim odio nunc bibendum.</li>
+  <li>Nec sagittis duis molestie ornare ipsum vel tincidunt.</li>
+  <li>Purus ultricies ante ut.</li>
+  <li>Tincidunt phasellus elementum porttitor facilisis duis.</li>
 </ul>
 ```
 
@@ -721,9 +725,9 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-- rutrum suspendisse viverra auctor.
-- molestie cras sed commodo quam.
-- viverra non neque dapibus pharetra nulla in.
+- semper dictum enim donec.
+- maecenas nec porta lorem at.
+- magna id sagittis viverra.
 ```
 
 ### TC84 Formats
@@ -736,7 +740,7 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-[ "Eleifend tempor nulla efficitur pretium tincidunt integer tincidunt purus ut nibh placerat vehicula et. Enim eros at nulla aliquam quis aliquam dui nec hendrerit nunc. Tempus eget integer eu venenatis erat phasellus.", "Non non magna sed at erat orci cras sed condimentum massa. Primis in faucibus orci luctus et ultrices posuere cubilia. Vivamus eget risus at elit iaculis tristique morbi. Placerat vehicula et ac sem duis rutrum lorem ut interdum dapibus interdum. Donec pharetra sapien id quam euismod porttitor in sodales luctus urna vel finibus ex." ]
+[ "Posuere interdum phasellus id sodales dui sed dolor velit suscipit. Tempus nec at lorem sed a leo nec diam laoreet tempor. Elementum at vitae lectus suspendisse sed magna dui in.", "Pretium augue in sagittis cras cursus metus turpis eget ullamcorper arcu rutrum et. Id mattis neque congue vestibulum blandit. Orci phasellus vel nisi quis est. Eu neque ac scelerisque euismod leo donec. A urna suscipit feugiat sed ac leo aliquam erat volutpat." ]
 ```
 
 ### TC85 Formats
@@ -749,10 +753,10 @@ out="$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Co
 Exit status: 0
 
 ```text
-"consectetur"
-"a"
-"eget"
-"at."
+"dolor"
+"dignissim"
+"commodo"
+"turpis."
 ```
 
 ### TC86 Templates
@@ -765,7 +769,7 @@ tmp_home="$(mktemp -d)"; out="$(HOME="$tmp_home" VISUAL=true '/Users/avanavana/D
 Exit status: 0
 
 ```text
-Template is ready: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.YT4gqy09kk/.lipsum/templates/starter-demo.tpl
+Template ready: starter-demo
 ```
 
 ### TC86A Templates
@@ -778,7 +782,7 @@ tmp_home="$(mktemp -d)"; out="$(HOME="$tmp_home" VISUAL=true '/Users/avanavana/D
 Exit status: 0
 
 ```text
-Template is ready: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jlxZNqSZJ1/.lipsum/templates/seeded-post.tpl
+Template ready: seeded-post
 ```
 
 ### TC87 Templates
@@ -791,9 +795,9 @@ tmp_home="$(mktemp -d)"; HOME="$tmp_home" VISUAL=true '/Users/avanavana/Dropbox/
 Exit status: 0
 
 ```text
-test: commodo dictum odio
-test: eu dictum
-style: iaculis libero eget
+chore: molestie ante non
+test: mollis sapien dapibus
+feat: interdum et malesuada fames
 3
 ```
 
@@ -811,7 +815,7 @@ Available Templates
 
 Saved Templates:
 - Custom Ticket (custom-ticket)
-  ticket-205 gamma
+  ticket-515 gamma
 ```
 
 ### TC89 Templates
@@ -824,7 +828,7 @@ tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/templates"; printf '# title
 Exit status: 0
 
 ```text
-ticket-171 beta
+ticket-351 alpha
 ```
 
 ### TC90 Templates
@@ -837,7 +841,7 @@ tmp_home="$(mktemp -d)"; HOME="$tmp_home" VISUAL=true '/Users/avanavana/Dropbox/
 Exit status: 0
 
 ```text
-[ "Elit phasellus bibendum id lacus in semper class.\nBy nullam hendrerit\n\nPorta dignissim diam nisi cursus massa eget viverra quam est ac turpis aliquam id lacus eget erat cursus.", "Magna non ex pellentesque at posuere.\nBy netus et\n\nVolutpat lorem phasellus massa risus lobortis eu pellentesque id aliquam at lectus maecenas." ]
+[ "Erat ac imperdiet porta ante curabitur pretium.\nBy cursus massa\n\nLitora torquent per conubia nostra per inceptos himenaeos donec eu varius orci nulla gravida metus.", "Orci nec rutrum pellentesque.\nBy aenean dictum\n\nLibero neque lobortis nec nisl finibus semper posuere justo sed in pharetra orci eu tristique arcu vestibulum." ]
 ```
 
 ### TC91 Config
@@ -850,7 +854,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-[ "auctor praesent", "posuere elit" ]
+[ "et malesuada", "ut molestie" ]
 ```
 
 ### TC28 Ordered Lists
@@ -863,9 +867,9 @@ Default ordered lists use numeric markers.
 Exit status: 0
 
 ```text
-1. Consectetur eget eros ut sollicitudin porttitor mi.
-2. Est sed suscipit libero leo.
-3. Sed velit urna gravida sit amet risus.
+1. Dui nulla metus mauris efficitur non nulla ac.
+2. Aliquam dignissim sit amet.
+3. Tempor elit vitae semper orci.
 ```
 
 ### TC29 Ordered Lists
@@ -878,10 +882,10 @@ Ordered list formulas support alphabetic markers.
 Exit status: 0
 
 ```text
-(A) Mi a vulputate erat blandit a mauris.
-(B) Imperdiet in ex quis interdum sollicitudin enim aliquam.
-(C) Morbi ligula ante commodo vel arcu sit.
-(D) Sapien integer in ex gravida dui porta efficitur.
+(A) Lacinia gravida nulla facilisi.
+(B) Vestibulum etiam quis rhoncus ex nulla.
+(C) Suscipit vestibulum turpis in lobortis orci duis.
+(D) Orci quis pulvinar elit tempor.
 ```
 
 ### TC30 Ordered Lists
@@ -894,9 +898,9 @@ Ordered list formulas support zero-padded zero-indexed digits.
 Exit status: 0
 
 ```text
-000) Volutpat id curabitur consectetur tellus egestas velit pharetra.
-001) Ac pulvinar augue ut sollicitudin at.
-002) Fames ac ante ipsum primis in.
+000) Mauris quis magna elementum commodo arcu in.
+001) Pharetra vivamus vestibulum tempus tempus aliquam.
+002) Donec sagittis tortor in tempor aliquet mi.
 ```
 
 ### TC31 Config Actions
@@ -1010,8 +1014,9 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=dictum sapien faucibus magna.
-clipboard=dictum sapien faucibus magna.
+[1mCopied to clipboard.[0m
+stdout=vitae sagittis pellentesque in.
+clipboard=vitae sagittis pellentesque in.
 ```
 
 ### TC38 Copy
@@ -1024,8 +1029,9 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=ac penatibus pulvinar aptent
-clipboard=ac penatibus pulvinar aptent
+[1mCopied to clipboard.[0m
+stdout=lorem at a amet
+clipboard=lorem at a amet
 ```
 
 ### TC39 Copy
@@ -1038,7 +1044,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-stdout=at felis metus praesent
+stdout=libero dui leo ac
 clipboard_exists=1
 ```
 
@@ -1078,17 +1084,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1133,6 +1139,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1190,17 +1197,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1245,6 +1252,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1302,17 +1310,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1357,6 +1365,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1414,17 +1423,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1469,6 +1478,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1526,17 +1536,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1581,6 +1591,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1638,17 +1649,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1693,6 +1704,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1750,17 +1762,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1805,6 +1817,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1862,17 +1875,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -1917,6 +1930,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -1974,17 +1988,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -2029,6 +2043,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -2086,17 +2101,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -2141,6 +2156,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -2198,17 +2214,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -2253,6 +2269,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -2310,17 +2327,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -2365,6 +2382,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -2422,17 +2440,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./tests/test-artifacts/bad-config.zsh[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -2477,6 +2495,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -2508,9 +2527,9 @@ for n in 3 4 5; do '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-– Fusce risus erat.
-– In faucibus orci luctus.
-– Risus quisque pulvinar eget nunc.
+– Purus aliquam aliquet.
+– Ornare tincidunt bibendum non.
+– Pellentesque bibendum mauris phasellus consequat.
 ```
 
 ### TC54 Shell Integration
@@ -2523,8 +2542,8 @@ printf '4\n6\n' | while read -r n; do '/Users/avanavana/Dropbox/My Mac (MacBook-
 Exit status: 0
 
 ```text
-magna sit amet eleifend.
-lacinia lectus orci in nisi nullam.
+torquent per conubia nostra.
+a nulla interdum bibendum quisque auctor.
 ```
 
 ### TC55 Shell Integration
@@ -2537,8 +2556,8 @@ printf '3\n5\n' | xargs -I{} zsh -c "'/Users/avanavana/Dropbox/My Mac (MacBook-P
 Exit status: 0
 
 ```text
-– Rutrum sagittis quis.
-– Non rutrum morbi tempor at.
+– Suspendisse dictum feugiat.
+– Sapien dapibus nec nunc sit.
 ```
 
 ### TC56 Shell Integration
@@ -2551,7 +2570,7 @@ printf '[%s]\n' "$('/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents
 Exit status: 0
 
 ```text
-[sed libero sed mattis.]
+[sed porta morbi in.]
 ```
 
 ### TC57 Shell Integration
@@ -2564,7 +2583,7 @@ printf 'stdin is ignored here\n' | '/Users/avanavana/Dropbox/My Mac (MacBook-Pro
 Exit status: 0
 
 ```text
-Fusce volutpat et scelerisque sed.
+Lacus sollicitudin massa ac nisi.
 ```
 
 ### TC58 Shell Integration
@@ -2577,14 +2596,15 @@ Paragraph output can be piped into fold for visual wrapping.
 Exit status: 0
 
 ```text
-Interdum ligula nec sapien egestas nec 
-fermentum odio viverra donec. Ut metus 
-curabitur vel ante in neque lacinia. 
-Tincidunt aliquam erat volutpat ut 
-dignissim magna eget nulla. Dictumst 
-etiam vitae nibh tempus nibh blandit 
-imperdiet. Quam et ultrices fermentum 
-tellus ante ornare eros non.
+Ornare tellus quis varius dolor fusce 
+dictum mauris id libero varius sagittis 
+pellentesque habitant. Sagittis felis 
+mauris quis magna elementum. Quam eu 
+consequat aliquam accumsan tincidunt 
+orci in faucibus ipsum dictum. Justo 
+gravida tincidunt nulla facilisi 
+maecenas ultricies augue nec pulvinar 
+maximus orci ipsum.
 ```
 
 ### TC59 Shell Integration
@@ -2597,10 +2617,10 @@ Bullet output can be piped into line numbering for visual review.
 Exit status: 0
 
 ```text
-     1	– Vehicula tellus sit amet imperdiet.
-     2	– Ornare eros non molestie turpis.
-     3	– Gravida mauris non condimentum commodo dui odio sodales.
-     4	– Pharetra orci eu tristique arcu vestibulum nec.
+     1	– Cursus metus turpis eget ullamcorper arcu rutrum et.
+     2	– Posuere quis curabitur ultricies.
+     3	– Sit amet augue dolor.
+     4	– Pharetra eu feugiat magna accumsan vestibulum semper dolor.
 ```
 
 ### TC60 Shell Integration
@@ -2613,61 +2633,61 @@ Word output can be piped into newline transforms for tokenized display.
 Exit status: 0
 
 ```text
-dapibus
-ultrices
+justo
+ac
+scelerisque
+morbi
 in
-faucibus
-ex
-feugiat
-elit
-donec.
+enim
+metus
+amet.
 ```
 
 ### TC61 Sources
-The sources action separates built-in and imported sources and includes sample paragraphs.
+The sources action separates built-in and saved flavors and includes sample paragraphs.
 
 ```sh
-tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; cp '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/'*.words "$tmp_home/.lipsum/sources/"; printf 'atlas ember harbor signal twilight\n' > "$tmp_home/.lipsum/sources/custom-demo.words"; out="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F 'Built-In Sources:' >/dev/null && printf '%s\n' "$out" | grep -F 'Imported Sources:' >/dev/null && printf '%s\n' "$out" | grep -F 'Lorem Ipsum (lorem) [default]' >/dev/null && printf '%s\n' "$out" | grep -F 'Tech Ipsum (tech)' >/dev/null && printf '%s\n' "$out" | grep -F 'Corporate Ipsum (corporate)' >/dev/null && printf '%s\n' "$out" | grep -F 'Custom Demo (custom-demo)' >/dev/null; rc=$?; rm -rf "$tmp_home"; exit $rc
+tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; cp '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources/'*.words "$tmp_home/.lipsum/sources/"; printf 'atlas ember harbor signal twilight\n' > "$tmp_home/.lipsum/sources/custom-demo.words"; out="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F 'Built-In Flavors:' >/dev/null && printf '%s\n' "$out" | grep -F 'Saved Flavors:' >/dev/null && printf '%s\n' "$out" | grep -F 'Lorem Ipsum (lorem) [default]' >/dev/null && printf '%s\n' "$out" | grep -F 'Tech Ipsum (tech)' >/dev/null && printf '%s\n' "$out" | grep -F 'Corporate Ipsum (corporate)' >/dev/null && printf '%s\n' "$out" | grep -F 'Custom Demo (custom-demo)' >/dev/null; rc=$?; rm -rf "$tmp_home"; exit $rc
 ```
 
 Exit status: 0
 
 ```text
-Available Sources
+Available Flavors
 
-Built-In Sources:
+Built-In Flavors:
 - Lorem Ipsum (lorem) [default]
-  Et ultrices posuere cubilia curae sed eget malesuada. Vestibulum id nibh a placerat vestibulum aliquet faucibus elit blandit laoreet.
+  Integer nec augue suscipit vestibulum turpis in lobortis orci duis. In sagittis dui in posuere nulla sit amet.
 
 - Hipster Ipsum (hipster)
-  Wayfarers pabst scenester lo fi cold brew normcore snackwave. Enamel pin messenger bag tattooed flannel tote bag slowcore gastropub.
+  Pickled microbatch cloud bread enamel pin messenger bag tattooed. Irony vaporware synthwave forage locavore keffiyeh chia aesthetic distillery.
 
 - Tech Ipsum (tech)
-  Latency uptime roadmap sprint backlog schema runtime package endpoint console branch. Provider tenant workspace config registry commit review patch issue milestone.
+  Uptime roadmap sprint backlog schema runtime package endpoint console. Archive checksum snapshot stream queue replica handshake sandbox orchestration automation observability.
 
 - Pirate Ipsum (pirate)
-  Bilge pump dockside lantern reef breaker compass rose longboat shoreline wave. Harbor watch tide mark seaworthy ballast hold trade wind spray-soaked timber.
+  Cove gulls cannon rope splice driftwood treasure map harbor bell stern. Lantern storm watch moonlit cove gulls cannon rope.
 
 - Food Ipsum (food)
-  Yogurt custard marmalade sorbet preserve jam tarragon dill mint. Garden party supper club pastry case confection.
+  Greengrocer vineyard farmhouse garden party supper club pastry. Maple sea salt cracked pepper tomato fennel garlic.
 
 - Corporate Ipsum (corporate)
-  Principle measurable outcome customer signal workflow streamlining priority matrix facilitator summary. Checklist launch note weekly digest quarterly review stakeholder map operating principle.
+  Model enablement toolkit knowledge base rollout plan. Transformation proposal discovery brief operating assumption risk register.
 
 - Spanish Ipsum (es)
-  Farol cuento abrazo sonido refugio paisaje memoria puerto cocina mantel. Piedra nube campo jardin casa ventana puerta abrazo.
+  Color palabra canto tierra mar destino memoria deseo. Rama marea espejo campana trigo perfume rioja.
 
 - French Ipsum (fr)
-  Cannelle citron farine patio balcon lampe histoire refuge. Pierre riviere maison parfum silence sourire regard temps couleur parole chanson.
+  Ete automne voyage carte village colline port vallee miroir manteau. Lettre encre musique danse caresse calme atelier marche orange.
 
 - German Ipsum (de)
-  Frucht stern mond sonne regen winter fruehling sommer herbst reise. Freundlichkeit heimweg schimmer mauer feld ufer kiesel feder.
+  Stein fluss haus duft stille laecheln blick zeit. Fluss haus duft stille laecheln blick zeit farbe wort lied erde.
 
-Imported Sources:
+Saved Flavors:
 - Custom Demo (custom-demo)
-  Atlas ember harbor signal twilight atlas ember harbor signal. Atlas ember harbor signal twilight atlas ember harbor signal twilight atlas.
+  Atlas ember harbor signal twilight ember harbor signal twilight. Atlas ember harbor signal twilight atlas ember harbor signal twilight twilight.
 
-Default source: lorem
+Default flavor: lorem
 ```
 
 ### TC62 Sources
@@ -2707,16 +2727,16 @@ Exit status: 0
 ```
 
 ### TC64A Sources
-A specific source can be inspected through the sources action.
+A specific flavor can be inspected through the sources action.
 
 ```sh
-out="$(HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources corporate)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F 'Source Details' >/dev/null && printf '%s\n' "$out" | grep -F 'Title: Corporate Ipsum' >/dev/null && printf '%s\n' "$out" | grep -F 'Slug: corporate' >/dev/null && printf '%s\n' "$out" | grep -F 'Type: built-in' >/dev/null && printf '%s\n' "$out" | grep -F 'Sample:' >/dev/null
+out="$(HOME="$(mktemp -d)" LIPSUM_SOURCE_DIR='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/sources' LIPSUM_DICT='/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./share/lorem.words' '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/Code/shell/lipsum-cli/./lipsum' sources corporate)"; printf '%s\n' "$out"; printf '%s\n' "$out" | grep -F 'Flavor Details' >/dev/null && printf '%s\n' "$out" | grep -F 'Title: Corporate Ipsum' >/dev/null && printf '%s\n' "$out" | grep -F 'Slug: corporate' >/dev/null && printf '%s\n' "$out" | grep -F 'Type: built-in' >/dev/null && printf '%s\n' "$out" | grep -F 'Sample:' >/dev/null
 ```
 
 Exit status: 0
 
 ```text
-Source Details
+Flavor Details
 
 Title: Corporate Ipsum
 Slug: corporate
@@ -2726,7 +2746,7 @@ Default: no
 Word count: 151
 
 Sample:
-Vendor review forecasting pipeline win rate retention. Readiness checklist launch note weekly digest quarterly review stakeholder.
+Briefing leadership offsite program charter business review pilot launch. Planning service model portfolio resourcing capacity governance steering committee operating cadence.
 ```
 
 ### TC64B Sources
@@ -2739,7 +2759,7 @@ tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; printf 'atlas emb
 Exit status: 0
 
 ```text
-Renamed source custom-demo to renamed-demo
+Renamed flavor custom-demo to renamed-demo
 ```
 
 ### TC64C Sources
@@ -2752,7 +2772,7 @@ tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; printf 'atlas emb
 Exit status: 0
 
 ```text
-Default source set to custom-demo
+Default flavor set to custom-demo
 ```
 
 ### TC64D Sources
@@ -2765,7 +2785,7 @@ tmp_home="$(mktemp -d)"; mkdir -p "$tmp_home/.lipsum/sources"; printf 'default_s
 Exit status: 0
 
 ```text
-Delete source 'custom-demo'? [y/N] Deleted source custom-demo
+Delete flavor 'custom-demo'? [y/N] Deleted flavor custom-demo
 ```
 
 ### TC64E Errors
@@ -2804,17 +2824,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -2859,6 +2879,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -2890,13 +2911,7 @@ tmp_home="$(mktemp -d)"; tmp_file="$tmp_home/book.txt"; printf 'maple river lant
 Exit status: 0
 
 ```text
-Saved source: bookish
-Type: text
-Path: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.jsV3WVoAPl/.lipsum/sources/bookish.words
-Words: 6
-
-Preview:
-maple river lantern harbor velvet canyon
+Saved as [1mbookish[0m to [1m/var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.UCkLaZaCJ0/.lipsum/sources/bookish.words[0m
 ```
 
 ### TC64G Lipsumize
@@ -2922,13 +2937,7 @@ tmp_home="$(mktemp -d)"; out="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My Ma
 Exit status: 0
 
 ```text
-Saved source: example-site
-Type: url
-Path: /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.sR6LfawEmO/.lipsum/sources/example-site.words
-Words: 21
-
-Preview:
-Example Domain Example Domain This domain is for use in documentation examples without needing permission Avoid use in
+Saved as [1mexample-site[0m to [1m/var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.OSEb2H48js/.lipsum/sources/example-site.words[0m
 ```
 
 ### TC64I Errors
@@ -2948,7 +2957,7 @@ Usage: [1mlipsumize[0m [ options ] [1mname[0m [1minput[0m
        [1mlipsumize[0m [ [1m-v/-V/--version[0m ]
        [1mlipsumize[0m [ [1m-h/-H/--help[0m ]
 
-Create or update a reusable lipsum source corpus from local text, HTML, EPUB, stdin,
+Create or update a reusable lipsum flavor from local text, HTML, EPUB, stdin,
 or a URL, then save it under [1m~/.lipsum/sources/[0m for use with [1mlipsum[0m.
 
 Options:
@@ -2989,14 +2998,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.local/bin/lipsum
-Companion:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.local/bin/lipsumize
-Config:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.lipsum/config
-Corpus:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.lipsum/words
-Sources:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.lipsum/sources
-Templates:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.lipsum/templates
+Executable:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.local/bin/lipsum
+Companion:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.local/bin/lipsumize
+Config:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.lipsum/config
+Corpus:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.lipsum/words
+Sources:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.lipsum/sources
+Templates:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.8xFgzejpcO/.local/bin to your PATH to run lipsum and lipsumize directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.t5n18gSDCl/.local/bin to your PATH to run lipsum and lipsumize directly.
 ```
 
 ### TC67 Installer
@@ -3014,123 +3023,123 @@ Default mode
 This controls what a bare `lipsum` command generates.
 
 Preview:
-Eu ullamcorper a nunc egestas ipsum ultrices quam posuere aliquet.
+Integer pellentesque nunc risus senectus est sem mauris morbi quis.
 
 Default mode [words] (words/characters/lines/sentences/paragraphs): 
 Default source
 Choose the source corpus used by default. Available: lorem hipster tech pirate food corporate es fr de.
 
 Preview:
-vitae metus nisi sit vestibulum urna.
+efficitur porttitor id a aliquet arcu.
 
 Default source [lorem]: 
 Default word count
 Used when your default mode is words and you run `lipsum` with no count.
 
 Preview:
-Amet nibh ex in augue gravida ante dui non ut.
+Eleifend magna volutpat inceptos aenean ac varius egestas magna cubilia.
 
 Default word count [10]: 
 Default character count
 Used when your default mode is characters and you run `lipsum` with no count.
 
 Preview:
-To lobortis et duis venenatis di.
+Am commodo varius maecenas aliqu.
 
 Default character count [32]: 
 Default line count
 Used when your default mode is lines and you run `lipsum` with no count.
 
 Preview:
-– Consectetur nunc imperdiet elementum tempus.
-– Enim nulla malesuada sem.
-– Lacinia gravida nulla facilisi fusce ac.
-– Est duis vel cursus diam sed blandit mauris.
-– Ultrices dui nec vestibulum mi.
+– Suspendisse dictum feugiat blandit nunc a diam commodo.
+– Proin volutpat nunc quis.
+– Commodo interdum sapien neque consectetur mi ac sagittis.
+– Class aptent taciti sociosqu ad litora torquent per.
+– A metus pharetra condimentum sed.
 
 Default line count [5]: 
 Default sentence count
 Used when your default mode is sentences and you run `lipsum` with no count.
 
 Preview:
-Arcu sed auctor dolor et consectetur condimentum ipsum. Vehicula tellus sit amet imperdiet lectus tincidunt maximus phasellus viverra elementum. Ex sed elementum turpis ac diam ultrices porta quisque vulputate lectus diam. Rutrum nisl pellentesque leo metus tristique at interdum sit amet.
+Et ultrices posuere cubilia curae pellentesque iaculis vehicula tellus sit amet imperdiet. Integer vitae felis eget enim tempor dictum. Sit amet interdum efficitur fusce vitae sem id velit condimentum cursus ut vehicula aliquet. Sollicitudin maximus dictum suspendisse aliquam orci at lorem.
 
 Default sentence count [4]: 
 Default paragraph count
 Used when your default mode is paragraphs and you run `lipsum` with no count.
 
 Preview:
-Eleifend enim quis lobortis ante luctus nec donec fringilla orci quis ex volutpat id. Tempus nibh blandit imperdiet ut rutrum varius. Purus eleifend egestas donec efficitur consequat metus ultrices feugiat cras varius. Finibus semper posuere justo sed in pharetra.
+Non ornare ex massa a purus proin semper. Eget eros ac mollis mauris vel nisi ut magna placerat auctor id eu. Suscipit fusce mi turpis volutpat nec ultricies volutpat pellentesque sed ligula fusce. Sit amet finibus euismod suspendisse dignissim dignissim tempor.
 
-Ac ornare interdum et malesuada fames ac. Accumsan odio malesuada at ut consectetur malesuada eleifend vivamus ac fringilla sem suspendisse id. Fermentum consequat felis pulvinar at morbi volutpat fermentum metus at vehicula. Congue at praesent orci nisi sodales nec.
+Amet tellus dapibus tempor a nec enim nulla malesuada sem. Risus ut dui arcu rutrum a neque nec. Fusce at pharetra turpis sed ullamcorper lorem.
 
-Malesuada et risus a dignissim mauris tempus. Convallis a ex aliquam non aliquam ante at euismod. Sollicitudin elit sit amet dui consequat. Primis in faucibus etiam eleifend bibendum. Felis curabitur vel ex quis urna porttitor fermentum nam.
+Ut bibendum augue felis at tellus aliquam ligula est finibus sed interdum. Ac est vivamus hendrerit metus urna sed rutrum nisi egestas. Erat ac dolor sagittis ac fermentum felis placerat nam. Pharetra sapien id quam euismod porttitor.
 
 Default paragraph count [3]: 
 Default word length range
 Controls the character length of generated words when no explicit range is provided.
 
 Preview:
-sit urna sit eu nisi sit.
+sit rhoncus dapibus in pharetra euismod.
 
 Default word length range [1-12]: 
 Default line range
 Controls the number of words in each generated line.
 
 Preview:
-– felis et suscipit nunc mollis.
-– et risus nullam eu turpis ac nibh scelerisque.
-– urna at ante sagittis.
+– vel mattis tellus feugiat quis donec bibendum accumsan.
+– suscipit donec velit ante facilisis.
+– cras non ligula elementum commodo lacus a.
 
 Default line range [4-8]: 
 Default sentence range
 Controls the number of words in each generated sentence.
 
 Preview:
-vulputate dictum orci non rhoncus aliquam fermentum lacinia tristique phasellus dui massa bibendum. dignissim sed ornare scelerisque elementum nulla sit amet.
+placerat in gravida imperdiet odio sed gravida sem ornare nec. mi mollis ullamcorper curabitur iaculis molestie nisi a ullamcorper maecenas interdum lectus et.
 
 Default sentence range [6-14]: 
 Default paragraph range
 Controls the number of sentences in each generated paragraph.
 
 Preview:
-Lacus eu lobortis arcu sed auctor dolor et consectetur condimentum ipsum. Volutpat proin tempus velit eget massa consectetur. Ultricies mi ac rutrum lacus cras. Vivamus ut felis vitae orci rhoncus lacinia suspendisse enim lacus commodo sagittis.
+Risus suspendisse vestibulum pretium felis vel semper fusce vitae mauris neque aliquam ultricies tempus. Faucibus elit blandit laoreet ut in diam lobortis pulvinar velit a rutrum sem vivamus. Duis mattis imperdiet justo id venenatis morbi faucibus ultricies scelerisque etiam vitae dolor.
 
-Lectus purus eget accumsan odio malesuada at ut consectetur. Scelerisque ante sagittis a quisque semper metus ac interdum. At leo consectetur porttitor nulla ut varius enim maecenas a tempor felis. Elit convallis rhoncus curabitur ornare accumsan dui quis mattis aenean.
+Vel mattis tellus feugiat quis donec bibendum accumsan rhoncus ut ultrices ex a lectus. Tellus eu mattis purus tincidunt eu donec vel justo ac quam pulvinar aliquet. Sit amet diam in cursus varius purus aliquam aliquet.
 
 Default paragraph range [3-5]: 
 Default paragraph sentence word range
 Controls the number of words in each sentence inside paragraph output.
 
 Preview:
-Sed ipsum eget nibh vestibulum venenatis sed eu ultrices libero. Aliquam vulputate ligula odio tincidunt nisl at gravida nulla libero non. Suscipit ipsum eget consequat quisque pharetra vitae est eu eleifend mauris.
+Nisl pellentesque leo metus tristique at interdum sit amet imperdiet in mi donec quam. Quis nunc pellentesque sagittis molestie tortor curabitur leo arcu. Ligula ac metus nam et eros. Maximus massa sit amet rhoncus tincidunt aliquam erat volutpat ut dignissim magna eget.
 
 Default paragraph sentence word range [6-14]: 
 Default bullet character
 Used by `lipsum lines -b` when no explicit bullet character is provided.
 
 Preview:
-– ex commodo in urna nec.
-– sem eu laoreet velit blandit.
-– duis maximus finibus orci.
+– imperdiet odio ut consectetur nulla purus vitae orci.
+– congue lobortis risus a rutrum sem.
+– ac convallis metus venenatis eget sed vehicula tellus.
 
 Default bullet character [–]: 
 Default ordered list format
 Used by `lipsum lines -o` when no explicit ordered marker format is provided.
 
 Preview:
-1. At risus euismod consequat non.
-2. Pretium mi vehicula vestibulum porta.
-3. Diam tempor ac ornare eget tincidunt maximus ante.
+1. Fermentum molestie cras sed commodo.
+2. Elit tristique nunc a velit lectus.
+3. Leo tempor purus volutpat sollicitudin eget.
 
 Default ordered list format [%d.]: 
 Default format
 Choose how generated output is rendered when you do not pass --format explicitly.
 
 Preview:
-Nunc lobortis ligula purus mattis dapibus lacus feugiat.
-Ac iaculis diam maecenas.
-Risus morbi vehicula lacus id hendrerit.
+Vitae fermentum velit nullam finibus sit amet risus.
+Elementum varius morbi lacus odio tristique et.
+Cubilia curae aliquam vestibulum id tortor at placerat.
 
 Default format [plain] (plain/html/markdown/json/ndjson): 
 Copy on generate
@@ -3140,14 +3149,14 @@ Current default: no
 
 Copy on generate [no] (yes/no): 
 Installed lipsum-cli.
-Executable:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.local/bin/lipsum
-Companion:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.local/bin/lipsumize
-Config:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.lipsum/config
-Corpus:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.lipsum/words
-Sources:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.lipsum/sources
-Templates:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.lipsum/templates
+Executable:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.local/bin/lipsum
+Companion:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.local/bin/lipsumize
+Config:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.lipsum/config
+Corpus:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.lipsum/words
+Sources:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.lipsum/sources
+Templates:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.1L4wTh8rJu/.local/bin to your PATH to run lipsum and lipsumize directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.fcXCODUXmG/.local/bin to your PATH to run lipsum and lipsumize directly.
 5
 ```
 
@@ -3163,14 +3172,14 @@ Exit status: 0
 ```text
 
 Installed lipsum-cli.
-Executable:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.local/bin/lipsum
-Companion:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.local/bin/lipsumize
-Config:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.lipsum/config
-Corpus:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.lipsum/words
-Sources:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.lipsum/sources
-Templates:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.lipsum/templates
+Executable:  /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.local/bin/lipsum
+Companion:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.local/bin/lipsumize
+Config:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.lipsum/config
+Corpus:      /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.lipsum/words
+Sources:     /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.lipsum/sources
+Templates:   /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.lipsum/templates
 
-Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.B1ULoFfwCw/.local/bin to your PATH to run lipsum and lipsumize directly.
+Add /var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.dfxySLy6Us/.local/bin to your PATH to run lipsum and lipsumize directly.
 ```
 
 ### TC69 Custom Sources
@@ -3219,8 +3228,9 @@ tmp_home="$(mktemp -d)"; first="$(HOME="$tmp_home" '/Users/avanavana/Dropbox/My 
 Exit status: 0
 
 ```text
-first=harbor harbor atlas atlas atlas
-second=atlas atlas twilight harbor atlas
+Saved as [1mcustomdemo[0m to [1m/var/folders/z3/qtqd5lgn3lj_k68wjk7wwprr0000gn/T/tmp.Toeahbznpk/.lipsum/sources/customdemo.words[0m
+first=twilight ember atlas signal signal
+second=harbor twilight twilight atlas signal
 ```
 
 ### TC73 Errors
@@ -3259,17 +3269,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -3314,6 +3324,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -3371,17 +3382,17 @@ Other Actions:
   [1minit[0m                         Create a starter config file at [1m/Users/avanavana/.lipsum/config[0m.
   [1mconfig, settings, prefs, preferences[0m
                                Open the config file in $VISUAL, $EDITOR, or [1mvi[0m.
-  [1msources, list-sources[0m       List sources, inspect one source, or manage imported sources.
+  [1msources, list-sources[0m       List lipsum flavors, inspect one flavor, or manage saved flavors.
   [1mtemplates, list-templates[0m   List saved templates with samples.
 
 Options:
   [1m-l, -L, --lowercase[0m          Return output entirely in lowercase.
   [1m-u, -U, --uppercase[0m          Return output entirely in uppercase.
   [1m-t, -T, --title-case[0m         Return output in title case.
-  [1m-s, -S, --source[0m [1mname[0m         Choose a named source corpus such as [1mlorem[0m or [1mhipster[0m.
-  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the source corpus.
-  [1m--file[0m [1mpath[0m             Use a file's contents as the source corpus for this invocation.
-  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable named source.
+  [1m-s, -S, --source[0m [1mname[0m         Choose a lipsum flavor such as [1mlorem[0m or [1mhipster[0m.
+  [1m--text[0m [1mtext|- [0m        Use inline text, or stdin via [1m--text -[0m, as the flavor source.
+  [1m--file[0m [1mpath[0m             Use a file's contents as the flavor source for this invocation.
+  [1m--save-source[0m [1mname[0m    Save custom text or file input as a reusable lipsum flavor.
   [1m--from[0m [1mpath[0m             Seed a template from an example file with [1mtemplate new|edit[0m.
   [1m-f, -F, --format[0m [1mname[0m         Render as [1mplain[0m, [1mhtml[0m, [1mmarkdown[0m, [1mjson[0m, or [1mndjson[0m.
   [1m-b, -B, --bullets[0m [ char ]   Prefix each generated line with [1mchar[0m (default: '–').
@@ -3426,6 +3437,7 @@ Examples:
   [1mlipsum[0m 4-6 lines -r 6-10 -b
   [1mlipsum[0m 4 lines -o
   [1mlipsum[0m 4 lines -o '(%A)'
+  [1mlipsum[0m sources --names
   [1mlipsum[0m --source hipster 8 words
   [1mlipsum[0m --text 'alpha beta gamma delta' 3 words
   [1mlipsum[0m --file ./notes.txt 2 paragraphs
@@ -3457,7 +3469,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-quis tempus mi nisi et sollicitudin in vel orci class ut amet in amet eros ac libero tempus auctor viverra id ipsum orci ornare a vulputate ultricies primis in consequat hendrerit mauris nulla nunc est in platea pulvinar 😀 😀
+iaculis vitae orci fusce eget nulla lectus nullam augue maximus quis consectetur cras nunc in ex egestas vitae iaculis eu massa dolor efficitur in et fames cursus elementum ipsum erat rhoncus tempus quam dolor cursus suspendisse gravida 😀 tristique quis
 40
 ```
 
@@ -3471,7 +3483,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-id ornare sed semper neque dui eget dolor convallis viverra eget quis iaculis tincidunt dui ornare non aliquam lacinia sodales id laoreet libero etiam ultricies mi laoreet ex ornare nam ornare ante vitae faucibus diam rhoncus suscipit erat phasellus odio
+eget morbi amet vitae risus quam semper id sit bibendum faucibus ac tellus morbi tristique neque vitae et ac aliquet tellus at ut quis consequat vel hendrerit eu erat amet ac accumsan lectus nulla elit curabitur sem et risus fusce
 40
 ```
 
@@ -3485,7 +3497,7 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-Titor id metus aliquam et neque non justo lobortis mattis in vel metus sed porta nunc eget commodo lobortis mauris libero efficitur metus v 😀
+Or placerat quis magna id sagittis viverra erat nam dapibus elit ac dui ultrices vitae dignissim mi molestie nam enim arcu venenatis sed fi 😀
 ```
 
 ### TC78 Emoji
@@ -3498,6 +3510,6 @@ mkdir -p '/Users/avanavana/Dropbox/My Mac (MacBook-Pro.lan1)/Documents/Projects/
 Exit status: 0
 
 ```text
-ugiat viverra eros eget pretium justo fusce tristique eros in aliquet semper praesent quis ex vestibulum ornare ex a pulvinar nunc phasellu. 😀
+eifend in sed tincidunt tincidunt mauris sed faucibus lectus efficitur quis in in porttitor est duis vel cursus diam sed blandit mauris nul. 😀
 ```
 
