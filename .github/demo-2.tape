@@ -5,9 +5,9 @@ Require lipsumize
 Require printf
 Require cat
 
-Set Shell "zsh"
-Set FontFamily "Hack"
+Set FontFamily "Menlo"
 Set FontSize 24
+Set LetterSpacing 0
 Set Theme "Dracula"
 Set Width 1200
 Set Height 920
@@ -16,25 +16,6 @@ Set Margin 20
 Set MarginFill "#737373"
 Set BorderRadius 10
 Set TypingSpeed 40ms
-
-Hide
-Type "DEMO_HOME=$(mktemp -d)"
-Enter
-Type "mkdir -p $DEMO_HOME/.lipsum"
-Enter
-Type "cp -R ~/.lipsum/sources $DEMO_HOME/.lipsum/"
-Enter
-Type "cp ~/.lipsum/words $DEMO_HOME/.lipsum/words"
-Enter
-Type "mkdir -p $DEMO_HOME/.lipsum/templates"
-Enter
-Type "export HOME=$DEMO_HOME"
-Enter
-Type "export PATH=/usr/local/bin:$PATH"
-Enter
-Type "export PS1='%F{#737373}> %f'"
-Enter
-Show
 
 Type "Generate lipsum with built-in corpora: lorem, hipster, tech, pirate, food, corporate, es, fr, de..."
 Sleep 1500ms
