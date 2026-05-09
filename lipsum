@@ -25,14 +25,14 @@ Commands:
   ${bold}l, L, line, lines${reset}
   ${bold}s, S, sent, sents, sentence, sentences${reset}
   ${bold}p, P, para, paras, paragraph, paragraphs${reset}
-  ${bold}template, tpl, tmpl${reset}
+  ${bold}template, tpl, tmpl${reset}      Render a named template, or use ${bold}template new|edit${reset}
 
 Other Actions:
   ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
   ${bold}config, settings, prefs, preferences${reset}
                                Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
   ${bold}sources, list-sources${reset}       List built-in and saved source corpora with samples.
-  ${bold}templates, list-templates${reset}   List built-in and saved templates with samples.
+  ${bold}templates, list-templates${reset}   List saved templates with samples.
 
 Options:
   ${bold}-l, -L, --lowercase${reset}          Return output entirely in lowercase.
@@ -42,6 +42,7 @@ Options:
   ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the source corpus.
   ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the source corpus for this invocation.
   ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable named source.
+  ${bold}--from${reset} ${bold}path${reset}             Seed a template from an example file with ${bold}template new|edit${reset}.
   ${bold}-f, -F, --format${reset} ${bold}name${reset}         Render as ${bold}plain${reset}, ${bold}html${reset}, ${bold}markdown${reset}, ${bold}json${reset}, or ${bold}ndjson${reset}.
   ${bold}-b, -B, --bullets${reset} [ char ]   Prefix each generated line with ${bold}char${reset} (default: '–').
   ${bold}-o, -O, --ordered-list${reset} [ fmt ]
@@ -94,8 +95,9 @@ Examples:
   ${bold}$progname${reset} 12 words -p all
   ${bold}$progname${reset} 4 lines -f html
   ${bold}$progname${reset} 3 paragraphs -f json
-  ${bold}$progname${reset} template notification 4
-  ${bold}$progname${reset} 3 template conventional-commit -p none
+  ${bold}$progname${reset} template new conventional-commit
+  ${bold}$progname${reset} template new blog-post --from examples/templates/blog-post.tpl
+  ${bold}$progname${reset} 3 template blog-post -p none
   ${bold}$progname${reset} templates
   ${bold}$progname${reset} sources
   ${bold}$progname${reset} 3 sentences -c
@@ -637,6 +639,85 @@ load_config () {
   fi
 }
 
+ensure_template_directory () {
+  mkdir -p "$template_dir" || die "Could not create template directory: $template_dir"
+}
+
+launch_editor_for_file () {
+  local target_path="$1"
+  local editor="${VISUAL:-${EDITOR:-vi}}"
+  local quoted_path="${(q)target_path}"
+
+  zsh -fc "setopt nonomatch; $editor $quoted_path" || die "Editor command failed"
+}
+
+template_starter_contents () {
+  local name="$(normalize_source_name "$1")"
+  local title="${(C)${(L)${name//-/ }}}"
+
+  title="${title//_/ }"
+
+  cat <<EOF
+# title: $title
+{{sentence(4-8)}}
+EOF
+}
+
+valid_template_name () {
+  local name="$(normalize_source_name "$1")"
+  [[ -n $name && $name =~ '^[a-z0-9][a-z0-9_-]*$' ]]
+}
+
+write_template_seed () {
+  local target_path="$1"
+  local template_name="$2"
+
+  if [[ -n $template_from_path ]]; then
+    [[ -r $template_from_path ]] || die "Template seed file not found: $template_from_path"
+    cp "$template_from_path" "$target_path" || die "Could not seed template from: $template_from_path"
+    return
+  fi
+
+  template_starter_contents "$template_name" >| "$target_path" || die "Could not write template file: $target_path"
+}
+
+create_template () {
+  local name="$(normalize_source_name "$1")"
+  local template_path=''
+
+  valid_template_name "$name" || die "Invalid template name: $1"
+  ensure_template_directory
+  template_file_path "$name"
+  template_path="$REPLY"
+
+  if [[ -e $template_path ]]; then
+    die "Template already exists: $name"
+  fi
+
+  write_template_seed "$template_path" "$name"
+  launch_editor_for_file "$template_path"
+  print -- "Template is ready: $template_path"
+  exit 0
+}
+
+edit_template () {
+  local name="$(normalize_source_name "$1")"
+  local template_path=''
+
+  valid_template_name "$name" || die "Invalid template name: $1"
+  ensure_template_directory
+  template_file_path "$name"
+  template_path="$REPLY"
+
+  if [[ ! -e $template_path || -n $template_from_path ]]; then
+    write_template_seed "$template_path" "$name"
+  fi
+
+  launch_editor_for_file "$template_path"
+  print -- "Template is ready: $template_path"
+  exit 0
+}
+
 normalize_source_name () {
   local name="$1"
   print -- "${(L)name}"
@@ -703,42 +784,26 @@ template_file_path () {
   REPLY="$template_dir/$name.tpl"
 }
 
-bundled_template_file_path () {
-  local name="$(normalize_source_name "$1")"
-  REPLY="$bundled_template_dir/$name.tpl"
-}
-
 template_exists () {
   local name="$(normalize_source_name "$1")"
   local template_file=''
-  local bundled_template_file=''
 
   [[ -n $name ]] || return 1
   template_file_path "$name"
   template_file="$REPLY"
-  bundled_template_file_path "$name"
-  bundled_template_file="$REPLY"
 
-  [[ -r $template_file || -r $bundled_template_file ]]
+  [[ -r $template_file ]]
 }
 
 resolve_template_path () {
   local name="$(normalize_source_name "$1")"
   local template_file=''
-  local bundled_template_file=''
 
   template_file_path "$name"
   template_file="$REPLY"
-  bundled_template_file_path "$name"
-  bundled_template_file="$REPLY"
 
   if [[ -r $template_file ]]; then
     REPLY="$template_file"
-    return
-  fi
-
-  if [[ -r $bundled_template_file ]]; then
-    REPLY="$bundled_template_file"
     return
   fi
 
@@ -777,16 +842,6 @@ available_template_names () {
   local base=''
 
   for file in "$template_dir"/*.tpl(N); do
-    base="${file:t:r}"
-    base="$(normalize_source_name "$base")"
-
-    if [[ -z ${seen[$base]} ]]; then
-      names+=( "$base" )
-      seen[$base]=1
-    fi
-  done
-
-  for file in "$bundled_template_dir"/*.tpl(N); do
     base="${file:t:r}"
     base="$(normalize_source_name "$base")"
 
@@ -1305,36 +1360,16 @@ print_template_section () {
 
 print_available_templates () {
   local -a names=()
-  local -a built_in_names=()
-  local -a custom_names=()
-  local -A available=()
   local name=''
 
   available_template_names
   names=( ${(s: :)REPLY} )
 
-  (( ${#names[@]} > 0 )) || die "No templates are available. Create one under $template_dir first."
-
-  for name in "${names[@]}"; do
-    available[$name]=1
-  done
-
-  for name in conventional-commit email-subject notification apa-citation status-update; do
-    if [[ -n ${available[$name]} ]]; then
-      built_in_names+=( "$name" )
-    fi
-  done
-
-  for name in "${names[@]}"; do
-    if [[ " ${built_in_names[*]} " != *" $name "* ]]; then
-      custom_names+=( "$name" )
-    fi
-  done
+  (( ${#names[@]} > 0 )) || die "No templates are available. Create one with '$progname template new <name>' first."
 
   print -- 'Available Templates'
   print -- ''
-  print_template_section 'Built-In Templates' "${built_in_names[@]}"
-  print_template_section 'Imported Templates' "${custom_names[@]}"
+  print_template_section 'Saved Templates' "${names[@]}"
   exit 0
 }
 
@@ -2146,12 +2181,13 @@ typeset template_dir="${LIPSUM_TEMPLATE_DIR:-$HOME/.lipsum/templates}"
 typeset legacy_dictionary_path="$HOME/.lipsum/words"
 typeset dictionary_override="${LIPSUM_DICT:-}"
 typeset bundled_source_dir="$script_dir/share/sources"
-typeset bundled_template_dir="$script_dir/share/templates"
 typeset bundled_dictionary_path="$script_dir/share/lorem.words"
 typeset dictionary_path=''
 typeset selected_source=''
 typeset resolved_source=''
 typeset selected_template=''
+typeset template_subcommand=''
+typeset template_from_path=''
 typeset custom_source_text=''
 typeset custom_source_file=''
 typeset save_source_name=''
@@ -2302,6 +2338,14 @@ while (( $# > 0 )); do
     --save-source=*)
       save_source_name="$(normalize_source_name "${1#*=}")"
       ;;
+    --from)
+      [[ -n $2 ]] || die 'Missing template seed path for --from'
+      template_from_path="$2"
+      shift
+      ;;
+    --from=*)
+      template_from_path="${1#*=}"
+      ;;
     --format)
       [[ -n $2 ]] || die "Missing format for --format"
       valid_output_format "$2" || die "Invalid output format: $2"
@@ -2431,7 +2475,16 @@ while (( $# > 0 )); do
       done
       ;;
 	    *)
-      if [[ $content_command == 'template' && -z $selected_template ]]; then
+      if [[ $content_command == 'template' && -z $template_subcommand && -z $selected_template ]]; then
+        case "$1" in
+          new|edit)
+            template_subcommand="$1"
+            ;;
+          *)
+            selected_template="$(normalize_source_name "$1")"
+            ;;
+        esac
+      elif [[ $content_command == 'template' && -n $template_subcommand && -z $selected_template ]]; then
         selected_template="$(normalize_source_name "$1")"
       elif is_action_name "$1"; then
 	        if (( action_set )); then
@@ -2459,6 +2512,27 @@ while (( $# > 0 )); do
 
   shift
 done
+
+if [[ -n $template_subcommand ]]; then
+  if (( action_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' || -n $output_format ]]; then
+    die "The template action '$template_subcommand' cannot be combined with generation options or counts"
+  fi
+
+  [[ -n $selected_template ]] || die "A template name is required after 'template $template_subcommand'"
+
+  case "$template_subcommand" in
+    new)
+      create_template "$selected_template"
+      ;;
+    edit)
+      edit_template "$selected_template"
+      ;;
+  esac
+fi
+
+if [[ -n $template_from_path && -z $template_subcommand ]]; then
+  die '--from can only be used with template new or template edit'
+fi
 
 if (( action_set )); then
   if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' || -n $output_format || -n $selected_template ]]; then

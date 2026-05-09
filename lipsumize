@@ -185,6 +185,15 @@ while (( $# > 0 )); do
     -h|-H|--help)
       print_usage
       ;;
+    -)
+      if [[ -z $source_name ]]; then
+        die 'A source name is required before -'
+      elif [[ -z $input_spec ]]; then
+        input_spec='-'
+      else
+        die "Unknown argument: $1"
+      fi
+      ;;
     --*)
       die "Illegal option $1"
       ;;

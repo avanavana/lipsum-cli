@@ -9,10 +9,8 @@ typeset local_lipsum="$script_dir/lipsum"
 typeset local_lipsumize="$script_dir/lipsumize"
 typeset local_words="$script_dir/share/lorem.words"
 typeset local_sources_dir="$script_dir/share/sources"
-typeset local_templates_dir="$script_dir/share/templates"
 typeset raw_base_url="${LIPSUM_INSTALL_RAW_BASE:-https://raw.githubusercontent.com/avanavana/lipsum-cli/main}"
 typeset -a bundled_source_names=( hipster tech pirate food corporate es fr de )
-typeset -a bundled_template_names=( conventional-commit email-subject notification apa-citation status-update )
 
 typeset install_mode=''
 typeset bin_dir="${LIPSUM_INSTALL_BIN_DIR:-/usr/local/bin}"
@@ -27,7 +25,6 @@ typeset source_script=''
 typeset source_lipsumize=''
 typeset bundled_words=''
 typeset bundled_sources_dir=''
-typeset bundled_templates_dir=''
 typeset staged_dir=''
 typeset editor_cmd="${VISUAL:-${EDITOR:-vi}}"
 typeset -i tty_fd=-1
@@ -125,12 +122,11 @@ download_file () {
 }
 
 prepare_payloads () {
-  if [[ -r $local_lipsum && -r $local_lipsumize && -r $local_words && -d $local_sources_dir && -d $local_templates_dir ]]; then
+  if [[ -r $local_lipsum && -r $local_lipsumize && -r $local_words && -d $local_sources_dir ]]; then
     source_script="$local_lipsum"
     source_lipsumize="$local_lipsumize"
     bundled_words="$local_words"
     bundled_sources_dir="$local_sources_dir"
-    bundled_templates_dir="$local_templates_dir"
     return
   fi
 
@@ -139,20 +135,14 @@ prepare_payloads () {
   source_lipsumize="$staged_dir/lipsumize"
   bundled_words="$staged_dir/lorem.words"
   bundled_sources_dir="$staged_dir/sources"
-  bundled_templates_dir="$staged_dir/templates"
 
   download_file "$raw_base_url/lipsum" "$source_script"
   download_file "$raw_base_url/lipsumize" "$source_lipsumize"
   download_file "$raw_base_url/share/lorem.words" "$bundled_words"
   mkdir -p "$bundled_sources_dir" || die "Could not create staged source directory"
-  mkdir -p "$bundled_templates_dir" || die "Could not create staged template directory"
   local source_name=''
   for source_name in "${bundled_source_names[@]}"; do
     download_file "$raw_base_url/share/sources/$source_name.words" "$bundled_sources_dir/$source_name.words"
-  done
-  local template_name=''
-  for template_name in "${bundled_template_names[@]}"; do
-    download_file "$raw_base_url/share/templates/$template_name.tpl" "$bundled_templates_dir/$template_name.tpl"
   done
   chmod 755 "$source_script" || die "Could not mark staged lipsum executable"
   chmod 755 "$source_lipsumize" || die "Could not mark staged lipsumize executable"
@@ -587,12 +577,6 @@ install_corpus_files () {
     fi
   done
 
-  local template_name=''
-  for template_name in "${bundled_template_names[@]}"; do
-    if [[ ! -e $templates_dir/$template_name.tpl ]]; then
-      cp "$bundled_templates_dir/$template_name.tpl" "$templates_dir/$template_name.tpl" || die "Could not install bundled template: $template_name"
-    fi
-  done
 }
 
 backup_existing_config () {
