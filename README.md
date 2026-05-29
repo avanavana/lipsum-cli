@@ -203,8 +203,9 @@ Notes:
   - `period` preserves the old behavior of sentence-ending periods.
   - `end` allows `.`, `!`, and `?` as ending punctuation.
   - `all` also sprinkles punctuation such as commas, parentheses, hyphens, and em dashes among words.
-- `-e`, `-E`, `--emoji`
+- `-e`, `-E`, `--emoji [0.0-1.0]`
   - Mix emoji into generated output.
+  - The optional value controls emoji density, with `0.5` as the default.
   - Emoji are sparse and biased toward the ends of the generated text.
   - For `words`, emoji count toward the requested word total.
   - For `characters`, output length becomes approximate when emoji are enabled.
@@ -293,7 +294,7 @@ $ lipsum --source hipster 8 words
 $ lipsum --source tech 2 paragraphs
 $ lipsum --source corporate 5 lines
 $ lipsum -s es 2 paragraphs
-$ lipsum 140 characters -e -p none
+$ lipsum 140 characters --emoji 1.0 -p none
 $ lipsum 18 words -e -s tech
 $ lipsum 12 words -p all
 ```
@@ -597,6 +598,7 @@ default_format='plain'
 punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
+emoji_probability=0.5
 emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 
 default_source='lorem'
@@ -609,6 +611,7 @@ Notes:
 - `default_format='plain'` keeps the existing CLI behavior, while `html`, `markdown`, `json`, and `ndjson` change the renderer used when you do not pass `--format`.
 - `copy_on_generate=1` makes clipboard copying the default.
 - `emoji_enabled=1` makes emoji mixing the default.
+- `emoji_probability=0.5` controls the default emoji density whenever emoji are enabled.
 - `emoji_charset` is a space-separated weighted pool, so repeating an emoji makes it more likely to appear.
 - The bundled default is heavily weighted toward the common subset, so those emoji account for a bit over three-quarters of default picks.
 - If you edit the config externally and introduce an error, that error appears the next time you run `lipsum`.
@@ -638,7 +641,8 @@ Notes:
 - `LIPSUM_MAX_CHARACTERS` can be larger than the source corpus length because character mode repeats the source text internally until it has enough material to sample from cleanly.
 - Range filtering for `words` and range sizing for `lines`, `sentences`, and `paragraphs` are intentionally different behaviors.
 - Templates are stored as `.tpl` files under `~/.lipsum/templates/`. Repo examples live under `examples/templates/` and can be used with `lipsum template new ... --from ...`.
-- Template placeholders currently support `{{words(...)}}`, `{{sentence(...)}}`, `{{number(...)}}`, `{{choice(...)}}`, and `{{emoji(...)}}`.
+- Template placeholders currently support `{{words(...)}}`, `{{sentence(...)}}`, `{{number(...)}}`, `{{choice(...)}}`, `{{concat(...)}}`, `{{opt(...)}}`, and `{{emoji(...)}}`.
+- Templates can declare reusable variables on their own lines with `$name = expression`, then reference them inside placeholders with `{{$name}}` or pass them into other expressions such as `{{opt($scope, 0.4)}}`.
 - Range is ignored for `characters`.
 - Emoji are sparse by design and biased toward the ends of words, lines, sentences, and paragraphs.
 

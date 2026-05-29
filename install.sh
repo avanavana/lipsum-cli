@@ -46,6 +46,7 @@ typeset default_format='plain'
 typeset punctuation_mode='period'
 typeset copy_on_generate=0
 typeset emoji_enabled=0
+typeset emoji_probability=0.5
 typeset emoji_charset="$default_emoji_charset"
 typeset default_source='lorem'
 
@@ -183,6 +184,7 @@ default_format='$default_format'
 punctuation_mode='$punctuation_mode'
 copy_on_generate=$copy_on_generate
 emoji_enabled=$emoji_enabled
+emoji_probability=$emoji_probability
 emoji_charset='$emoji_charset'
 
 # Reserved for future source selection support.

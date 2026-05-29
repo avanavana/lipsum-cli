@@ -51,7 +51,8 @@ Options:
   ${bold}-p, -P, --punctuation${reset} [ mode ]
                                Set punctuation handling: ${bold}period${reset}, ${bold}end${reset}, ${bold}all${reset}, ${bold}none${reset}
                                Bare ${bold}-p${reset} defaults to ${bold}all${reset}
-  ${bold}-e, -E, --emoji${reset}              Mix emoji into generated output.
+  ${bold}-e, -E, --emoji${reset} [ 0.0-1.0 ]  Mix emoji into generated output.
+                               Default emoji density is ${bold}0.5${reset}
   ${bold}-r, -R, --range${reset} ${bold}n|min-max${reset}
                                ${bold}words${reset}: word length filter in characters
                                       (defaults to config range when omitted)
@@ -91,7 +92,7 @@ Examples:
   ${bold}$progname${reset} --text 'alpha beta gamma delta' 3 words
   ${bold}$progname${reset} --file ./notes.txt 2 paragraphs
   ${bold}curl -fsSL https://example.com | $progname${reset} --text - --save-source example-site 5 lines
-  ${bold}$progname${reset} 140 characters -e -p none
+  ${bold}$progname${reset} 140 characters --emoji 1.0 -p none
   ${bold}$progname${reset} 18 words -e -s tech
   ${bold}$progname${reset} 12 words -p all
   ${bold}$progname${reset} 4 lines -f html
@@ -110,8 +111,6 @@ typeset __version='0.9.0'
 
 die () {
   print -u2 -- "Error: $1"
-  print -u2 -- ''
-  print -u2 -r -- "$__usage"
   exit 1
 }
 
@@ -154,6 +153,22 @@ parse_positive_spec () {
   typeset -g "$min_ref=$min_value"
   typeset -g "$max_ref=$max_value"
   return 0
+}
+
+valid_emoji_probability () {
+  local value="$1"
+  [[ $value =~ '^(0(\.[0-9]+)?|1(\.0+)?)$' ]]
+}
+
+read_optional_emoji_probability () {
+  local next_arg="$1"
+
+  if [[ -n $next_arg ]] && valid_emoji_probability "$next_arg"; then
+    emoji_probability_override="$next_arg"
+    return 0
+  fi
+
+  return 1
 }
 
 ensure_positive_integer () {
@@ -595,6 +610,7 @@ default_format='plain'
 punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
+emoji_probability=0.5
 emoji_charset='$default_emoji_charset'
 
 default_source='lorem'
@@ -750,7 +766,7 @@ create_template () {
 
   write_template_seed "$template_path" "$name"
   launch_editor_for_file "$template_path"
-  print -- "Template ready: $name"
+  print -- "Saved template as ${bold}$name${reset}."
   exit 0
 }
 
@@ -768,7 +784,7 @@ edit_template () {
   fi
 
   launch_editor_for_file "$template_path"
-  print -- "Template ready: $name"
+  print -- "Saved template as ${bold}$name${reset}."
   exit 0
 }
 
@@ -1529,6 +1545,250 @@ template_choice () {
   REPLY="$(trim_spaces "${choices[REPLY]}")"
 }
 
+typeset -a template_expression_args=()
+typeset -A template_variable_expressions=()
+typeset -A template_variable_cache=()
+typeset -a template_variable_stack=()
+
+reset_template_variable_cache () {
+  template_variable_cache=()
+  template_variable_stack=()
+}
+
+parse_template_variable_declarations () {
+  local text="$1"
+  local line=''
+  local body=''
+  local name=''
+  local expression=''
+
+  template_variable_expressions=()
+  reset_template_variable_cache
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    if [[ $line =~ '^[[:space:]]*\$([A-Za-z][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$' ]]; then
+      name="${match[1]}"
+      expression="$(trim_spaces "${match[2]}")"
+      [[ -n $expression ]] || die "Template variable \$$name cannot be empty"
+      template_variable_expressions[$name]="$expression"
+      continue
+    fi
+
+    if [[ -n $body ]]; then
+      body+=$'\n'
+    fi
+
+    body+="$line"
+  done <<< "$text"
+
+  [[ -n $body ]] || die "Template is empty: $selected_template"
+  REPLY="$body"
+}
+
+split_template_expression_args () {
+  local text="$1"
+  local current=''
+  local char=''
+  local quote=''
+  local previous=''
+  local -i depth=0
+  local -i index=1
+
+  template_expression_args=()
+  text="$(trim_spaces "$text")"
+
+  [[ -n $text ]] || return 0
+
+  while (( index <= ${#text} )); do
+    char="$text[index]"
+    previous=''
+    if (( index > 1 )); then
+      previous="$text[$(( index - 1 ))]"
+    fi
+
+    if [[ -n $quote ]]; then
+      current+="$char"
+
+      if [[ $char == "$quote" && $previous != '\' ]]; then
+        quote=''
+      fi
+
+      (( index++ ))
+      continue
+    fi
+
+    case "$char" in
+      "'"|'"')
+        quote="$char"
+        current+="$char"
+        ;;
+      '(')
+        (( depth++ ))
+        current+="$char"
+        ;;
+      ')')
+        (( depth > 0 )) || die "Unbalanced parentheses in template expression: $text"
+        (( depth-- ))
+        current+="$char"
+        ;;
+      ',')
+        if (( depth == 0 )); then
+          template_expression_args+=( "$(trim_spaces "$current")" )
+          current=''
+        else
+          current+="$char"
+        fi
+        ;;
+      *)
+        current+="$char"
+        ;;
+    esac
+
+    (( index++ ))
+  done
+
+  [[ -z $quote ]] || die "Unclosed quote in template expression: $text"
+  (( depth == 0 )) || die "Unbalanced parentheses in template expression: $text"
+  template_expression_args+=( "$(trim_spaces "$current")" )
+}
+
+template_unquote_literal () {
+  local value="$1"
+  local quote="${value[1]}"
+
+  value="${value[2,-2]}"
+  value="${value//\\\\/\\}"
+
+  if [[ $quote == "'" ]]; then
+    value="${value//\\\'/\'}"
+  else
+    value="${value//\\\"/\"}"
+  fi
+
+  REPLY="$value"
+}
+
+resolve_template_variable () {
+  local name="$1"
+  local expression=''
+  local stack_name=''
+  local resolved_value=''
+  local -i stack_index=0
+
+  if [[ -n ${template_variable_cache[$name]+x} ]]; then
+    REPLY="${template_variable_cache[$name]}"
+    return
+  fi
+
+  if [[ -z ${template_variable_expressions[$name]+x} ]]; then
+    die "Unknown template variable: \$$name"
+  fi
+
+  for stack_name in "${template_variable_stack[@]}"; do
+    if [[ $stack_name == $name ]]; then
+      die "Circular template variable reference: \$$name"
+    fi
+  done
+
+  template_variable_stack+=( "$name" )
+  expression="${template_variable_expressions[$name]}"
+  render_template_value "$expression"
+  resolved_value="$REPLY"
+  template_variable_cache[$name]="$resolved_value"
+  stack_index=${#template_variable_stack[@]}
+  unset "template_variable_stack[$stack_index]"
+  REPLY="$resolved_value"
+}
+
+render_template_value () {
+  local value="$1"
+
+  value="$(trim_spaces "$value")"
+
+  if [[ -z $value ]]; then
+    REPLY=''
+    return
+  fi
+
+  if [[ ${#value} -ge 2 ]]; then
+    if [[ $value[1] == "'" && $value[-1] == "'" ]] || [[ $value[1] == '"' && $value[-1] == '"' ]]; then
+      template_unquote_literal "$value"
+      return
+    fi
+  fi
+
+  if [[ $value =~ '^\$([A-Za-z][A-Za-z0-9_]*)$' ]]; then
+    resolve_template_variable "${match[1]}"
+    return
+  fi
+
+  if [[ $value =~ '^([A-Za-z][A-Za-z0-9_-]*)(\((.*)\))?$' ]]; then
+    render_template_expression "$value"
+    return
+  fi
+
+  die "Invalid template value: $value"
+}
+
+template_concat () {
+  local spec="$1"
+  local result=''
+  local arg=''
+
+  split_template_expression_args "$spec"
+  (( ${#template_expression_args[@]} > 0 )) || die 'concat() in templates requires at least one value'
+
+  for arg in "${template_expression_args[@]}"; do
+    render_template_value "$arg"
+    result+="$REPLY"
+  done
+
+  REPLY="$result"
+}
+
+template_opt () {
+  local spec="$1"
+  local value=''
+  local probability='0.5'
+  local -F probability_float=0.0
+  local -F roll=0.0
+
+  split_template_expression_args "$spec"
+
+  if (( ${#template_expression_args[@]} < 1 || ${#template_expression_args[@]} > 2 )); then
+    die 'opt() in templates requires a value and an optional probability'
+  fi
+
+  render_template_value "${template_expression_args[1]}"
+  value="$REPLY"
+
+  if (( ${#template_expression_args[@]} == 2 )); then
+    probability="${template_expression_args[2]}"
+    probability="$(trim_spaces "$probability")"
+    valid_emoji_probability "$probability" || die "Invalid probability in template: $probability"
+  fi
+
+  probability_float="$probability"
+
+  if (( probability_float <= 0.0 )); then
+    REPLY=''
+    return
+  fi
+
+  if (( probability_float >= 1.0 )); then
+    REPLY="$value"
+    return
+  fi
+
+  roll=$(( RANDOM / 32768.0 ))
+
+  if (( roll < probability_float )); then
+    REPLY="$value"
+  else
+    REPLY=''
+  fi
+}
+
 template_emoji () {
   local spec="$1"
   local -i spec_min=0
@@ -1580,6 +1840,12 @@ render_template_expression () {
     choice|pick)
       template_choice "$args"
       ;;
+    concat|join)
+      template_concat "$args"
+      ;;
+    opt|optional)
+      template_opt "$args"
+      ;;
     emoji)
       template_emoji "$args"
       ;;
@@ -1606,7 +1872,7 @@ render_template_text () {
     fi
 
     expression="${suffix%%\}\}*}"
-    render_template_expression "$expression"
+    render_template_value "$expression"
     output+="$REPLY"
     text="${suffix#*\}\}}"
   done
@@ -1746,6 +2012,7 @@ validate_config () {
   valid_punctuation_mode "$punctuation_mode" || die "Invalid punctuation_mode in config: $punctuation_mode"
   [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
   [[ $emoji_enabled == 0 || $emoji_enabled == 1 ]] || die "emoji_enabled must be 0 or 1"
+  valid_emoji_probability "$emoji_probability" || die "Invalid emoji_probability in config: $emoji_probability"
   load_emoji_pool "$emoji_enabled"
 
   if (( ! source_set && ! custom_source_set )); then
@@ -2130,23 +2397,28 @@ random_emoji () {
 emoji_count_for_length () {
   local -i text_length=$1
   local -i token_count=$2
+  local -i base_count=0
+  local -F scaled_count=0
+  local scaled_count_text=''
   local -i emoji_count=0
-  local -i remainder=0
 
-  if (( ! emoji_active || token_count <= 0 || ${#emoji_pool[@]} == 0 || text_length <= 0 )); then
+  if (( ! emoji_active || token_count <= 0 || ${#emoji_pool[@]} == 0 || text_length <= 0 )) || (( emoji_probability_active <= 0 )); then
     REPLY=0
     return
   fi
 
-  emoji_count=$(( text_length / 140 ))
-  remainder=$(( text_length % 140 ))
+  base_count=$(( (text_length + 139) / 140 ))
 
-  if (( remainder > 0 )) && (( RANDOM % 140 < remainder )); then
-    (( emoji_count++ ))
+  if (( base_count == 0 && text_length >= 30 )); then
+    base_count=1
   fi
 
-  if (( emoji_count == 0 && text_length >= 30 )) && (( RANDOM % 200 < text_length )); then
-    emoji_count=1
+  scaled_count=$(( base_count * emoji_probability_active ))
+  scaled_count_text="$scaled_count"
+  emoji_count="${scaled_count_text%%.*}"
+
+  if (( scaled_count > emoji_count )); then
+    (( emoji_count++ ))
   fi
 
   if (( emoji_count > token_count )); then
@@ -2454,8 +2726,11 @@ build_template () {
   template_exists "$selected_template" || die "Template not found: $selected_template"
   load_template_body "$selected_template"
   body="$REPLY"
+  parse_template_variable_declarations "$body"
+  body="$REPLY"
 
   while (( index <= count )); do
+    reset_template_variable_cache
     render_template_text "$body"
     items+=( "$REPLY" )
     (( index++ ))
@@ -2491,6 +2766,7 @@ typeset default_format='plain'
 typeset punctuation_mode='period'
 typeset -i copy_on_generate=0
 typeset -i emoji_enabled=0
+typeset -F 3 emoji_probability=0.5
 typeset emoji_charset="$default_emoji_charset"
 typeset default_source='lorem'
 
@@ -2549,6 +2825,8 @@ typeset -i copy_override=-1
 typeset -i copy_enabled=0
 typeset -i emoji_override=-1
 typeset -i emoji_active=0
+typeset emoji_probability_override=''
+typeset -F 3 emoji_probability_active=0.5
 typeset ordered_prefix=''
 typeset ordered_suffix=''
 typeset ordered_kind=''
@@ -2699,6 +2977,12 @@ while (( $# > 0 )); do
       ;;
     --emoji)
       emoji_override=1
+      read_optional_emoji_probability "$2" && shift
+      ;;
+    --emoji=*)
+      valid_emoji_probability "${1#*=}" || die "Invalid emoji probability: ${1#*=}"
+      emoji_override=1
+      emoji_probability_override="${1#*=}"
       ;;
     --no-emoji)
       emoji_override=0
@@ -2777,6 +3061,9 @@ while (( $# > 0 )); do
             ;;
           e|E)
             emoji_override=1
+            if (( index == ${#cluster} )) && read_optional_emoji_probability "$2"; then
+              shift
+            fi
             ;;
           f|F)
             if (( index != ${#cluster} )); then
@@ -2993,6 +3280,12 @@ if (( emoji_override >= 0 )); then
   emoji_active=$emoji_override
 else
   emoji_active=$emoji_enabled
+fi
+
+if [[ -n $emoji_probability_override ]]; then
+  emoji_probability_active=$emoji_probability_override
+else
+  emoji_probability_active=$emoji_probability
 fi
 
 if (( emoji_active )); then
