@@ -1,7 +1,7 @@
 {
   "name": "lipsum-cli",
   "private": true,
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "A small zsh CLI for generating randomized placeholder text from local corpora.",
   "packageManager": "pnpm@10.20.0",
   "scripts": {

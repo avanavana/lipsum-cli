@@ -4,7 +4,7 @@ emulate -L zsh
 setopt pipe_fail
 
 typeset progname="$(basename "$0")"
-typeset __version='0.9.0'
+typeset __version='0.10.0'
 typeset source_dir="${LIPSUM_SOURCE_DIR:-$HOME/.lipsum/sources}"
 typeset -a reserved_source_names=( lorem hipster tech pirate food corporate es fr de )
 typeset bold=$'\033[1m'

@@ -107,7 +107,7 @@ Examples:
   ${bold}$progname${reset} sources customdemo --set-default
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
-typeset __version='0.9.0'
+typeset __version='0.10.0'
 
 die () {
   print -u2 -- "Error: $1"
