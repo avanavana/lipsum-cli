@@ -25,23 +25,24 @@ Commands:
   ${bold}l, L, line, lines${reset}
   ${bold}s, S, sent, sents, sentence, sentences${reset}
   ${bold}p, P, para, paras, paragraph, paragraphs${reset}
-  ${bold}template, tpl, tmpl${reset}
+  ${bold}template, tpl, tmpl${reset}      Render a named template, or use ${bold}template new|edit${reset}
 
 Other Actions:
   ${bold}init${reset}                         Create a starter config file at ${bold}$config_path${reset}.
   ${bold}config, settings, prefs, preferences${reset}
                                Open the config file in \$VISUAL, \$EDITOR, or ${bold}vi${reset}.
-  ${bold}sources, list-sources${reset}       List built-in and saved source corpora with samples.
-  ${bold}templates, list-templates${reset}   List built-in and saved templates with samples.
+  ${bold}sources, list-sources${reset}       List lipsum flavors, inspect one flavor, or manage saved flavors.
+  ${bold}templates, list-templates${reset}   List saved templates with samples.
 
 Options:
   ${bold}-l, -L, --lowercase${reset}          Return output entirely in lowercase.
   ${bold}-u, -U, --uppercase${reset}          Return output entirely in uppercase.
   ${bold}-t, -T, --title-case${reset}         Return output in title case.
-  ${bold}-s, -S, --source${reset} ${bold}name${reset}         Choose a named source corpus such as ${bold}lorem${reset} or ${bold}hipster${reset}.
-  ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the source corpus.
-  ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the source corpus for this invocation.
-  ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable named source.
+  ${bold}-s, -S, --source${reset} ${bold}name${reset}         Choose a lipsum flavor such as ${bold}lorem${reset} or ${bold}hipster${reset}.
+  ${bold}--text${reset} ${bold}text|- ${reset}        Use inline text, or stdin via ${bold}--text -${reset}, as the flavor source.
+  ${bold}--file${reset} ${bold}path${reset}             Use a file's contents as the flavor source for this invocation.
+  ${bold}--save-source${reset} ${bold}name${reset}    Save custom text or file input as a reusable lipsum flavor.
+  ${bold}--from${reset} ${bold}path${reset}             Seed a template from an example file with ${bold}template new|edit${reset}.
   ${bold}-f, -F, --format${reset} ${bold}name${reset}         Render as ${bold}plain${reset}, ${bold}html${reset}, ${bold}markdown${reset}, ${bold}json${reset}, or ${bold}ndjson${reset}.
   ${bold}-b, -B, --bullets${reset} [ char ]   Prefix each generated line with ${bold}char${reset} (default: '–').
   ${bold}-o, -O, --ordered-list${reset} [ fmt ]
@@ -50,7 +51,8 @@ Options:
   ${bold}-p, -P, --punctuation${reset} [ mode ]
                                Set punctuation handling: ${bold}period${reset}, ${bold}end${reset}, ${bold}all${reset}, ${bold}none${reset}
                                Bare ${bold}-p${reset} defaults to ${bold}all${reset}
-  ${bold}-e, -E, --emoji${reset}              Mix emoji into generated output.
+  ${bold}-e, -E, --emoji${reset} [ 0.0-1.0 ]  Mix emoji into generated output.
+                               Default emoji density is ${bold}0.5${reset}
   ${bold}-r, -R, --range${reset} ${bold}n|min-max${reset}
                                ${bold}words${reset}: word length filter in characters
                                       (defaults to config range when omitted)
@@ -85,27 +87,30 @@ Examples:
   ${bold}$progname${reset} 4-6 lines -r 6-10 -b
   ${bold}$progname${reset} 4 lines -o
   ${bold}$progname${reset} 4 lines -o '(%A)'
+  ${bold}$progname${reset} sources --names
   ${bold}$progname${reset} --source hipster 8 words
   ${bold}$progname${reset} --text 'alpha beta gamma delta' 3 words
   ${bold}$progname${reset} --file ./notes.txt 2 paragraphs
   ${bold}curl -fsSL https://example.com | $progname${reset} --text - --save-source example-site 5 lines
-  ${bold}$progname${reset} 140 characters -e -p none
+  ${bold}$progname${reset} 140 characters --emoji 1.0 -p none
   ${bold}$progname${reset} 18 words -e -s tech
   ${bold}$progname${reset} 12 words -p all
   ${bold}$progname${reset} 4 lines -f html
   ${bold}$progname${reset} 3 paragraphs -f json
-  ${bold}$progname${reset} template notification 4
-  ${bold}$progname${reset} 3 template conventional-commit -p none
+  ${bold}$progname${reset} template new conventional-commit
+  ${bold}$progname${reset} template new blog-post --from examples/templates/blog-post.tpl
+  ${bold}$progname${reset} 3 template blog-post -p none
   ${bold}$progname${reset} templates
   ${bold}$progname${reset} sources
+  ${bold}$progname${reset} sources corporate
+  ${bold}$progname${reset} sources customdemo --rename renamed-demo
+  ${bold}$progname${reset} sources customdemo --set-default
   ${bold}$progname${reset} 3 sentences -c
   ${bold}$progname${reset} config"
 typeset __version='0.9.0'
 
 die () {
   print -u2 -- "Error: $1"
-  print -u2 -- ''
-  print -u2 -r -- "$__usage"
   exit 1
 }
 
@@ -148,6 +153,22 @@ parse_positive_spec () {
   typeset -g "$min_ref=$min_value"
   typeset -g "$max_ref=$max_value"
   return 0
+}
+
+valid_emoji_probability () {
+  local value="$1"
+  [[ $value =~ '^(0(\.[0-9]+)?|1(\.0+)?)$' ]]
+}
+
+read_optional_emoji_probability () {
+  local next_arg="$1"
+
+  if [[ -n $next_arg ]] && valid_emoji_probability "$next_arg"; then
+    emoji_probability_override="$next_arg"
+    return 0
+  fi
+
+  return 1
 }
 
 ensure_positive_integer () {
@@ -589,6 +610,7 @@ default_format='plain'
 punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
+emoji_probability=0.5
 emoji_charset='$default_emoji_charset'
 
 default_source='lorem'
@@ -616,6 +638,7 @@ init_config () {
 open_config () {
   local editor="${VISUAL:-${EDITOR:-vi}}"
   local quoted_path="${(q)config_path}"
+  local editor_command=''
 
   ensure_config_directory
 
@@ -623,7 +646,13 @@ open_config () {
     default_config_contents >| "$config_path" || die "Could not write config file: $config_path"
   fi
 
-  zsh -fc "setopt nonomatch; $editor $quoted_path" || die "Editor command failed"
+  if [[ -x $editor ]]; then
+    editor_command="${(q)editor} $quoted_path"
+  else
+    editor_command="$editor $quoted_path"
+  fi
+
+  zsh -fc "setopt nonomatch; $editor_command" || die "Editor command failed"
 
   load_config
   validate_config
@@ -631,10 +660,132 @@ open_config () {
   exit 0
 }
 
+upsert_config_string () {
+  local key="$1"
+  local value="$2"
+  local escaped_value="${value//\'/\'\\\'\'}"
+  local temp_path=''
+  local line=''
+  local -i replaced=0
+
+  ensure_config_directory
+
+  if [[ ! -e $config_path ]]; then
+    default_config_contents >| "$config_path" || die "Could not write config file: $config_path"
+  fi
+
+  temp_path="$(mktemp "${TMPDIR:-/tmp}/lipsum-config.XXXXXX")" || die 'Could not create temporary config file'
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    if [[ $line == ${key}=* ]]; then
+      print -r -- "${key}='${escaped_value}'" >> "$temp_path" || die "Could not update config file: $config_path"
+      replaced=1
+    else
+      print -r -- "$line" >> "$temp_path" || die "Could not update config file: $config_path"
+    fi
+  done < "$config_path"
+
+  if (( ! replaced )); then
+    if [[ -s $temp_path ]]; then
+      print -- '' >> "$temp_path" || die "Could not update config file: $config_path"
+    fi
+
+    print -r -- "${key}='${escaped_value}'" >> "$temp_path" || die "Could not update config file: $config_path"
+  fi
+
+  mv "$temp_path" "$config_path" || die "Could not update config file: $config_path"
+}
+
 load_config () {
   if [[ -r $config_path ]]; then
     source "$config_path"
   fi
+}
+
+ensure_template_directory () {
+  mkdir -p "$template_dir" || die "Could not create template directory: $template_dir"
+}
+
+launch_editor_for_file () {
+  local target_path="$1"
+  local editor="${VISUAL:-${EDITOR:-vi}}"
+  local quoted_path="${(q)target_path}"
+  local editor_command=''
+
+  if [[ -x $editor ]]; then
+    editor_command="${(q)editor} $quoted_path"
+  else
+    editor_command="$editor $quoted_path"
+  fi
+
+  zsh -fc "setopt nonomatch; $editor_command" || die "Editor command failed"
+}
+
+template_starter_contents () {
+  local name="$(normalize_source_name "$1")"
+  local title="${(C)${(L)${name//-/ }}}"
+
+  title="${title//_/ }"
+
+  cat <<EOF
+# title: $title
+{{sentence(4-8)}}
+EOF
+}
+
+valid_template_name () {
+  local name="$(normalize_source_name "$1")"
+  [[ -n $name && $name =~ '^[a-z0-9][a-z0-9_-]*$' ]]
+}
+
+write_template_seed () {
+  local target_path="$1"
+  local template_name="$2"
+
+  if [[ -n $template_from_path ]]; then
+    [[ -r $template_from_path ]] || die "Template seed file not found: $template_from_path"
+    cp "$template_from_path" "$target_path" || die "Could not seed template from: $template_from_path"
+    return
+  fi
+
+  template_starter_contents "$template_name" >| "$target_path" || die "Could not write template file: $target_path"
+}
+
+create_template () {
+  local name="$(normalize_source_name "$1")"
+  local template_path=''
+
+  valid_template_name "$name" || die "Invalid template name: $1"
+  ensure_template_directory
+  template_file_path "$name"
+  template_path="$REPLY"
+
+  if [[ -e $template_path ]]; then
+    die "Template already exists: $name"
+  fi
+
+  write_template_seed "$template_path" "$name"
+  launch_editor_for_file "$template_path"
+  print -- "Saved template as ${bold}$name${reset}."
+  exit 0
+}
+
+edit_template () {
+  local name="$(normalize_source_name "$1")"
+  local template_path=''
+
+  valid_template_name "$name" || die "Invalid template name: $1"
+  ensure_template_directory
+  template_file_path "$name"
+  template_path="$REPLY"
+
+  if [[ ! -e $template_path || -n $template_from_path ]]; then
+    write_template_seed "$template_path" "$name"
+  fi
+
+  launch_editor_for_file "$template_path"
+  print -- "Saved template as ${bold}$name${reset}."
+  exit 0
 }
 
 normalize_source_name () {
@@ -693,6 +844,16 @@ source_display_title () {
   esac
 }
 
+source_kind () {
+  local name="$(normalize_source_name "$1")"
+
+  if built_in_source_name "$name"; then
+    REPLY='built-in'
+  else
+    REPLY='imported'
+  fi
+}
+
 source_file_path () {
   local name="$(normalize_source_name "$1")"
   REPLY="$source_dir/$name.words"
@@ -703,42 +864,26 @@ template_file_path () {
   REPLY="$template_dir/$name.tpl"
 }
 
-bundled_template_file_path () {
-  local name="$(normalize_source_name "$1")"
-  REPLY="$bundled_template_dir/$name.tpl"
-}
-
 template_exists () {
   local name="$(normalize_source_name "$1")"
   local template_file=''
-  local bundled_template_file=''
 
   [[ -n $name ]] || return 1
   template_file_path "$name"
   template_file="$REPLY"
-  bundled_template_file_path "$name"
-  bundled_template_file="$REPLY"
 
-  [[ -r $template_file || -r $bundled_template_file ]]
+  [[ -r $template_file ]]
 }
 
 resolve_template_path () {
   local name="$(normalize_source_name "$1")"
   local template_file=''
-  local bundled_template_file=''
 
   template_file_path "$name"
   template_file="$REPLY"
-  bundled_template_file_path "$name"
-  bundled_template_file="$REPLY"
 
   if [[ -r $template_file ]]; then
     REPLY="$template_file"
-    return
-  fi
-
-  if [[ -r $bundled_template_file ]]; then
-    REPLY="$bundled_template_file"
     return
   fi
 
@@ -777,16 +922,6 @@ available_template_names () {
   local base=''
 
   for file in "$template_dir"/*.tpl(N); do
-    base="${file:t:r}"
-    base="$(normalize_source_name "$base")"
-
-    if [[ -z ${seen[$base]} ]]; then
-      names+=( "$base" )
-      seen[$base]=1
-    fi
-  done
-
-  for file in "$bundled_template_dir"/*.tpl(N); do
     base="${file:t:r}"
     base="$(normalize_source_name "$base")"
 
@@ -939,6 +1074,52 @@ resolve_source_dictionary_path () {
   die "Source not found: $name"
 }
 
+resolved_source_path () {
+  local name="$(normalize_source_name "$1")"
+  local source_file=''
+  local bundled_source_file=''
+
+  source_file_path "$name"
+  source_file="$REPLY"
+  bundled_source_file_path "$name"
+  bundled_source_file="$REPLY"
+
+  if [[ $name == 'lorem' ]]; then
+    if [[ -n $dictionary_override ]]; then
+      [[ -r $dictionary_override ]] || die "Dictionary file not found: $dictionary_override"
+      REPLY="$dictionary_override"
+      return
+    fi
+
+    if [[ -r $source_file ]]; then
+      REPLY="$source_file"
+      return
+    fi
+
+    if [[ -r $legacy_dictionary_path ]]; then
+      REPLY="$legacy_dictionary_path"
+      return
+    fi
+
+    if [[ -r $bundled_source_file ]]; then
+      REPLY="$bundled_source_file"
+      return
+    fi
+  else
+    if [[ -r $source_file ]]; then
+      REPLY="$source_file"
+      return
+    fi
+
+    if [[ -r $bundled_source_file ]]; then
+      REPLY="$bundled_source_file"
+      return
+    fi
+  fi
+
+  die "Source not found: $name"
+}
+
 available_source_names () {
   local -a names=()
   local -A seen=()
@@ -1002,11 +1183,51 @@ print_available_sources () {
     fi
   done
 
-  print -- 'Available Sources'
+  print -- 'Available Flavors'
   print -- ''
-  print_source_section 'Built-In Sources' "$default_name" "${built_in_names[@]}"
-  print_source_section 'Imported Sources' "$default_name" "${custom_names[@]}"
-  print -- "Default source: $default_name"
+  print_source_section 'Built-In Flavors' "$default_name" "${built_in_names[@]}"
+  print_source_section 'Saved Flavors' "$default_name" "${custom_names[@]}"
+  print -- "Default flavor: $default_name"
+
+  exit 0
+}
+
+source_short_label () {
+  local source_name="$(normalize_source_name "$1")"
+
+  case "$source_name" in
+    lorem)
+      REPLY='original'
+      ;;
+    *)
+      REPLY="$source_name"
+      ;;
+  esac
+}
+
+print_source_name_list () {
+  local -a names=()
+  local source_name=''
+  local label=''
+
+  available_source_names
+  names=( ${(s: :)REPLY} )
+
+  (( ${#names[@]} > 0 )) || die "No flavors are available. Install bundled flavors into $source_dir first."
+
+  for source_name in lorem hipster tech pirate food corporate es fr de; do
+    if source_exists "$source_name"; then
+      source_short_label "$source_name"
+      label="$REPLY"
+      print -- "- $label"
+    fi
+  done
+
+  for source_name in "${names[@]}"; do
+    if ! built_in_source_name "$source_name"; then
+      print -- "- $source_name"
+    fi
+  done
 
   exit 0
 }
@@ -1026,6 +1247,16 @@ source_sample_paragraph () {
   paragraph_sentence_word_max=11
   build_paragraphs
   emoji_active=$saved_emoji_active
+}
+
+source_word_count () {
+  local source_name="$(normalize_source_name "$1")"
+  local -i saved_emoji_active=$emoji_active
+
+  resolve_source_dictionary_path "$source_name"
+  load_dictionary
+  emoji_active=$saved_emoji_active
+  REPLY="${#dict_words[@]}"
 }
 
 print_source_section () {
@@ -1063,6 +1294,163 @@ print_source_section () {
     print -- "  $sample"
     print -- ''
   done
+}
+
+print_source_details () {
+  local source_name="$(normalize_source_name "$1")"
+  local title=''
+  local source_type=''
+  local path=''
+  local sample=''
+  local word_count=''
+  local default_name="$(normalize_source_name "$default_source")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  source_display_title "$source_name"
+  title="$REPLY"
+  source_kind "$source_name"
+  source_type="$REPLY"
+  resolved_source_path "$source_name"
+  path="$REPLY"
+  source_word_count "$source_name"
+  word_count="$REPLY"
+  source_sample_paragraph "$source_name"
+  sample="$REPLY"
+
+  print -- 'Flavor Details'
+  print -- ''
+  print -- "Title: $title"
+  print -- "Slug: $source_name"
+  print -- "Type: $source_type"
+  print -- "Path: $path"
+  print -- "Default: $([[ $source_name == $default_name ]] && print yes || print no)"
+  print -- "Word count: $word_count"
+  print -- ''
+  print -- 'Sample:'
+  print -- "$sample"
+  exit 0
+}
+
+set_default_source () {
+  local source_name="$(normalize_source_name "$1")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  upsert_config_string 'default_source' "$source_name"
+  print -- "Default flavor set to $source_name"
+  exit 0
+}
+
+rename_source () {
+  local source_name="$(normalize_source_name "$1")"
+  local new_name="$(normalize_source_name "$2")"
+  local source_path=''
+  local target_path=''
+  local default_name="$(normalize_source_name "$default_source")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  built_in_source_name "$source_name" && die "Built-in sources cannot be renamed: $source_name"
+  valid_source_name "$new_name" || die "Invalid source name: $new_name"
+  [[ $source_name != $new_name ]] || die "Source is already named $source_name"
+
+  if source_exists "$new_name"; then
+    die "A source named $new_name already exists"
+  fi
+
+  source_file_path "$source_name"
+  source_path="$REPLY"
+  [[ -f $source_path ]] || die "Imported source file not found: $source_path"
+
+  source_file_path "$new_name"
+  target_path="$REPLY"
+  mv "$source_path" "$target_path" || die "Could not rename source: $source_name"
+
+  if [[ $default_name == $source_name ]]; then
+    upsert_config_string 'default_source' "$new_name"
+  fi
+
+  print -- "Renamed flavor $source_name to $new_name"
+  exit 0
+}
+
+delete_source () {
+  local source_name="$(normalize_source_name "$1")"
+  local source_path=''
+  local reply=''
+  local default_name="$(normalize_source_name "$default_source")"
+
+  source_exists "$source_name" || die "Source not found: $source_name"
+  built_in_source_name "$source_name" && die "Built-in sources cannot be deleted: $source_name"
+
+  source_file_path "$source_name"
+  source_path="$REPLY"
+  [[ -f $source_path ]] || die "Imported source file not found: $source_path"
+
+  print -n -- "Delete flavor '$source_name'? [y/N] "
+  IFS= read -r reply
+
+  case "${(L)reply}" in
+    y|yes)
+      rm -f "$source_path" || die "Could not delete source: $source_name"
+      if [[ $default_name == $source_name ]]; then
+        upsert_config_string 'default_source' 'lorem'
+      fi
+      print -- "Deleted flavor $source_name"
+      ;;
+    *)
+      print -- 'Cancelled.'
+      ;;
+  esac
+
+  exit 0
+}
+
+handle_sources_action () {
+  local management_count=0
+
+  if (( source_action_names )); then
+    (( management_count++ ))
+  fi
+
+  if [[ -n $source_action_rename_to ]]; then
+    (( management_count++ ))
+  fi
+
+  (( source_action_delete )) && (( management_count++ ))
+  (( source_action_set_default )) && (( management_count++ ))
+
+  if (( management_count > 1 )); then
+    die 'Use only one flavor-management action at a time'
+  fi
+
+  if (( management_count > 0 )) && [[ -z $managed_source_name ]]; then
+    if (( source_action_names )); then
+      print_source_name_list
+    fi
+
+    die 'Flavor-management actions require a flavor name after the sources action'
+  fi
+
+  if (( source_action_names )) && [[ -n $managed_source_name ]]; then
+    die '--names cannot be combined with a specific flavor name'
+  fi
+
+  if [[ -z $managed_source_name ]]; then
+    print_available_sources
+  fi
+
+  if [[ -n $source_action_rename_to ]]; then
+    rename_source "$managed_source_name" "$source_action_rename_to"
+  fi
+
+  if (( source_action_delete )); then
+    delete_source "$managed_source_name"
+  fi
+
+  if (( source_action_set_default )); then
+    set_default_source "$managed_source_name"
+  fi
+
+  print_source_details "$managed_source_name"
 }
 
 load_template_body () {
@@ -1157,6 +1545,250 @@ template_choice () {
   REPLY="$(trim_spaces "${choices[REPLY]}")"
 }
 
+typeset -a template_expression_args=()
+typeset -A template_variable_expressions=()
+typeset -A template_variable_cache=()
+typeset -a template_variable_stack=()
+
+reset_template_variable_cache () {
+  template_variable_cache=()
+  template_variable_stack=()
+}
+
+parse_template_variable_declarations () {
+  local text="$1"
+  local line=''
+  local body=''
+  local name=''
+  local expression=''
+
+  template_variable_expressions=()
+  reset_template_variable_cache
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    if [[ $line =~ '^[[:space:]]*\$([A-Za-z][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$' ]]; then
+      name="${match[1]}"
+      expression="$(trim_spaces "${match[2]}")"
+      [[ -n $expression ]] || die "Template variable \$$name cannot be empty"
+      template_variable_expressions[$name]="$expression"
+      continue
+    fi
+
+    if [[ -n $body ]]; then
+      body+=$'\n'
+    fi
+
+    body+="$line"
+  done <<< "$text"
+
+  [[ -n $body ]] || die "Template is empty: $selected_template"
+  REPLY="$body"
+}
+
+split_template_expression_args () {
+  local text="$1"
+  local current=''
+  local char=''
+  local quote=''
+  local previous=''
+  local -i depth=0
+  local -i index=1
+
+  template_expression_args=()
+  text="$(trim_spaces "$text")"
+
+  [[ -n $text ]] || return 0
+
+  while (( index <= ${#text} )); do
+    char="$text[index]"
+    previous=''
+    if (( index > 1 )); then
+      previous="$text[$(( index - 1 ))]"
+    fi
+
+    if [[ -n $quote ]]; then
+      current+="$char"
+
+      if [[ $char == "$quote" && $previous != '\' ]]; then
+        quote=''
+      fi
+
+      (( index++ ))
+      continue
+    fi
+
+    case "$char" in
+      "'"|'"')
+        quote="$char"
+        current+="$char"
+        ;;
+      '(')
+        (( depth++ ))
+        current+="$char"
+        ;;
+      ')')
+        (( depth > 0 )) || die "Unbalanced parentheses in template expression: $text"
+        (( depth-- ))
+        current+="$char"
+        ;;
+      ',')
+        if (( depth == 0 )); then
+          template_expression_args+=( "$(trim_spaces "$current")" )
+          current=''
+        else
+          current+="$char"
+        fi
+        ;;
+      *)
+        current+="$char"
+        ;;
+    esac
+
+    (( index++ ))
+  done
+
+  [[ -z $quote ]] || die "Unclosed quote in template expression: $text"
+  (( depth == 0 )) || die "Unbalanced parentheses in template expression: $text"
+  template_expression_args+=( "$(trim_spaces "$current")" )
+}
+
+template_unquote_literal () {
+  local value="$1"
+  local quote="${value[1]}"
+
+  value="${value[2,-2]}"
+  value="${value//\\\\/\\}"
+
+  if [[ $quote == "'" ]]; then
+    value="${value//\\\'/\'}"
+  else
+    value="${value//\\\"/\"}"
+  fi
+
+  REPLY="$value"
+}
+
+resolve_template_variable () {
+  local name="$1"
+  local expression=''
+  local stack_name=''
+  local resolved_value=''
+  local -i stack_index=0
+
+  if [[ -n ${template_variable_cache[$name]+x} ]]; then
+    REPLY="${template_variable_cache[$name]}"
+    return
+  fi
+
+  if [[ -z ${template_variable_expressions[$name]+x} ]]; then
+    die "Unknown template variable: \$$name"
+  fi
+
+  for stack_name in "${template_variable_stack[@]}"; do
+    if [[ $stack_name == $name ]]; then
+      die "Circular template variable reference: \$$name"
+    fi
+  done
+
+  template_variable_stack+=( "$name" )
+  expression="${template_variable_expressions[$name]}"
+  render_template_value "$expression"
+  resolved_value="$REPLY"
+  template_variable_cache[$name]="$resolved_value"
+  stack_index=${#template_variable_stack[@]}
+  unset "template_variable_stack[$stack_index]"
+  REPLY="$resolved_value"
+}
+
+render_template_value () {
+  local value="$1"
+
+  value="$(trim_spaces "$value")"
+
+  if [[ -z $value ]]; then
+    REPLY=''
+    return
+  fi
+
+  if [[ ${#value} -ge 2 ]]; then
+    if [[ $value[1] == "'" && $value[-1] == "'" ]] || [[ $value[1] == '"' && $value[-1] == '"' ]]; then
+      template_unquote_literal "$value"
+      return
+    fi
+  fi
+
+  if [[ $value =~ '^\$([A-Za-z][A-Za-z0-9_]*)$' ]]; then
+    resolve_template_variable "${match[1]}"
+    return
+  fi
+
+  if [[ $value =~ '^([A-Za-z][A-Za-z0-9_-]*)(\((.*)\))?$' ]]; then
+    render_template_expression "$value"
+    return
+  fi
+
+  die "Invalid template value: $value"
+}
+
+template_concat () {
+  local spec="$1"
+  local result=''
+  local arg=''
+
+  split_template_expression_args "$spec"
+  (( ${#template_expression_args[@]} > 0 )) || die 'concat() in templates requires at least one value'
+
+  for arg in "${template_expression_args[@]}"; do
+    render_template_value "$arg"
+    result+="$REPLY"
+  done
+
+  REPLY="$result"
+}
+
+template_opt () {
+  local spec="$1"
+  local value=''
+  local probability='0.5'
+  local -F probability_float=0.0
+  local -F roll=0.0
+
+  split_template_expression_args "$spec"
+
+  if (( ${#template_expression_args[@]} < 1 || ${#template_expression_args[@]} > 2 )); then
+    die 'opt() in templates requires a value and an optional probability'
+  fi
+
+  render_template_value "${template_expression_args[1]}"
+  value="$REPLY"
+
+  if (( ${#template_expression_args[@]} == 2 )); then
+    probability="${template_expression_args[2]}"
+    probability="$(trim_spaces "$probability")"
+    valid_emoji_probability "$probability" || die "Invalid probability in template: $probability"
+  fi
+
+  probability_float="$probability"
+
+  if (( probability_float <= 0.0 )); then
+    REPLY=''
+    return
+  fi
+
+  if (( probability_float >= 1.0 )); then
+    REPLY="$value"
+    return
+  fi
+
+  roll=$(( RANDOM / 32768.0 ))
+
+  if (( roll < probability_float )); then
+    REPLY="$value"
+  else
+    REPLY=''
+  fi
+}
+
 template_emoji () {
   local spec="$1"
   local -i spec_min=0
@@ -1208,6 +1840,12 @@ render_template_expression () {
     choice|pick)
       template_choice "$args"
       ;;
+    concat|join)
+      template_concat "$args"
+      ;;
+    opt|optional)
+      template_opt "$args"
+      ;;
     emoji)
       template_emoji "$args"
       ;;
@@ -1234,7 +1872,7 @@ render_template_text () {
     fi
 
     expression="${suffix%%\}\}*}"
-    render_template_expression "$expression"
+    render_template_value "$expression"
     output+="$REPLY"
     text="${suffix#*\}\}}"
   done
@@ -1305,36 +1943,16 @@ print_template_section () {
 
 print_available_templates () {
   local -a names=()
-  local -a built_in_names=()
-  local -a custom_names=()
-  local -A available=()
   local name=''
 
   available_template_names
   names=( ${(s: :)REPLY} )
 
-  (( ${#names[@]} > 0 )) || die "No templates are available. Create one under $template_dir first."
-
-  for name in "${names[@]}"; do
-    available[$name]=1
-  done
-
-  for name in conventional-commit email-subject notification apa-citation status-update; do
-    if [[ -n ${available[$name]} ]]; then
-      built_in_names+=( "$name" )
-    fi
-  done
-
-  for name in "${names[@]}"; do
-    if [[ " ${built_in_names[*]} " != *" $name "* ]]; then
-      custom_names+=( "$name" )
-    fi
-  done
+  (( ${#names[@]} > 0 )) || die "No templates are available. Create one with '$progname template new <name>' first."
 
   print -- 'Available Templates'
   print -- ''
-  print_template_section 'Built-In Templates' "${built_in_names[@]}"
-  print_template_section 'Imported Templates' "${custom_names[@]}"
+  print_template_section 'Saved Templates' "${names[@]}"
   exit 0
 }
 
@@ -1369,6 +1987,7 @@ save_source_text () {
   source_file_path "$name"
   source_path="$REPLY"
   print -r -- "$source_text" >| "$source_path" || die "Could not write source file: $source_path"
+  REPLY="$source_path"
 }
 
 validate_config () {
@@ -1393,6 +2012,7 @@ validate_config () {
   valid_punctuation_mode "$punctuation_mode" || die "Invalid punctuation_mode in config: $punctuation_mode"
   [[ $copy_on_generate == 0 || $copy_on_generate == 1 ]] || die "copy_on_generate must be 0 or 1"
   [[ $emoji_enabled == 0 || $emoji_enabled == 1 ]] || die "emoji_enabled must be 0 or 1"
+  valid_emoji_probability "$emoji_probability" || die "Invalid emoji_probability in config: $emoji_probability"
   load_emoji_pool "$emoji_enabled"
 
   if (( ! source_set && ! custom_source_set )); then
@@ -1462,6 +2082,7 @@ emit_output () {
 
   if (( copy_enabled )); then
     copy_text "$text"
+    print -u2 -- "${bold}Copied to clipboard.${reset}"
   fi
 
   print -r -- "$text"
@@ -1776,23 +2397,28 @@ random_emoji () {
 emoji_count_for_length () {
   local -i text_length=$1
   local -i token_count=$2
+  local -i base_count=0
+  local -F scaled_count=0
+  local scaled_count_text=''
   local -i emoji_count=0
-  local -i remainder=0
 
-  if (( ! emoji_active || token_count <= 0 || ${#emoji_pool[@]} == 0 || text_length <= 0 )); then
+  if (( ! emoji_active || token_count <= 0 || ${#emoji_pool[@]} == 0 || text_length <= 0 )) || (( emoji_probability_active <= 0 )); then
     REPLY=0
     return
   fi
 
-  emoji_count=$(( text_length / 140 ))
-  remainder=$(( text_length % 140 ))
+  base_count=$(( (text_length + 139) / 140 ))
 
-  if (( remainder > 0 )) && (( RANDOM % 140 < remainder )); then
-    (( emoji_count++ ))
+  if (( base_count == 0 && text_length >= 30 )); then
+    base_count=1
   fi
 
-  if (( emoji_count == 0 && text_length >= 30 )) && (( RANDOM % 200 < text_length )); then
-    emoji_count=1
+  scaled_count=$(( base_count * emoji_probability_active ))
+  scaled_count_text="$scaled_count"
+  emoji_count="${scaled_count_text%%.*}"
+
+  if (( scaled_count > emoji_count )); then
+    (( emoji_count++ ))
   fi
 
   if (( emoji_count > token_count )); then
@@ -2100,8 +2726,11 @@ build_template () {
   template_exists "$selected_template" || die "Template not found: $selected_template"
   load_template_body "$selected_template"
   body="$REPLY"
+  parse_template_variable_declarations "$body"
+  body="$REPLY"
 
   while (( index <= count )); do
+    reset_template_variable_cache
     render_template_text "$body"
     items+=( "$REPLY" )
     (( index++ ))
@@ -2137,6 +2766,7 @@ typeset default_format='plain'
 typeset punctuation_mode='period'
 typeset -i copy_on_generate=0
 typeset -i emoji_enabled=0
+typeset -F 3 emoji_probability=0.5
 typeset emoji_charset="$default_emoji_charset"
 typeset default_source='lorem'
 
@@ -2146,12 +2776,18 @@ typeset template_dir="${LIPSUM_TEMPLATE_DIR:-$HOME/.lipsum/templates}"
 typeset legacy_dictionary_path="$HOME/.lipsum/words"
 typeset dictionary_override="${LIPSUM_DICT:-}"
 typeset bundled_source_dir="$script_dir/share/sources"
-typeset bundled_template_dir="$script_dir/share/templates"
 typeset bundled_dictionary_path="$script_dir/share/lorem.words"
 typeset dictionary_path=''
 typeset selected_source=''
 typeset resolved_source=''
 typeset selected_template=''
+typeset template_subcommand=''
+typeset template_from_path=''
+typeset managed_source_name=''
+typeset source_action_rename_to=''
+typeset -i source_action_delete=0
+typeset -i source_action_names=0
+typeset -i source_action_set_default=0
 typeset custom_source_text=''
 typeset custom_source_file=''
 typeset save_source_name=''
@@ -2189,6 +2825,8 @@ typeset -i copy_override=-1
 typeset -i copy_enabled=0
 typeset -i emoji_override=-1
 typeset -i emoji_active=0
+typeset emoji_probability_override=''
+typeset -F 3 emoji_probability_active=0.5
 typeset ordered_prefix=''
 typeset ordered_suffix=''
 typeset ordered_kind=''
@@ -2302,6 +2940,31 @@ while (( $# > 0 )); do
     --save-source=*)
       save_source_name="$(normalize_source_name "${1#*=}")"
       ;;
+    --from)
+      [[ -n $2 ]] || die 'Missing template seed path for --from'
+      template_from_path="$2"
+      shift
+      ;;
+    --from=*)
+      template_from_path="${1#*=}"
+      ;;
+    --delete)
+      source_action_delete=1
+      ;;
+    --names)
+      source_action_names=1
+      ;;
+    --rename)
+      [[ -n $2 ]] || die 'Missing new source name for --rename'
+      source_action_rename_to="$(normalize_source_name "$2")"
+      shift
+      ;;
+    --rename=*)
+      source_action_rename_to="$(normalize_source_name "${1#*=}")"
+      ;;
+    --set-default)
+      source_action_set_default=1
+      ;;
     --format)
       [[ -n $2 ]] || die "Missing format for --format"
       valid_output_format "$2" || die "Invalid output format: $2"
@@ -2314,6 +2977,12 @@ while (( $# > 0 )); do
       ;;
     --emoji)
       emoji_override=1
+      read_optional_emoji_probability "$2" && shift
+      ;;
+    --emoji=*)
+      valid_emoji_probability "${1#*=}" || die "Invalid emoji probability: ${1#*=}"
+      emoji_override=1
+      emoji_probability_override="${1#*=}"
       ;;
     --no-emoji)
       emoji_override=0
@@ -2392,6 +3061,9 @@ while (( $# > 0 )); do
             ;;
           e|E)
             emoji_override=1
+            if (( index == ${#cluster} )) && read_optional_emoji_probability "$2"; then
+              shift
+            fi
             ;;
           f|F)
             if (( index != ${#cluster} )); then
@@ -2431,7 +3103,18 @@ while (( $# > 0 )); do
       done
       ;;
 	    *)
-      if [[ $content_command == 'template' && -z $selected_template ]]; then
+      if (( action_set )) && [[ $action_command == 'sources' && -z $managed_source_name ]]; then
+        managed_source_name="$(normalize_source_name "$1")"
+      elif [[ $content_command == 'template' && -z $template_subcommand && -z $selected_template ]]; then
+        case "$1" in
+          new|edit)
+            template_subcommand="$1"
+            ;;
+          *)
+            selected_template="$(normalize_source_name "$1")"
+            ;;
+        esac
+      elif [[ $content_command == 'template' && -n $template_subcommand && -z $selected_template ]]; then
         selected_template="$(normalize_source_name "$1")"
       elif is_action_name "$1"; then
 	        if (( action_set )); then
@@ -2460,9 +3143,34 @@ while (( $# > 0 )); do
   shift
 done
 
+if [[ -n $template_subcommand ]]; then
+  if (( action_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' || -n $output_format ]]; then
+    die "The template action '$template_subcommand' cannot be combined with generation options or counts"
+  fi
+
+  [[ -n $selected_template ]] || die "A template name is required after 'template $template_subcommand'"
+
+  case "$template_subcommand" in
+    new)
+      create_template "$selected_template"
+      ;;
+    edit)
+      edit_template "$selected_template"
+      ;;
+  esac
+fi
+
+if [[ -n $template_from_path && -z $template_subcommand ]]; then
+  die '--from can only be used with template new or template edit'
+fi
+
 if (( action_set )); then
   if (( command_set || count_set || source_set || custom_source_set || ${#save_source_name} > 0 || bullets || ordered_list || range_set || copy_override >= 0 || emoji_override >= 0 || punctuation_option_set )) || [[ $case_mode != 'normal' || -n $output_format || -n $selected_template ]]; then
     die "The action '$action_command' cannot be combined with generation options or commands"
+  fi
+
+  if [[ $action_command != 'sources' ]] && { [[ -n $managed_source_name || -n $source_action_rename_to ]] || (( source_action_delete || source_action_names || source_action_set_default )); }; then
+    die "The action '$action_command' cannot be combined with flavor-management options"
   fi
 
   case "$action_command" in
@@ -2479,7 +3187,7 @@ load_config
 validate_config
 
 if (( action_set )) && [[ $action_command == 'sources' ]]; then
-  print_available_sources
+  handle_sources_action
 fi
 
 if (( action_set )) && [[ $action_command == 'templates' ]]; then
@@ -2520,7 +3228,10 @@ if (( custom_source_set )); then
   [[ -n $custom_source_text ]] || die 'Custom source text is empty'
 
   if [[ -n $save_source_name ]]; then
+    typeset saved_source_path=''
     save_source_text "$save_source_name" "$custom_source_text"
+    saved_source_path="$REPLY"
+    print -u2 -- "Saved as ${bold}$save_source_name${reset} to ${bold}$saved_source_path${reset}"
     resolved_source="$save_source_name"
   else
     resolved_source='custom'
@@ -2569,6 +3280,12 @@ if (( emoji_override >= 0 )); then
   emoji_active=$emoji_override
 else
   emoji_active=$emoji_enabled
+fi
+
+if [[ -n $emoji_probability_override ]]; then
+  emoji_probability_active=$emoji_probability_override
+else
+  emoji_probability_active=$emoji_probability
 fi
 
 if (( emoji_active )); then

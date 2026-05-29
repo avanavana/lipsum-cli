@@ -6,12 +6,11 @@ setopt pipe_fail
 typeset script_dir="${0:A:h}"
 typeset default_emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 typeset local_lipsum="$script_dir/lipsum"
+typeset local_lipsumize="$script_dir/lipsumize"
 typeset local_words="$script_dir/share/lorem.words"
 typeset local_sources_dir="$script_dir/share/sources"
-typeset local_templates_dir="$script_dir/share/templates"
 typeset raw_base_url="${LIPSUM_INSTALL_RAW_BASE:-https://raw.githubusercontent.com/avanavana/lipsum-cli/main}"
 typeset -a bundled_source_names=( hipster tech pirate food corporate es fr de )
-typeset -a bundled_template_names=( conventional-commit email-subject notification apa-citation status-update )
 
 typeset install_mode=''
 typeset bin_dir="${LIPSUM_INSTALL_BIN_DIR:-/usr/local/bin}"
@@ -21,10 +20,11 @@ typeset words_path="$config_dir/words"
 typeset sources_dir="$config_dir/sources"
 typeset templates_dir="$config_dir/templates"
 typeset target_script="$bin_dir/lipsum"
+typeset target_lipsumize="$bin_dir/lipsumize"
 typeset source_script=''
+typeset source_lipsumize=''
 typeset bundled_words=''
 typeset bundled_sources_dir=''
-typeset bundled_templates_dir=''
 typeset staged_dir=''
 typeset editor_cmd="${VISUAL:-${EDITOR:-vi}}"
 typeset -i tty_fd=-1
@@ -46,6 +46,7 @@ typeset default_format='plain'
 typeset punctuation_mode='period'
 typeset copy_on_generate=0
 typeset emoji_enabled=0
+typeset emoji_probability=0.5
 typeset emoji_charset="$default_emoji_charset"
 typeset default_source='lorem'
 
@@ -63,7 +64,7 @@ Install options:
   --interactive, --guided
                           Run the step-by-step configuration prompts.
   --editor-config        Open the config file in \$VISUAL, \$EDITOR, or vi.
-  --bin-dir <path>       Install the executable to a custom bin directory.
+  --bin-dir <path>       Install the executables to a custom bin directory.
   --help                 Show this help text.
 
 With no flags, the installer shows an interactive menu when a TTY is available.
@@ -122,33 +123,30 @@ download_file () {
 }
 
 prepare_payloads () {
-  if [[ -r $local_lipsum && -r $local_words && -d $local_sources_dir && -d $local_templates_dir ]]; then
+  if [[ -r $local_lipsum && -r $local_lipsumize && -r $local_words && -d $local_sources_dir ]]; then
     source_script="$local_lipsum"
+    source_lipsumize="$local_lipsumize"
     bundled_words="$local_words"
     bundled_sources_dir="$local_sources_dir"
-    bundled_templates_dir="$local_templates_dir"
     return
   fi
 
   staged_dir="$(mktemp -d "${TMPDIR:-/tmp}/lipsum-installer.XXXXXX")" || die "Could not create a staging directory"
   source_script="$staged_dir/lipsum"
+  source_lipsumize="$staged_dir/lipsumize"
   bundled_words="$staged_dir/lorem.words"
   bundled_sources_dir="$staged_dir/sources"
-  bundled_templates_dir="$staged_dir/templates"
 
   download_file "$raw_base_url/lipsum" "$source_script"
+  download_file "$raw_base_url/lipsumize" "$source_lipsumize"
   download_file "$raw_base_url/share/lorem.words" "$bundled_words"
   mkdir -p "$bundled_sources_dir" || die "Could not create staged source directory"
-  mkdir -p "$bundled_templates_dir" || die "Could not create staged template directory"
   local source_name=''
   for source_name in "${bundled_source_names[@]}"; do
     download_file "$raw_base_url/share/sources/$source_name.words" "$bundled_sources_dir/$source_name.words"
   done
-  local template_name=''
-  for template_name in "${bundled_template_names[@]}"; do
-    download_file "$raw_base_url/share/templates/$template_name.tpl" "$bundled_templates_dir/$template_name.tpl"
-  done
   chmod 755 "$source_script" || die "Could not mark staged lipsum executable"
+  chmod 755 "$source_lipsumize" || die "Could not mark staged lipsumize executable"
 }
 
 cleanup () {
@@ -186,6 +184,7 @@ default_format='$default_format'
 punctuation_mode='$punctuation_mode'
 copy_on_generate=$copy_on_generate
 emoji_enabled=$emoji_enabled
+emoji_probability=$emoji_probability
 emoji_charset='$emoji_charset'
 
 # Reserved for future source selection support.
@@ -543,22 +542,25 @@ ensure_directories () {
   mkdir -p "$config_dir" "$sources_dir" "$templates_dir" || die 'Could not create installation directories'
 }
 
-install_executable () {
+install_executables () {
   local target_dir="$target_script:h"
 
-  if mkdir -p "$target_dir" >/dev/null 2>&1 && cp "$source_script" "$target_script" >/dev/null 2>&1; then
+  if mkdir -p "$target_dir" >/dev/null 2>&1 && cp "$source_script" "$target_script" >/dev/null 2>&1 && cp "$source_lipsumize" "$target_lipsumize" >/dev/null 2>&1; then
     chmod 755 "$target_script" || die "Could not mark $target_script executable"
+    chmod 755 "$target_lipsumize" || die "Could not mark $target_lipsumize executable"
     return
   fi
 
   if command -v sudo >/dev/null 2>&1; then
     sudo mkdir -p "$target_dir" || die "Could not create $target_dir with sudo"
     sudo cp "$source_script" "$target_script" || die "Could not install lipsum to $target_script with sudo"
+    sudo cp "$source_lipsumize" "$target_lipsumize" || die "Could not install lipsumize to $target_lipsumize with sudo"
     sudo chmod 755 "$target_script" || die "Could not mark $target_script executable with sudo"
+    sudo chmod 755 "$target_lipsumize" || die "Could not mark $target_lipsumize executable with sudo"
     return
   fi
 
-  die "Could not install lipsum to $target_script. Re-run with --bin-dir or install sudo."
+  die "Could not install executables to $target_dir. Re-run with --bin-dir or install sudo."
 }
 
 install_corpus_files () {
@@ -577,12 +579,6 @@ install_corpus_files () {
     fi
   done
 
-  local template_name=''
-  for template_name in "${bundled_template_names[@]}"; do
-    if [[ ! -e $templates_dir/$template_name.tpl ]]; then
-      cp "$bundled_templates_dir/$template_name.tpl" "$templates_dir/$template_name.tpl" || die "Could not install bundled template: $template_name"
-    fi
-  done
 }
 
 backup_existing_config () {
@@ -639,18 +635,19 @@ show_path_hint () {
 
   if (( ! found )); then
     print -- ''
-    print -- "Add $bin_dir to your PATH to run lipsum directly."
+    print -- "Add $bin_dir to your PATH to run lipsum and lipsumize directly."
   fi
 }
 
 print_summary () {
   print -- ''
   print -- 'Installed lipsum-cli.'
-  print -- "Executable: $target_script"
-  print -- "Config:     $config_path"
-  print -- "Corpus:     $words_path"
-  print -- "Sources:    $sources_dir"
-  print -- "Templates:  $templates_dir"
+  print -- "Executable:  $target_script"
+  print -- "Companion:   $target_lipsumize"
+  print -- "Config:      $config_path"
+  print -- "Corpus:      $words_path"
+  print -- "Sources:     $sources_dir"
+  print -- "Templates:   $templates_dir"
   show_path_hint
 }
 
@@ -672,6 +669,7 @@ while (( $# > 0 )); do
       [[ -n $2 ]] || die 'Missing path for --bin-dir'
       bin_dir="$2"
       target_script="$bin_dir/lipsum"
+      target_lipsumize="$bin_dir/lipsumize"
       shift
       ;;
     --help)
@@ -689,7 +687,7 @@ setup_tty
 prepare_payloads
 choose_install_mode
 ensure_directories
-install_executable
+install_executables
 install_corpus_files
 
 case "$install_mode" in

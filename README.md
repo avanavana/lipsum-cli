@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD041 -->
+<!-- markdownlint-disable MD014 -->
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <img src=".github/logo.svg" alt="lipsum-cli logo" width="280">
 </p>
@@ -5,8 +8,7 @@
 <p align="center">
   Generator textus locorum reservatorum pro linea mandatorum est.
 </p>
-
----
+<!-- markdownlint-enable MD033 -->
 
 ## Features
 
@@ -15,6 +17,9 @@ Generate words, characters, lines, sentences, paragraphs, and reusable templates
 
 **Source-driven styles**
 Switch between classic lorem, hipster, tech, pirate, food, corporate, and i18n variants. You can also save your own source text from files, stdin, or inline input and reuse it by name.
+
+**Companion source importer**
+Use `lipsumize` to turn local text, HTML, EPUBs, stdin, or URLs into reusable corpora under `~/.lipsum/sources/`. It keeps ingestion separate from generation while sharing the same source library.
 
 **Design-friendly controls**
 Shape the output with bullets, ordered lists, punctuation modes, casing, emoji, and word-length filters. It works well for mockups, prototypes, demos, sample payloads, and content skeletons.
@@ -26,7 +31,27 @@ Render as plain text, HTML, Markdown, JSON, or NDJSON. That makes it easy to pip
 Keep your preferred source, format, ranges, and behavior in `~/.lipsum/config`. Clipboard support and shell-friendly defaults make it comfortable to use as a daily utility.
 
 **Templates for speed-dial content**
-Use built-in templates for notifications, email subjects, conventional commits, citations, and more, or define your own. And more. View full documentation below.
+Create and reuse your own structured placeholder formats for things like commits, citations, blog posts, and more. Seed templates from repo examples or start from a blank scaffold. And more. View full documentation below.
+
+## Demos
+
+### Demo 1: Core Generation
+
+<p>
+  <img src=".github/demo-1-shadow.webp" alt="Demo 1 showing core lipsum generation modes and formatting options." width="100%">
+</p>
+
+### Demo 2: Flavors And Custom Sources
+
+<p>
+  <img src=".github/demo-2-shadow.webp" alt="Demo 2 showing built-in flavors, inline sources, saved custom flavors, and file-based source creation." width="100%">
+</p>
+
+### Demo 3: Templates And Output Formats
+
+<p>
+  <img src=".github/demo-3-shadow.webp" alt="Demo 3 showing template creation, structured placeholder generation, and alternate output formats." width="100%">
+</p>
 
 ## Requirements
 
@@ -41,15 +66,18 @@ Use built-in templates for notifications, email subjects, conventional commits, 
 ## Installation
 
 The installer sets up:
+
 - `/usr/local/bin/lipsum`
+- `/usr/local/bin/lipsumize`
 - `~/.lipsum/config`
 - `~/.lipsum/words`
 - `~/.lipsum/sources/`
 - `~/.lipsum/templates/`
 
-By default the installer targets `/usr/local/bin/lipsum`. If that path needs elevated permissions, it uses `sudo` for the executable install step while keeping config and support files in your home directory.
+By default the installer targets `/usr/local/bin/lipsum` and `/usr/local/bin/lipsumize`. If that path needs elevated permissions, it uses `sudo` for the executable install step while keeping config and support files in your home directory.
 
 Bundled sources currently include:
+
 - `lorem`
 - `hipster`
 - `tech`
@@ -60,12 +88,10 @@ Bundled sources currently include:
 - `fr`
 - `de`
 
-Bundled templates currently include:
-- `conventional-commit`
-- `email-subject`
-- `notification`
-- `apa-citation`
-- `status-update`
+Example corpora and template seeds live in:
+
+- `examples/alice.txt`
+- `examples/templates/`
 
 From this project directory, run:
 
@@ -84,6 +110,7 @@ Install lipsum and configure with:
 ```
 
 Installer modes:
+
 - `defaults`
   - install immediately with the built-in defaults
 - `interactive mode`
@@ -99,12 +126,6 @@ $ ./install.sh --interactive
 $ EDITOR=nano ./install.sh --editor-config
 ```
 
-If you prefer not to install yet, you can still run the script directly from the repo:
-
-```sh
-$ ./lipsum 5 words
-```
-
 Once this repo is hosted publicly, the same installer can also be piped from the raw `install.sh` URL for a one-command setup.
 
 ## Usage
@@ -118,6 +139,14 @@ $ lipsum [ other-action ]
 ```
 
 Modes are subcommands only. They are not available as flags.
+
+`lipsumize` uses this companion syntax:
+
+```text
+$ lipsumize [ options ] name input
+```
+
+where `input` can be a local text file, local HTML file, local EPUB, `-` for stdin, or an `http://` / `https://` URL.
 
 ## Commands
 
@@ -141,12 +170,22 @@ If you omit the command, the default mode is `words` unless changed in config.
   - Open the config file in `$VISUAL`, `$EDITOR`, or `vi`.
 - `sources`
 - `list-sources`
-  - List built-in and imported named source corpora, show the configured default, and print a sample paragraph for each source.
+  - `lipsum sources`
+    - List built-in and imported named source corpora, show the configured default, and print a sample paragraph for each source.
+  - `lipsum sources <source>`
+    - Show details for one source, including its title, slug, type, resolved path, and a sample paragraph.
+  - `lipsum sources <source> --delete`
+    - Delete an imported source after confirmation. Built-in sources cannot be deleted.
+  - `lipsum sources <source> --rename <new-name>`
+    - Rename an imported source. If it was the default source, config is updated automatically.
+  - `lipsum sources <source> --set-default`
+    - Set that source as the default in `~/.lipsum/config`.
 - `templates`
 - `list-templates`
-  - List built-in and imported templates and print a sample render for each one.
+  - List saved templates and print a sample render for each one.
 
 Notes:
+
 - `lipsum config` creates the config file first if it does not exist.
 - After the editor exits, `lipsum config` validates the file immediately.
 - There is no `reload` command because the utility reads config fresh on every run.
@@ -168,6 +207,8 @@ Notes:
   - Use a file's contents as the source corpus for this invocation.
 - `--save-source name`
   - Save custom text or file input as a reusable named source under `~/.lipsum/sources/`.
+- `--from path`
+  - Seed `lipsum template new ...` or `lipsum template edit ...` from an example template file.
 - `-f`, `-F`, `--format name`
   - Render generated output as `plain`, `html`, `markdown`, `json`, or `ndjson`.
 - `-b`, `-B`, `--bullets [char]`
@@ -182,8 +223,9 @@ Notes:
   - `period` preserves the old behavior of sentence-ending periods.
   - `end` allows `.`, `!`, and `?` as ending punctuation.
   - `all` also sprinkles punctuation such as commas, parentheses, hyphens, and em dashes among words.
-- `-e`, `-E`, `--emoji`
+- `-e`, `-E`, `--emoji [0.0-1.0]`
   - Mix emoji into generated output.
+  - The optional value controls emoji density, with `0.5` as the default.
   - Emoji are sparse and biased toward the ends of the generated text.
   - For `words`, emoji count toward the requested word total.
   - For `characters`, output length becomes approximate when emoji are enabled.
@@ -256,6 +298,15 @@ $ lipsum sources
 
 That screen separates built-in sources from imported custom sources, labels the current default, and shows a sample paragraph for each source.
 
+You can also inspect and manage one source at a time:
+
+```sh
+$ lipsum sources corporate
+$ lipsum sources customdemo --rename renamed-demo
+$ lipsum sources customdemo --set-default
+$ lipsum sources customdemo --delete
+```
+
 You can select a source for a single invocation with:
 
 ```sh
@@ -263,7 +314,7 @@ $ lipsum --source hipster 8 words
 $ lipsum --source tech 2 paragraphs
 $ lipsum --source corporate 5 lines
 $ lipsum -s es 2 paragraphs
-$ lipsum 140 characters -e -p none
+$ lipsum 140 characters --emoji 1.0 -p none
 $ lipsum 18 words -e -s tech
 $ lipsum 12 words -p all
 ```
@@ -275,6 +326,7 @@ default_source='hipster'
 ```
 
 Source lookup works like this:
+
 - for `lorem`, the CLI first uses `LIPSUM_DICT` when set, then `~/.lipsum/sources/lorem.words`, then the legacy `~/.lipsum/words`
 - for other source names, the CLI loads `~/.lipsum/sources/<name>.words`
 
@@ -291,6 +343,16 @@ To save custom input for reuse:
 ```sh
 $ printf 'atlas ember harbor signal twilight' | lipsum --text - --save-source customdemo 4 words
 $ lipsum --source customdemo 6 words
+```
+
+Or create a reusable source corpus with `lipsumize`:
+
+```sh
+$ lipsumize bookish ~/Documents/book.txt
+$ lipsumize startup-copy ./landing-page.html
+$ lipsumize example-site https://www.example.com
+$ curl -fsSL https://example.com | lipsumize example-site -
+$ lipsum --source example-site 8 words
 ```
 
 ### Words
@@ -345,12 +407,21 @@ For `characters`, `--range` is ignored.
 
 For `template`, the top-level count controls how many rendered template items are produced.
 
+Template management commands:
+
+```sh
+$ lipsum template new conventional-commit
+$ lipsum template edit conventional-commit
+$ lipsum template new blog-post --from examples/templates/blog-post.tpl
+```
+
 Examples:
 
 ```sh
-$ lipsum template notification
+$ lipsum template new conventional-commit --from examples/templates/conventional-commit.tpl
 $ lipsum 3 template conventional-commit -p none
-$ lipsum template apa-citation 2
+$ lipsum template new blog-post --from examples/templates/blog-post.tpl
+$ lipsum template blog-post 2
 ```
 
 If you also pass `--range` with `template`, it acts like `words` mode and filters the word lengths used inside template placeholders such as `{{words(2-5)}}`.
@@ -366,6 +437,7 @@ $ lipsum 6 words -f ndjson -p none -l
 ```
 
 Current renderer behavior:
+
 - `plain`
   - The existing CLI output.
 - `html`
@@ -411,7 +483,7 @@ $ lipsum --source fr 8 words
 $ lipsum --text 'alpha beta gamma delta epsilon' 3 words
 $ lipsum 100 characters
 $ lipsum 3 paragraphs
-$ lipsum template notification
+$ lipsum template new conventional-commit --from examples/templates/conventional-commit.tpl
 $ lipsum 3 template conventional-commit -p none
 ```
 
@@ -476,10 +548,20 @@ Templates:
 
 ```sh
 $ lipsum templates
-$ lipsum template notification
+$ lipsum template new conventional-commit --from examples/templates/conventional-commit.tpl
 $ lipsum 3 template conventional-commit -p none
-$ lipsum template apa-citation 2
-$ lipsum 2 template email-subject -f json
+$ lipsum template new blog-post --from examples/templates/blog-post.tpl
+$ lipsum 2 template blog-post -f json
+```
+
+Source management:
+
+```sh
+$ lipsum sources
+$ lipsum sources corporate
+$ lipsum sources customdemo --rename renamed-demo
+$ lipsum sources renamed-demo --set-default
+$ printf 'y\n' | lipsum sources renamed-demo --delete
 ```
 
 Pipelines and shell usage:
@@ -536,6 +618,7 @@ default_format='plain'
 punctuation_mode='period'
 copy_on_generate=0
 emoji_enabled=0
+emoji_probability=0.5
 emoji_charset='😀 😅 😂 🤣 🥲 🙂 😍 😛 🤓 😎 🤩 🥳 😕 🙁 😭 😡 🤔 🫡 😬 🙄 😮 💩 💀 🤖 🫶 🙌 👏 👍 👎 🤌 💪 🦾 🙏 👀 🧠 🧌 🤦 💅 👯‍♀️ 🧵 🌹 🌙 ✨ 🔥 💦 🍑 🍆 🍺 🍻 🏆 ✈️ 🚀 💡 💸 💎 🎉 🩷 ❤️ 💜 🖤 💔 ❌ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅ 😀 😅 😂 🙂 😍 👏 👍 🙏 🤦 💅 ✨ 🔥 🚀 💡 🎉 ❤️ 💯 ✅'
 
 default_source='lorem'
@@ -548,6 +631,7 @@ Notes:
 - `default_format='plain'` keeps the existing CLI behavior, while `html`, `markdown`, `json`, and `ndjson` change the renderer used when you do not pass `--format`.
 - `copy_on_generate=1` makes clipboard copying the default.
 - `emoji_enabled=1` makes emoji mixing the default.
+- `emoji_probability=0.5` controls the default emoji density whenever emoji are enabled.
 - `emoji_charset` is a space-separated weighted pool, so repeating an emoji makes it more likely to appear.
 - The bundled default is heavily weighted toward the common subset, so those emoji account for a bit over three-quarters of default picks.
 - If you edit the config externally and introduce an error, that error appears the next time you run `lipsum`.
@@ -576,8 +660,9 @@ Notes:
 
 - `LIPSUM_MAX_CHARACTERS` can be larger than the source corpus length because character mode repeats the source text internally until it has enough material to sample from cleanly.
 - Range filtering for `words` and range sizing for `lines`, `sentences`, and `paragraphs` are intentionally different behaviors.
-- Templates are stored as `.tpl` files under `~/.lipsum/templates/` and bundled examples also ship in `share/templates/`.
-- Template placeholders currently support `{{words(...)}}`, `{{sentence(...)}}`, `{{number(...)}}`, `{{choice(...)}}`, and `{{emoji(...)}}`.
+- Templates are stored as `.tpl` files under `~/.lipsum/templates/`. Repo examples live under `examples/templates/` and can be used with `lipsum template new ... --from ...`.
+- Template placeholders currently support `{{words(...)}}`, `{{sentence(...)}}`, `{{number(...)}}`, `{{choice(...)}}`, `{{concat(...)}}`, `{{opt(...)}}`, and `{{emoji(...)}}`.
+- Templates can declare reusable variables on their own lines with `$name = expression`, then reference them inside placeholders with `{{$name}}` or pass them into other expressions such as `{{opt($scope, 0.4)}}`.
 - Range is ignored for `characters`.
 - Emoji are sparse by design and biased toward the ends of words, lines, sentences, and paragraphs.
 
@@ -604,17 +689,17 @@ Implemented:
 - named sources and custom source input
 - built-in alternate source styles
 - output renderers
-- built-in and custom templates
+- user-defined templates with example seeds
 - configurable emoji mixing
 - case formatting controls
 - word-length filters and per-unit ranges
 - bullets and ordered lists
 - config-backed defaults
 - built-in clipboard copying
+- companion `lipsumize` corpus importing
 - conventional branch validation in CI
 - semantic-release based GitHub release automation
 
 Planned next:
 
 - richer template tokens and structure controls
-- a separate `lipsumize` ingestion CLI
