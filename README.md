@@ -33,6 +33,26 @@ Keep your preferred source, format, ranges, and behavior in `~/.lipsum/config`. 
 **Templates for speed-dial content**
 Create and reuse your own structured placeholder formats for things like commits, citations, blog posts, and more. Seed templates from repo examples or start from a blank scaffold. And more. View full documentation below.
 
+## Demos
+
+### Demo 1: Core Generation
+
+<p>
+  <img src=".github/demo-1-shadow.webp" alt="Demo 1 showing core lipsum generation modes and formatting options." width="100%">
+</p>
+
+### Demo 2: Flavors And Custom Sources
+
+<p>
+  <img src=".github/demo-2-shadow.webp" alt="Demo 2 showing built-in flavors, inline sources, saved custom flavors, and file-based source creation." width="100%">
+</p>
+
+### Demo 3: Templates And Output Formats
+
+<p>
+  <img src=".github/demo-3-shadow.webp" alt="Demo 3 showing template creation, structured placeholder generation, and alternate output formats." width="100%">
+</p>
+
 ## Requirements
 
 - `zsh`

@@ -1,4 +1,4 @@
-Output .github/demo-2.gif
+Output .github/demo-2_b.gif
 
 Require lipsum
 Require lipsumize
@@ -11,8 +11,8 @@ Set Theme "Dracula"
 Set Width 1200
 Set Height 920
 Set Padding 20
-Set Margin 20
-Set MarginFill "#737373"
+Set Margin 40
+Set MarginFill "#1e1f29"
 Set BorderRadius 10
 Set TypingSpeed 40ms
 
